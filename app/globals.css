@@ -60,10 +60,11 @@ body {
    Use these instead of ad-hoc text-4xl/5xl so sizing stays consistent.
 --------------------------------------------------------------------------- */
 .text-hero {
-  /* Lower min so the longest line ("No negotiation. No friction.") fits on a
-     phone without wrapping — the hero is kept to two stacked lines.
+  /* Sized so the longest line ("No negotiation. No friction.") always fits the
+     viewport (incl. the hero's horizontal padding) without wrapping — the 5.4vw
+     term keeps a safe margin so it never forces horizontal overflow in Safari.
      line-height has room so gradient-text descenders (the "g") aren't clipped. */
-  font-size: clamp(1.5rem, 6vw, 4.75rem);
+  font-size: clamp(1.45rem, 5.4vw, 4.25rem);
   letter-spacing: -0.035em;
   line-height: 1.12;
 }
@@ -110,26 +111,35 @@ body {
 /* ---------------------------------------------------------------------------
    Soft animated gradient backdrop (hero). Very subtle, slow drift.
 --------------------------------------------------------------------------- */
+/* Drift via background-position only — no transform/filter/negative insets, so
+   the glow can't escape its box. (Safari lets composited, blurred, animated
+   layers leak past `overflow:hidden`, which caused horizontal overflow.) */
 @keyframes drift {
   0%,
   100% {
-    transform: translate3d(-4%, -2%, 0) scale(1.05);
+    background-position:
+      0% 0%,
+      100% 0%;
   }
   50% {
-    transform: translate3d(4%, 2%, 0) scale(1.15);
+    background-position:
+      45% 55%,
+      55% 45%;
   }
 }
 
 .aurora {
   position: absolute;
-  inset: -25% -10% auto -10%;
-  height: 120%;
+  inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(38% 48% at 28% 26%, rgba(55, 23, 182, 0.32), transparent 72%),
-    radial-gradient(32% 42% at 72% 36%, rgba(132, 105, 237, 0.22), transparent 72%);
-  filter: blur(80px);
-  animation: drift 24s ease-in-out infinite;
+  background-image:
+    radial-gradient(45% 55% at 30% 28%, rgba(55, 23, 182, 0.3), transparent 70%),
+    radial-gradient(40% 50% at 70% 38%, rgba(132, 105, 237, 0.2), transparent 70%);
+  background-size:
+    170% 170%,
+    170% 170%;
+  background-repeat: no-repeat;
+  animation: drift 26s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
