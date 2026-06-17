@@ -3,9 +3,14 @@ import { getCurrentUser } from "@/lib/session";
 import type {
   AppUser,
   Booking,
+  BrandProfile,
   CreatorProfile,
+  Message,
   PortfolioItem,
 } from "@/lib/types";
+
+const BRAND_PROFILE_COLUMNS =
+  "user_id, company_name, about, budget_min, budget_max, looking_for_creators, created_at";
 
 /** Every column on creator_profiles — shared so selects stay in sync. */
 export const CREATOR_PROFILE_COLUMNS =
@@ -96,6 +101,172 @@ export async function getBookingDetail(
   ]);
 
   return { booking, creator: creator ?? null, brand: brand ?? null };
+}
+
+/** A brand's own profile (used on the brand dashboard). */
+export async function getBrandProfile(
+  userId: string,
+): Promise<BrandProfile | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("brand_profiles")
+    .select(BRAND_PROFILE_COLUMNS)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data ?? null;
+}
+
+/** Brands actively looking for creators (the creator-facing directory). */
+export async function listBrandsLookingForCreators(): Promise<BrandProfile[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("brand_profiles")
+    .select(BRAND_PROFILE_COLUMNS)
+    .eq("looking_for_creators", true)
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+export interface ConversationSummary {
+  id: string;
+  counterpartName: string;
+  lastMessage: string | null;
+  lastAt: string | null;
+}
+
+/** Conversations the current user is part of, with counterpart + last message. */
+export async function getMyConversations(): Promise<ConversationSummary[]> {
+  const me = await getCurrentUser();
+  if (!me) return [];
+  const supabase = await createClient();
+
+  // RLS scopes these to conversations I'm a party on.
+  const { data: convos } = await supabase
+    .from("conversations")
+    .select("id, brand_id, creator_id, booking_id, created_at")
+    .order("created_at", { ascending: false });
+  if (!convos || convos.length === 0) return [];
+
+  const creatorIds = [...new Set(convos.map((c) => c.creator_id))];
+  const brandIds = [...new Set(convos.map((c) => c.brand_id))];
+  const ids = convos.map((c) => c.id);
+
+  const [{ data: creators }, { data: brands }, { data: msgs }] =
+    await Promise.all([
+      supabase.from("creator_profiles").select("user_id, name").in("user_id", creatorIds),
+      supabase.from("brand_profiles").select("user_id, company_name").in("user_id", brandIds),
+      supabase
+        .from("messages")
+        .select("conversation_id, body, created_at")
+        .in("conversation_id", ids)
+        .order("created_at", { ascending: false }),
+    ]);
+
+  const creatorName = new Map((creators ?? []).map((c) => [c.user_id, c.name]));
+  const brandName = new Map((brands ?? []).map((b) => [b.user_id, b.company_name]));
+  const lastByConvo = new Map<string, { body: string; created_at: string }>();
+  for (const m of msgs ?? []) {
+    if (!lastByConvo.has(m.conversation_id)) {
+      lastByConvo.set(m.conversation_id, { body: m.body, created_at: m.created_at });
+    }
+  }
+
+  return convos.map((c) => {
+    const last = lastByConvo.get(c.id);
+    const counterpart =
+      me.role === "brand"
+        ? (creatorName.get(c.creator_id) ?? "Creator")
+        : (brandName.get(c.brand_id) ?? "Brand");
+    return {
+      id: c.id,
+      counterpartName: counterpart,
+      lastMessage: last?.body ?? null,
+      lastAt: last?.created_at ?? null,
+    };
+  });
+}
+
+export interface ConversationDetail {
+  id: string;
+  counterpartName: string;
+  bookingId: string | null;
+  messages: Message[];
+}
+
+/** A single conversation with its messages, scoped by RLS to its parties. */
+export async function getConversation(
+  id: string,
+): Promise<ConversationDetail | null> {
+  const me = await getCurrentUser();
+  if (!me) return null;
+  const supabase = await createClient();
+
+  const { data: convo } = await supabase
+    .from("conversations")
+    .select("id, brand_id, creator_id, booking_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (!convo) return null;
+
+  const counterpartId = me.role === "brand" ? convo.creator_id : convo.brand_id;
+  const [{ data: messages }, counterpartName] = await Promise.all([
+    supabase
+      .from("messages")
+      .select("id, conversation_id, sender_id, body, created_at")
+      .eq("conversation_id", id)
+      .order("created_at", { ascending: true }),
+    me.role === "brand"
+      ? supabase
+          .from("creator_profiles")
+          .select("name")
+          .eq("user_id", counterpartId)
+          .maybeSingle()
+          .then((r) => r.data?.name ?? "Creator")
+      : supabase
+          .from("brand_profiles")
+          .select("company_name")
+          .eq("user_id", counterpartId)
+          .maybeSingle()
+          .then((r) => r.data?.company_name ?? "Brand"),
+  ]);
+
+  return {
+    id: convo.id,
+    counterpartName,
+    bookingId: convo.booking_id,
+    messages: messages ?? [],
+  };
+}
+
+/** Find (or lazily create) the conversation tied to a booking. */
+export async function getOrCreateBookingConversation(
+  bookingId: string,
+  brandId: string,
+  creatorId: string,
+): Promise<string | null> {
+  const supabase = await createClient();
+
+  const existing = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("booking_id", bookingId)
+    .maybeSingle();
+  if (existing.data) return existing.data.id;
+
+  const inserted = await supabase
+    .from("conversations")
+    .insert({ brand_id: brandId, creator_id: creatorId, booking_id: bookingId })
+    .select("id")
+    .maybeSingle();
+  if (inserted.data) return inserted.data.id;
+
+  // Race: another request created it first — re-read.
+  const retry = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("booking_id", bookingId)
+    .maybeSingle();
+  return retry.data?.id ?? null;
 }
 
 export interface BookingRow extends Booking {

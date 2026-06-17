@@ -45,12 +45,32 @@ export interface CreatorProfile {
   followers_synced_at: string | null;
 }
 
-/** One uploaded portfolio image for a creator. */
+/** One uploaded portfolio item (a 9:16 vertical video) for a creator. */
 export interface PortfolioItem {
   id: string;
   creator_id: string;
-  image_url: string;
+  image_url: string; // media URL (now a video)
   storage_path: string | null;
   sort_order: number;
+  created_at: string;
+}
+
+/** A brand's profile — what they're looking for. */
+export interface BrandProfile {
+  user_id: string;
+  company_name: string;
+  about: string | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  looking_for_creators: boolean;
+  created_at: string;
+}
+
+/** A message inside a conversation. */
+export interface Message {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  body: string;
   created_at: string;
 }

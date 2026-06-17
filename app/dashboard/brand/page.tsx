@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { listMyBookings } from "@/lib/queries";
+import { listMyBookings, getBrandProfile } from "@/lib/queries";
 import { BookingCard } from "@/components/BookingCard";
+import { BrandProfileForm } from "@/components/BrandProfileForm";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/motion";
 import { gbp } from "@/lib/format";
@@ -14,7 +15,10 @@ export default async function BrandDashboard() {
   if (!me) redirect("/login");
   if (me.role !== "brand") redirect("/dashboard/creator");
 
-  const bookings = await listMyBookings();
+  const [bookings, brandProfile] = await Promise.all([
+    listMyBookings(),
+    getBrandProfile(me.id),
+  ]);
   const active = bookings.filter(
     (b) => !["completed", "declined", "refunded"].includes(b.status),
   );
@@ -47,6 +51,16 @@ export default async function BrandDashboard() {
           past.filter((b) => b.status === "completed").length,
         )} />
       </div>
+
+      {/* Brand profile */}
+      <section className="mt-12 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-7">
+        <h2 className="text-h3 font-semibold">Brand profile</h2>
+        <p className="mb-5 mt-1 text-sm text-[var(--muted)]">
+          Turn on “Looking for creators” to appear in the creator directory and
+          get messages from creators.
+        </p>
+        <BrandProfileForm profile={brandProfile} />
+      </section>
 
       {/* Active */}
       <section className="mt-12">

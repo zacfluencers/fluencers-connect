@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
 import {
@@ -44,6 +44,9 @@ export default async function CreatorPage({
   ]);
 
   if (!creator) notFound();
+
+  // Creators can't browse other creators (their own profile is fine).
+  if (me?.role === "creator" && me.id !== id) redirect("/brands");
 
   const viewerRole = me?.role ?? null;
   const ig = formatFollowers(creator.instagram_followers);
@@ -137,17 +140,17 @@ export default async function CreatorPage({
             <h2 className="mb-5 text-xl font-semibold text-[var(--foreground)]">
               Portfolio
             </h2>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {portfolio.map((item) => (
                 <div
                   key={item.id}
-                  className="aspect-square overflow-hidden rounded-xl bg-[var(--surface-2)]"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  className="aspect-[9/16] overflow-hidden rounded-xl bg-black"
+                >                  <video
                     src={item.image_url}
-                    alt="Portfolio work"
-                    className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                    className="h-full w-full object-cover"
+                    controls
+                    playsInline
+                    preload="metadata"
                   />
                 </div>
               ))}

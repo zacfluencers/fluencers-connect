@@ -21,8 +21,13 @@ export async function Nav() {
         </Link>
 
         <div className="ml-2 hidden items-center gap-1 text-sm md:flex">
-          <NavLink href="/marketplace">Browse</NavLink>
-          {me && <NavLink href="/favorites">Favourites</NavLink>}
+          {me?.role === "creator" ? (
+            <NavLink href="/brands">Brands</NavLink>
+          ) : (
+            <NavLink href="/marketplace">Browse</NavLink>
+          )}
+          {me?.role === "brand" && <NavLink href="/favorites">Favourites</NavLink>}
+          {me && <NavLink href="/messages">Messages</NavLink>}
           {me && <NavLink href="/bookings">Bookings</NavLink>}
           {me && <NavLink href={dashboardHref}>Dashboard</NavLink>}
         </div>

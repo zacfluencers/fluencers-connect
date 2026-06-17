@@ -25,7 +25,11 @@ Migrations live in `supabase/migrations/`.
 
 **`0003_auth_user_provisioning.sql`** — when someone signs up, automatically creates their row in `users` with the role they picked. Also lets the two people on a booking see each other's basic account info.
 
-**`0004`–`0008`** — locked down the signup function; added **portfolio** (a `portfolio_items` table + a Supabase Storage bucket for uploaded images), **favourites** (a `favorites` table), and **follower counts** (Instagram/TikTok numbers on a creator profile).
+**`0004`–`0008`** — locked down the signup function; added **portfolio** (a `portfolio_items` table + a Supabase Storage bucket for uploaded media — now vertical videos), **favourites** (a `favorites` table), and **follower counts** (Instagram/TikTok numbers on a creator profile).
+
+**`0009_brand_profiles.sql`** — brands get a profile (company name, what they're looking for, budget) and a "Looking for creators" toggle; visible to creators when on.
+
+**`0010_messaging.sql`** — real messaging: `conversations` (between a brand and a creator, optionally tied to a booking) and `messages`. Powers both the booking deal room and direct creator→brand chats.
 
 Notes:
 - Every table has Row Level Security on. People only see their own data; creator profiles are public so brands can browse; the two parties on a booking can see each other.
@@ -72,6 +76,16 @@ The site reads creators from Supabase. To switch it on, copy `.env.local.example
 - 2026-06-17: Added email/password accounts (Supabase Auth) with brand/creator roles, and the full booking flow — request, accept/decline, the requested→accepted→in_progress→in_review→completed status journey, revision requests (max 3), a creator dashboard, and booking pages. Still no payments or subscriptions.
 - 2026-06-17: Added **portfolio image uploads** (stored in Supabase Storage), a **niche dropdown** of popular creator niches (replacing free text), **favourites** (save creators with a heart), and **follower counts** on profiles/cards.
 - 2026-06-17: **Full visual redesign** to a dark-first, premium SaaS look on the strict brand palette — new landing page, reusable `components/ui/` design system, Framer Motion throughout (grain + glow + animated gradient), a brand dashboard, and a "deal room" booking detail page (stepper, message thread, content delivery, revision counter, dispute modal).
+- 2026-06-17: Restyled toward a clean dark-mode-Airbnb feel (borderless photo cards, calmer buttons, more whitespace, responsive type scale, save icon).
+- 2026-06-17: **Portfolios are now 9:16 vertical videos**; **creators can no longer see/favourite other creators** (they browse the new **Brands** directory instead); added **brand profiles** with a "Looking for creators" toggle; and shipped **real persisted messaging** (powers both the brands outreach and the booking deal room).
+
+## Two-sided access (who sees what)
+- **Brands** browse the **creator** marketplace, favourite creators, and book them.
+- **Creators** don't see or favourite other creators — instead they browse the **Brands** directory (`/brands`) of brands that are "looking for creators" and can **message** them directly.
+- **Portfolios are vertical videos** (9:16). Creators upload MP4/MOV on their dashboard; they play in a locked 9:16 frame on their profile.
+
+## Messaging (`/messages`, `/messages/[id]`)
+Real, saved conversations. Started two ways: a creator messaging a brand from the Brands directory, or the per-booking thread inside the deal room. Each conversation is private to its two people.
 
 ## Live follower sync — not connected yet
 Follower counts are entered manually by creators for now. True live sync from Instagram/TikTok needs external developer-app approvals (Meta + TikTok) or a paid creator-data provider (e.g. Modash/Phyllo) plus API keys you'd provide. The database columns and an integration seam (`lib/social/sync.ts`) are ready so it can be plugged in later without rework.

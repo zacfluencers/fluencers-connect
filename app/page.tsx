@@ -26,6 +26,7 @@ export default async function LandingPage() {
     getFavoriteIds(),
     getCurrentUser(),
   ]);
+  const isCreator = me?.role === "creator";
 
   return (
     <main>
@@ -69,24 +70,40 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* -------------------------------------------------- Creator preview grid */}
+      {/* -------------------------------------------------- Featured / for-creators */}
       <section className="mx-auto max-w-7xl px-6 pb-28 sm:pb-36">
         <RevealOnView className="mb-10 flex items-end justify-between">
           <div>
-            <h2 className="text-h2 h-display font-semibold">Featured creators</h2>
+            <h2 className="text-h2 h-display font-semibold">
+              {isCreator ? "Brands hiring now" : "Featured creators"}
+            </h2>
             <p className="text-lead mt-2 text-[var(--muted)]">
-              A glimpse of the talent on the platform.
+              {isCreator
+                ? "Brands actively looking for creators like you."
+                : "A glimpse of the talent on the platform."}
             </p>
           </div>
           <Link
-            href="/marketplace"
+            href={isCreator ? "/brands" : "/marketplace"}
             className="hidden text-sm text-[var(--accent-2)] underline-offset-4 hover:underline sm:block"
           >
             View all →
           </Link>
         </RevealOnView>
 
-        {creators.length > 0 ? (
+        {isCreator ? (
+          <RevealOnView>
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center sm:p-14">
+              <h3 className="text-h3 font-semibold">Find your next collaboration</h3>
+              <p className="mx-auto mt-2 max-w-md text-[var(--muted)]">
+                Browse brands looking for creators and start a conversation.
+              </p>
+              <div className="mt-6 flex justify-center">
+                <ButtonLink href="/brands">Browse brands</ButtonLink>
+              </div>
+            </div>
+          </RevealOnView>
+        ) : creators.length > 0 ? (
           <div className="grid grid-cols-1 gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {creators.map((c, i) => (
               <Reveal key={c.user_id} index={i}>

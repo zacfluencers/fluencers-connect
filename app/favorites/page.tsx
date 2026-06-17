@@ -10,6 +10,8 @@ export const metadata = { title: "Favourites — Influencer Connect" };
 export default async function FavoritesPage() {
   const me = await getCurrentUser();
   if (!me) redirect("/login");
+  // Favourites are for brands saving creators.
+  if (me.role === "creator") redirect("/brands");
 
   const creators = await getFavoriteCreators();
 

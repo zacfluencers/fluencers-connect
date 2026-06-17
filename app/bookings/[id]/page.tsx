@@ -1,52 +1,22 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { getBookingDetail } from "@/lib/queries";
+import {
+  getBookingDetail,
+  getOrCreateBookingConversation,
+  getConversation,
+} from "@/lib/queries";
 import { availableActions, MAX_REVISIONS, STATUS_META } from "@/lib/bookings";
 import { Stepper } from "@/components/ui/Stepper";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BookingActions } from "@/components/BookingActions";
 import { DisputeButton } from "@/components/DisputeButton";
-import { MessageThread } from "@/components/MessageThread";
+import { Conversation } from "@/components/Conversation";
 import { ContentDelivery } from "@/components/ContentDelivery";
 import { gbp } from "@/lib/format";
-import type { BookingStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-type SeedMessage = {
-  id: string;
-  author: "me" | "them" | "system";
-  name: string;
-  text: string;
-  time: string;
-};
-
-function seedMessages(status: BookingStatus, creatorName: string): SeedMessage[] {
-  const msgs: SeedMessage[] = [
-    { id: "s0", author: "system", name: "", text: "Booking request sent", time: "" },
-  ];
-  if (!["requested", "declined"].includes(status)) {
-    msgs.push({
-      id: "m1",
-      author: "them",
-      name: creatorName,
-      text: "Thanks for the booking! I'll get started and share a first cut soon.",
-      time: "earlier",
-    });
-  }
-  if (["in_review", "completed"].includes(status)) {
-    msgs.push({
-      id: "m2",
-      author: "them",
-      name: creatorName,
-      text: "Content delivered above — let me know if you'd like any tweaks.",
-      time: "earlier",
-    });
-  }
-  return msgs;
-}
 
 export default async function DealRoomPage({
   params,
@@ -66,6 +36,16 @@ export default async function DealRoomPage({
   const canDispute =
     me.role === "brand" &&
     ["accepted", "in_progress", "in_review"].includes(booking.status);
+
+  // Real, persisted message thread for this booking.
+  const conversationId = await getOrCreateBookingConversation(
+    booking.id,
+    booking.brand_id,
+    booking.creator_id,
+  );
+  const conversation = conversationId
+    ? await getConversation(conversationId)
+    : null;
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-16">
@@ -103,11 +83,20 @@ export default async function DealRoomPage({
 
           <Card className="flex h-[460px] flex-col p-6">
             <h2 className="mb-4 text-lg font-semibold">Messages</h2>
-            <MessageThread
-              selfName="You"
-              otherName={me.role === "brand" ? creatorName : (brand?.email ?? "the brand")}
-              seed={seedMessages(booking.status, creatorName)}
-            />
+            {conversation ? (
+              <Conversation
+                conversationId={conversation.id}
+                currentUserId={me.id}
+                counterpartName={
+                  me.role === "brand" ? creatorName : (brand?.email ?? "the brand")
+                }
+                messages={conversation.messages}
+              />
+            ) : (
+              <p className="text-sm text-[var(--muted)]">
+                Messaging will be available shortly.
+              </p>
+            )}
           </Card>
         </div>
 

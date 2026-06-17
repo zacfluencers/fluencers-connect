@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { CreatorCard } from "@/components/CreatorCard";
 import { MarketplaceFilters } from "@/components/MarketplaceFilters";
@@ -44,6 +45,10 @@ export default async function MarketplacePage({
 }) {
   const { niche, available } = await searchParams;
 
+  // Creators don't browse other creators — send them to the brand directory.
+  const me = await getCurrentUser();
+  if (me?.role === "creator") redirect("/brands");
+
   // Graceful state when the database isn't connected yet.
   if (!isSupabaseConfigured()) {
     return (
@@ -57,10 +62,9 @@ export default async function MarketplacePage({
   }
 
   const availableOnly = available === "true";
-  const [creators, favoriteIds, me] = await Promise.all([
+  const [creators, favoriteIds] = await Promise.all([
     getCreators({ niche, availableOnly }),
     getFavoriteIds(),
-    getCurrentUser(),
   ]);
 
   return (
