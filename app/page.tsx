@@ -44,7 +44,7 @@ export default async function LandingPage() {
           <Reveal index={1}>
             <h1 className="text-hero h-display mx-auto mt-8 font-bold">
               <span className="block whitespace-nowrap">Book creators instantly.</span>
-              <span className="block whitespace-nowrap text-gradient">
+              <span className="block whitespace-nowrap text-gradient pb-[0.12em]">
                 No negotiation. No friction.
               </span>
             </h1>

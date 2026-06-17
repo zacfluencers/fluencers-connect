@@ -39,6 +39,10 @@ body {
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Clip any stray horizontal overflow (e.g. a wide no-wrap headline) so
+     centered elements like the nav don't get nudged. `clip` keeps the sticky
+     nav working, unlike `hidden`. */
+  overflow-x: clip;
 }
 
 /* Confident headings with slightly increased tracking. */
@@ -53,10 +57,11 @@ body {
 --------------------------------------------------------------------------- */
 .text-hero {
   /* Lower min so the longest line ("No negotiation. No friction.") fits on a
-     phone without wrapping — the hero is kept to two stacked lines. */
-  font-size: clamp(1.55rem, 6.4vw, 5rem);
+     phone without wrapping — the hero is kept to two stacked lines.
+     line-height has room so gradient-text descenders (the "g") aren't clipped. */
+  font-size: clamp(1.5rem, 6vw, 4.75rem);
   letter-spacing: -0.035em;
-  line-height: 1.04;
+  line-height: 1.12;
 }
 .text-h1 {
   font-size: clamp(2.1rem, 4.4vw, 3.4rem);
