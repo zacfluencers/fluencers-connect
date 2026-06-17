@@ -35,7 +35,7 @@ export default async function FavoritesPage() {
           </Link>
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {creators.map((c) => (
             <CreatorCard
               key={c.user_id}

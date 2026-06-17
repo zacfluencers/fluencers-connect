@@ -26,7 +26,7 @@ export function RequestBookingButton({
     return (
       <Link
         href="/login"
-        className="ml-auto rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        className="ml-auto rounded-full bg-[var(--accent-2)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
       >
         Sign in to book
       </Link>
@@ -56,7 +56,7 @@ export function RequestBookingButton({
         type="button"
         onClick={request}
         disabled={!available || pending}
-        className="rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-full bg-[var(--accent-2)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0] disabled:cursor-not-allowed disabled:opacity-40"
       >
         {pending ? "Requesting…" : "Request Booking"}
       </button>

@@ -55,7 +55,7 @@ function buttonClass(intent: Transition["intent"]) {
   const base =
     "rounded-full px-5 py-2 text-sm font-semibold transition-colors";
   if (intent === "primary")
-    return `${base} bg-[var(--accent)] text-white hover:opacity-90`;
+    return `${base} bg-[var(--accent-2)] text-white hover:bg-[#9079f0]`;
   if (intent === "danger")
     return `${base} border border-[var(--accent-2)]/40 text-[var(--accent-2)] hover:bg-[var(--accent-2)]/10`;
   return `${base} border border-[var(--border-strong)] text-[var(--foreground)] hover:border-[var(--accent-2)]/50`;

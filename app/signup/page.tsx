@@ -5,9 +5,7 @@ export const metadata = { title: "Join — Influencer Connect" };
 
 export default function SignupPage() {
   return (
-    <div className="relative flex min-h-[calc(100vh-60px)] items-center justify-center overflow-hidden px-6 py-16">
-      <div className="aurora opacity-60" aria-hidden />
-      <div className="relative w-full max-w-md rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)]/80 p-8 backdrop-blur-xl glow">
+    <div className="relative flex min-h-[calc(100vh-60px)] items-center justify-center px-6 py-16">      <div className="relative w-full max-w-md rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)]/80 p-8 shadow-[0_24px_70px_-40px_rgba(0,0,0,0.9)]">
         <Link href="/" className="text-sm text-[var(--muted)] hover:text-[var(--foreground)]">
           ← Home
         </Link>

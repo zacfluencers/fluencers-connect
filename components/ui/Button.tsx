@@ -17,13 +17,12 @@ const SIZES: Record<Size, string> = {
 };
 
 const VARIANTS: Record<Variant, string> = {
-  // Primary: accent gradient with a soft luminous glow.
+  // Primary: clean solid accent, subtle hover — no heavy glow.
   primary:
-    "text-white bg-[linear-gradient(100deg,var(--accent),var(--accent-2))] shadow-[0_8px_30px_-10px_rgba(55,23,182,0.9),0_0_30px_-12px_rgba(132,105,237,0.7)] hover:shadow-[0_10px_40px_-8px_rgba(55,23,182,1),0_0_50px_-10px_rgba(132,105,237,0.9)]",
+    "text-white bg-[var(--accent-2)] shadow-sm hover:bg-[#9079f0]",
   secondary:
-    "text-[var(--foreground)] bg-[var(--surface-2)] border border-[var(--border-strong)] hover:bg-[var(--surface)] hover:border-[var(--accent-2)]/40",
-  ghost:
-    "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-white/5",
+    "text-[var(--foreground)] bg-transparent border border-[var(--border-strong)] hover:bg-white/5",
+  ghost: "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-white/5",
 };
 
 interface CommonProps {

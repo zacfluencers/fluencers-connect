@@ -20,11 +20,7 @@ export function Card({
     <motion.div
       whileHover={
         interactive
-          ? {
-              y: -4,
-              boxShadow:
-                "0 18px 50px -18px rgba(55,23,182,0.65), 0 0 0 1px rgba(132,105,237,0.35)",
-            }
+          ? { y: -3, boxShadow: "0 16px 40px -16px rgba(0,0,0,0.7)" }
           : undefined
       }
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}

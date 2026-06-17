@@ -79,7 +79,7 @@ export default async function MarketplacePage({
           <p className="mb-6 text-sm text-[var(--muted)]">
             {creators.length} creator{creators.length === 1 ? "" : "s"}
           </p>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {creators.map((c, i) => (
               <Reveal key={c.user_id} index={i}>
                 <CreatorCard
