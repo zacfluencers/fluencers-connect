@@ -2,12 +2,14 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
+import { NICHES } from "@/lib/niches";
 
 /**
  * Filter bar for the marketplace. Filters live in the URL (?niche=&available=)
  * so the server component can read them and re-fetch — shareable + bookmarkable.
+ * Niche options come from the canonical list so they always match the form.
  */
-export function MarketplaceFilters({ niches }: { niches: string[] }) {
+export function MarketplaceFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -33,7 +35,7 @@ export function MarketplaceFilters({ niches }: { niches: string[] }) {
         className="rounded-full border border-[var(--foreground)]/15 bg-[var(--background)] px-4 py-2 text-sm text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/40"
       >
         <option value="">All niches</option>
-        {niches.map((n) => (
+        {NICHES.map((n) => (
           <option key={n} value={n}>
             {n}
           </option>

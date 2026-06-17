@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { CreatorCard } from "@/components/CreatorCard";
 import { MarketplaceFilters } from "@/components/MarketplaceFilters";
+import { CREATOR_PROFILE_COLUMNS, getFavoriteIds } from "@/lib/queries";
+import { getCurrentUser } from "@/lib/session";
 import type { CreatorProfile } from "@/lib/types";
 
 export const metadata = {
@@ -20,9 +22,7 @@ async function getCreators(filters: {
 
   let query = supabase
     .from("creator_profiles")
-    .select(
-      "user_id, name, bio, niche, instagram, tiktok, availability, price, profile_image",
-    )
+    .select(CREATOR_PROFILE_COLUMNS)
     .order("name");
 
   if (filters.niche) query = query.eq("niche", filters.niche);
@@ -34,18 +34,6 @@ async function getCreators(filters: {
     return [];
   }
   return data ?? [];
-}
-
-async function getNiches(): Promise<string[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("creator_profiles")
-    .select("niche")
-    .not("niche", "is", null);
-
-  const unique = new Set<string>();
-  for (const row of data ?? []) if (row.niche) unique.add(row.niche);
-  return [...unique].sort();
 }
 
 export default async function MarketplacePage({
@@ -68,15 +56,16 @@ export default async function MarketplacePage({
   }
 
   const availableOnly = available === "true";
-  const [creators, niches] = await Promise.all([
+  const [creators, favoriteIds, me] = await Promise.all([
     getCreators({ niche, availableOnly }),
-    getNiches(),
+    getFavoriteIds(),
+    getCurrentUser(),
   ]);
 
   return (
     <Shell>
       <div className="mb-8">
-        <MarketplaceFilters niches={niches} />
+        <MarketplaceFilters />
       </div>
 
       {creators.length === 0 ? (
@@ -91,7 +80,12 @@ export default async function MarketplacePage({
           </p>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {creators.map((c) => (
-              <CreatorCard key={c.user_id} creator={c} />
+              <CreatorCard
+                key={c.user_id}
+                creator={c}
+                initialFavorited={favoriteIds.has(c.user_id)}
+                canFavorite={!!me}
+              />
             ))}
           </div>
         </>

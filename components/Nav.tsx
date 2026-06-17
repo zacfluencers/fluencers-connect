@@ -20,6 +20,11 @@ export async function Nav() {
             Browse
           </Link>
           {me && (
+            <Link href="/favorites" className="text-[var(--muted)] hover:text-[var(--foreground)]">
+              Favourites
+            </Link>
+          )}
+          {me && (
             <Link href="/bookings" className="text-[var(--muted)] hover:text-[var(--foreground)]">
               My bookings
             </Link>

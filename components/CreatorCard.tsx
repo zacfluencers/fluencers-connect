@@ -1,13 +1,19 @@
 import Link from "next/link";
+import { FavoriteButton } from "@/components/FavoriteButton";
+import { gbp, formatFollowers } from "@/lib/format";
 import type { CreatorProfile } from "@/lib/types";
 
-const gbp = new Intl.NumberFormat("en-GB", {
-  style: "currency",
-  currency: "GBP",
-  maximumFractionDigits: 0,
-});
-
-export function CreatorCard({ creator }: { creator: CreatorProfile }) {
+export function CreatorCard({
+  creator,
+  initialFavorited,
+  canFavorite,
+}: {
+  creator: CreatorProfile;
+  initialFavorited: boolean;
+  canFavorite: boolean;
+}) {
+  const ig = formatFollowers(creator.instagram_followers);
+  const tt = formatFollowers(creator.tiktok_followers);
   return (
     <Link
       href={`/creator/${creator.user_id}`}
@@ -39,6 +45,15 @@ export function CreatorCard({ creator }: { creator: CreatorProfile }) {
           <span className="h-1.5 w-1.5 rounded-full bg-current" />
           {creator.availability ? "Available" : "Booked"}
         </span>
+
+        {/* Favourite heart */}
+        <div className="absolute right-3 top-3">
+          <FavoriteButton
+            creatorId={creator.user_id}
+            initialFavorited={initialFavorited}
+            canFavorite={canFavorite}
+          />
+        </div>
       </div>
 
       {/* Details */}
@@ -56,6 +71,21 @@ export function CreatorCard({ creator }: { creator: CreatorProfile }) {
           <span className="mt-2 inline-block rounded-full bg-[var(--foreground)]/5 px-2.5 py-0.5 text-xs text-[var(--muted)]">
             {creator.niche}
           </span>
+        )}
+
+        {(ig || tt) && (
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
+            {ig && (
+              <span>
+                <span className="font-semibold text-[var(--foreground)]">{ig}</span> IG
+              </span>
+            )}
+            {tt && (
+              <span>
+                <span className="font-semibold text-[var(--foreground)]">{tt}</span> TikTok
+              </span>
+            )}
+          </div>
         )}
 
         {creator.bio && (

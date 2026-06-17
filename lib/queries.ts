@@ -1,8 +1,66 @@
 import { createClient } from "@/lib/supabase/server";
-import type { AppUser, Booking, CreatorProfile } from "@/lib/types";
+import { getCurrentUser } from "@/lib/session";
+import type {
+  AppUser,
+  Booking,
+  CreatorProfile,
+  PortfolioItem,
+} from "@/lib/types";
 
-const PROFILE_COLS =
-  "user_id, name, bio, niche, instagram, tiktok, availability, price, profile_image";
+/** Every column on creator_profiles — shared so selects stay in sync. */
+export const CREATOR_PROFILE_COLUMNS =
+  "user_id, name, bio, niche, instagram, tiktok, availability, price, profile_image, instagram_followers, tiktok_followers, followers_synced_at";
+
+const PROFILE_COLS = CREATOR_PROFILE_COLUMNS;
+
+/** Portfolio images for a creator, newest sort_order first. */
+export async function getPortfolio(creatorId: string): Promise<PortfolioItem[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("portfolio_items")
+    .select("id, creator_id, image_url, storage_path, sort_order, created_at")
+    .eq("creator_id", creatorId)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  return data ?? [];
+}
+
+/** The set of creator IDs the current user has favourited (empty if signed out). */
+export async function getFavoriteIds(): Promise<Set<string>> {
+  const me = await getCurrentUser();
+  if (!me) return new Set();
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("favorites")
+    .select("creator_id")
+    .eq("user_id", me.id);
+  return new Set((data ?? []).map((r) => r.creator_id));
+}
+
+/** Full creator profiles the current user has favourited. */
+export async function getFavoriteCreators(): Promise<CreatorProfile[]> {
+  const me = await getCurrentUser();
+  if (!me) return [];
+  const supabase = await createClient();
+
+  const { data: favs } = await supabase
+    .from("favorites")
+    .select("creator_id")
+    .eq("user_id", me.id)
+    .order("created_at", { ascending: false });
+
+  const ids = (favs ?? []).map((f) => f.creator_id);
+  if (ids.length === 0) return [];
+
+  const { data } = await supabase
+    .from("creator_profiles")
+    .select(CREATOR_PROFILE_COLUMNS)
+    .in("user_id", ids);
+
+  // Preserve favourite order (most recently favourited first).
+  const byId = new Map((data ?? []).map((c) => [c.user_id, c]));
+  return ids.map((id) => byId.get(id)).filter(Boolean) as CreatorProfile[];
+}
 
 export interface BookingDetail {
   booking: Booking;

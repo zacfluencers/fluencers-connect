@@ -2,10 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import { listMyBookings } from "@/lib/queries";
+import { listMyBookings, getPortfolio } from "@/lib/queries";
 import { availableActions } from "@/lib/bookings";
 import { BookingActions } from "@/components/BookingActions";
 import { CreatorProfileForm } from "@/components/CreatorProfileForm";
+import { PortfolioManager } from "@/components/PortfolioManager";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { CreatorProfile } from "@/lib/types";
 
@@ -26,6 +27,7 @@ export default async function CreatorDashboard() {
     .eq("user_id", me.id)
     .maybeSingle();
 
+  const portfolio = await getPortfolio(me.id);
   const bookings = await listMyBookings(me.id);
   const incoming = bookings.filter((b) => b.status === "requested");
   const active = bookings.filter(
@@ -55,6 +57,17 @@ export default async function CreatorDashboard() {
             : "Create your profile so brands can find and book you."}
         </p>
         <CreatorProfileForm profile={(profile as CreatorProfile) ?? null} />
+      </section>
+
+      {/* Portfolio */}
+      <section className="mt-10 rounded-2xl border border-[var(--foreground)]/10 p-6">
+        <h2 className="mb-1 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--foreground)]">
+          Portfolio
+        </h2>
+        <p className="mb-5 text-sm text-[var(--muted)]">
+          Upload examples of your work. These appear on your public profile.
+        </p>
+        <PortfolioManager userId={me.id} items={portfolio} />
       </section>
 
       {/* Incoming requests */}

@@ -29,6 +29,14 @@ export async function upsertCreatorProfile(
     return { error: "Enter a valid price." };
   }
 
+  // Optional follower counts (manual for now). Blank → null.
+  const toCount = (key: string): number | null => {
+    const raw = String(formData.get(key) ?? "").trim();
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null;
+  };
+
   const supabase = await createClient();
   const { error } = await supabase.from("creator_profiles").upsert({
     user_id: me.id,
@@ -39,6 +47,8 @@ export async function upsertCreatorProfile(
     tiktok: String(formData.get("tiktok") ?? "").trim() || null,
     profile_image: String(formData.get("profile_image") ?? "").trim() || null,
     availability: formData.get("availability") === "on",
+    instagram_followers: toCount("instagram_followers"),
+    tiktok_followers: toCount("tiktok_followers"),
     price,
   });
 

@@ -40,4 +40,17 @@ export interface CreatorProfile {
   availability: boolean;
   price: number;
   profile_image: string | null;
+  instagram_followers: number | null;
+  tiktok_followers: number | null;
+  followers_synced_at: string | null;
+}
+
+/** One uploaded portfolio image for a creator. */
+export interface PortfolioItem {
+  id: string;
+  creator_id: string;
+  image_url: string;
+  storage_path: string | null;
+  sort_order: number;
+  created_at: string;
 }

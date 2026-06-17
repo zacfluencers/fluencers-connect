@@ -2,25 +2,24 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
+import {
+  CREATOR_PROFILE_COLUMNS,
+  getPortfolio,
+  getFavoriteIds,
+} from "@/lib/queries";
 import { RequestBookingButton } from "@/components/RequestBookingButton";
+import { FavoriteButton } from "@/components/FavoriteButton";
+import { gbp, formatFollowers } from "@/lib/format";
 import type { CreatorProfile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-const gbp = new Intl.NumberFormat("en-GB", {
-  style: "currency",
-  currency: "GBP",
-  maximumFractionDigits: 0,
-});
 
 async function getCreator(id: string): Promise<CreatorProfile | null> {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("creator_profiles")
-    .select(
-      "user_id, name, bio, niche, instagram, tiktok, availability, price, profile_image",
-    )
+    .select(CREATOR_PROFILE_COLUMNS)
     .eq("user_id", id)
     .maybeSingle();
 
@@ -37,11 +36,18 @@ export default async function CreatorPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [creator, me] = await Promise.all([getCreator(id), getCurrentUser()]);
+  const [creator, me, portfolio, favoriteIds] = await Promise.all([
+    getCreator(id),
+    getCurrentUser(),
+    getPortfolio(id),
+    getFavoriteIds(),
+  ]);
 
   if (!creator) notFound();
 
   const viewerRole = me?.role ?? null;
+  const ig = formatFollowers(creator.instagram_followers);
+  const tt = formatFollowers(creator.tiktok_followers);
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -76,6 +82,14 @@ export default async function CreatorPage({
                 {creator.name}
               </h1>
               <AvailabilityPill available={creator.availability} />
+              <div className="ml-auto">
+                <FavoriteButton
+                  creatorId={creator.user_id}
+                  initialFavorited={favoriteIds.has(creator.user_id)}
+                  canFavorite={!!me}
+                  variant="full"
+                />
+              </div>
             </div>
 
             {creator.niche && (
@@ -88,13 +102,13 @@ export default async function CreatorPage({
               <p className="mt-4 text-[var(--foreground)]/80">{creator.bio}</p>
             )}
 
-            {/* Socials */}
-            <div className="mt-4 flex flex-wrap gap-4 text-sm">
+            {/* Socials + follower counts */}
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
               {creator.instagram && (
-                <Social label="Instagram" handle={creator.instagram} />
+                <Social label="Instagram" handle={creator.instagram} followers={ig} />
               )}
               {creator.tiktok && (
-                <Social label="TikTok" handle={creator.tiktok} />
+                <Social label="TikTok" handle={creator.tiktok} followers={tt} />
               )}
             </div>
 
@@ -118,25 +132,28 @@ export default async function CreatorPage({
         </div>
 
         {/* Portfolio */}
-        <section className="mt-14">
-          <h2 className="mb-5 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--foreground)]">
-            Portfolio
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex aspect-[4/5] items-center justify-center rounded-xl border border-dashed border-[var(--foreground)]/15 bg-[var(--foreground)]/[0.03] text-sm text-[var(--muted)]"
-              >
-                Portfolio item {i + 1}
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-xs text-[var(--muted)]">
-            Portfolio media isn&apos;t in the database yet — these are
-            placeholders, ready to wire up when the portfolio table is added.
-          </p>
-        </section>
+        {portfolio.length > 0 && (
+          <section className="mt-14">
+            <h2 className="mb-5 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--foreground)]">
+              Portfolio
+            </h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {portfolio.map((item) => (
+                <div
+                  key={item.id}
+                  className="aspect-square overflow-hidden rounded-xl bg-[var(--foreground)]/5"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.image_url}
+                    alt="Portfolio work"
+                    className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
@@ -161,12 +178,23 @@ function AvailabilityPill({ available }: { available: boolean }) {
   );
 }
 
-function Social({ label, handle }: { label: string; handle: string }) {
+function Social({
+  label,
+  handle,
+  followers,
+}: {
+  label: string;
+  handle: string;
+  followers: string | null;
+}) {
   const clean = handle.replace(/^@/, "");
   return (
     <span className="text-[var(--muted)]">
       {label}:{" "}
       <span className="font-medium text-[var(--foreground)]">@{clean}</span>
+      {followers && (
+        <span className="ml-1.5 text-[var(--muted)]">· {followers} followers</span>
+      )}
     </span>
   );
 }
