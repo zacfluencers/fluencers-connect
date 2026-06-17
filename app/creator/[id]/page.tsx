@@ -78,7 +78,7 @@ export default async function CreatorPage({
 
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl">
+              <h1 className="text-h1 h-display font-bold text-[var(--foreground)]">
                 {creator.name}
               </h1>
               <AvailabilityPill available={creator.availability} />

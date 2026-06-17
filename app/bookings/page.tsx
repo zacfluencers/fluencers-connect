@@ -16,8 +16,8 @@ export default async function BookingsPage() {
   const bookings = await listMyBookings();
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-3xl font-bold text-[var(--foreground)]">
+    <main className="mx-auto max-w-3xl px-6 py-16">
+      <h1 className="text-h1 h-display font-bold text-[var(--foreground)]">
         My Bookings
       </h1>
       <p className="mt-2 text-[var(--muted)]">

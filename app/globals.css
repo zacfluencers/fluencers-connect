@@ -48,6 +48,41 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+   Fluid, cohesive type scale — responsive + impactful across every page.
+   Use these instead of ad-hoc text-4xl/5xl so sizing stays consistent.
+--------------------------------------------------------------------------- */
+.text-hero {
+  font-size: clamp(2.85rem, 6.5vw, 5.25rem);
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+.text-h1 {
+  font-size: clamp(2.1rem, 4.4vw, 3.4rem);
+  letter-spacing: -0.028em;
+  line-height: 1.06;
+}
+.text-h2 {
+  font-size: clamp(1.65rem, 3vw, 2.5rem);
+  letter-spacing: -0.022em;
+  line-height: 1.12;
+}
+.text-h3 {
+  font-size: clamp(1.15rem, 1.7vw, 1.5rem);
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+.text-lead {
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  line-height: 1.6;
+}
+.text-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------------------
    Grain overlay — very light premium texture, fixed over the viewport.
    Applied once in the layout via <div class="grain" />.
 --------------------------------------------------------------------------- */

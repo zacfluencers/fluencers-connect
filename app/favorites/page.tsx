@@ -14,8 +14,8 @@ export default async function FavoritesPage() {
   const creators = await getFavoriteCreators();
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-12">
-      <h1 className="text-3xl font-bold text-[var(--foreground)]">
+    <main className="mx-auto max-w-6xl px-6 py-16">
+      <h1 className="text-h1 h-display font-bold text-[var(--foreground)]">
         Favourites
       </h1>
       <p className="mt-2 text-[var(--muted)]">

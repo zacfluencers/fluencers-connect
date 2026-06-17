@@ -103,10 +103,10 @@ function Shell({ children }: { children: React.ReactNode }) {
         <p className="mb-2 text-sm font-medium uppercase tracking-widest text-[var(--accent-2)]">
           Marketplace
         </p>
-        <h1 className="h-display text-4xl font-bold sm:text-5xl">
+        <h1 className="text-h1 h-display font-bold">
           Browse Creators
         </h1>
-        <p className="mt-3 max-w-xl text-lg text-[var(--muted)]">
+        <p className="text-lead mt-3 max-w-xl text-[var(--muted)]">
           Find the right creator for your campaign. Fixed pricing, clear
           availability, no back-and-forth.
         </p>

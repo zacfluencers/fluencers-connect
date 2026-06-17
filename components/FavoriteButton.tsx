@@ -39,15 +39,18 @@ export function FavoriteButton({
     });
   }
 
-  const heart = (
+  // Bookmark reads cleanly as "save to come back to" and renders crisply.
+  const icon = (
     <svg
       viewBox="0 0 24 24"
-      className="h-5 w-5"
+      className="h-[18px] w-[18px]"
       fill={favorited ? "currentColor" : "none"}
       stroke="currentColor"
       strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <path d="M12 21s-7.5-4.6-10-9.2C.3 8.4 1.6 5 5 5c2 0 3.2 1.2 4 2.3C9.8 6.2 11 5 13 5c3.4 0 4.7 3.4 3 6.8C19.5 16.4 12 21 12 21z" />
+      <path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
     </svg>
   );
 
@@ -64,7 +67,7 @@ export function FavoriteButton({
             : "border-[var(--border-strong)] text-[var(--foreground)] hover:border-[var(--accent-2)]/50"
         }`}
       >
-        {heart}
+        {icon}
         {favorited ? "Saved" : "Save"}
       </button>
     );
@@ -77,13 +80,13 @@ export function FavoriteButton({
       disabled={pending}
       aria-label={favorited ? "Remove from favourites" : "Add to favourites"}
       aria-pressed={favorited}
-      className={`flex h-9 w-9 items-center justify-center rounded-full backdrop-blur transition-colors ${
+      className={`flex h-9 w-9 items-center justify-center rounded-full backdrop-blur transition-all active:scale-90 ${
         favorited
-          ? "bg-white/90 text-[var(--accent)]"
-          : "bg-black/30 text-white hover:bg-black/50"
+          ? "bg-[var(--accent-2)] text-white shadow-[0_0_18px_-4px_rgba(132,105,237,0.9)]"
+          : "bg-black/35 text-white hover:bg-black/55"
       }`}
     >
-      {heart}
+      {icon}
     </button>
   );
 }

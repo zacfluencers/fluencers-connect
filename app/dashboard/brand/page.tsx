@@ -31,7 +31,7 @@ export default async function BrandDashboard() {
           <p className="mb-2 text-sm font-medium uppercase tracking-widest text-[var(--accent-2)]">
             Dashboard
           </p>
-          <h1 className="h-display text-4xl font-bold sm:text-5xl">Your bookings</h1>
+          <h1 className="text-h1 h-display font-bold">Your bookings</h1>
           <p className="mt-2 text-[var(--muted)]">
             Track every collaboration from request to delivery.
           </p>
@@ -50,7 +50,7 @@ export default async function BrandDashboard() {
 
       {/* Active */}
       <section className="mt-12">
-        <h2 className="mb-5 text-xl font-semibold">Active</h2>
+        <h2 className="mb-6 text-h3 font-semibold">Active</h2>
         {active.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[var(--border-strong)] p-12 text-center">
             <p className="text-[var(--muted)]">No active bookings yet.</p>
@@ -78,7 +78,7 @@ export default async function BrandDashboard() {
       {/* Past */}
       {past.length > 0 && (
         <section className="mt-12">
-          <h2 className="mb-5 text-xl font-semibold">History</h2>
+          <h2 className="mb-6 text-h3 font-semibold">History</h2>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((b, i) => (
               <Reveal key={b.id} index={i}>
