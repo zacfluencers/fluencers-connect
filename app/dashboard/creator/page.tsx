@@ -2,11 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import { listMyBookings, getPortfolio } from "@/lib/queries";
+import { listMyBookings, getPortfolio, CREATOR_PROFILE_COLUMNS } from "@/lib/queries";
 import { availableActions } from "@/lib/bookings";
 import { BookingActions } from "@/components/BookingActions";
 import { CreatorProfileForm } from "@/components/CreatorProfileForm";
 import { PortfolioManager } from "@/components/PortfolioManager";
+import { PayoutSetup } from "@/components/PayoutSetup";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { CreatorProfile } from "@/lib/types";
 
@@ -23,7 +24,7 @@ export default async function CreatorDashboard() {
   const supabase = await createClient();
   const { data: profile } = await supabase
     .from("creator_profiles")
-    .select("user_id, name, bio, niche, instagram, tiktok, availability, price, profile_image")
+    .select(`${CREATOR_PROFILE_COLUMNS}, stripe_account_id, payouts_enabled`)
     .eq("user_id", me.id)
     .maybeSingle();
 
@@ -57,6 +58,20 @@ export default async function CreatorDashboard() {
             : "Create your profile so brands can find and book you."}
         </p>
         <CreatorProfileForm profile={(profile as CreatorProfile) ?? null} />
+      </section>
+
+      {/* Payouts */}
+      <section className="mt-10 rounded-2xl border border-[var(--border)] p-6">
+        <h2 className="mb-1 text-h3 font-semibold text-[var(--foreground)]">
+          Payouts
+        </h2>
+        <p className="mb-5 text-sm text-[var(--muted)]">
+          Get paid when your bookings complete.
+        </p>
+        <PayoutSetup
+          hasAccount={Boolean(profile?.stripe_account_id)}
+          payoutsEnabled={Boolean(profile?.payouts_enabled)}
+        />
       </section>
 
       {/* Portfolio */}

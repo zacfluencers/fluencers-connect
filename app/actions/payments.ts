@@ -1,0 +1,135 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/session";
+import { stripe, isStripeConfigured, getBaseUrl, toPence } from "@/lib/stripe/server";
+import { refundEscrow } from "@/lib/stripe/escrow";
+
+/**
+ * Brand pays into escrow at request time. Creates a Stripe Checkout Session;
+ * the booking itself is created (idempotently) once payment succeeds, via the
+ * webhook / success page. Funds sit on the platform balance until release.
+ */
+export async function createBookingCheckout(creatorId: string) {
+  const me = await getCurrentUser();
+  if (!me) redirect("/login");
+  if (me.role !== "brand") return { error: "Only brands can book creators." };
+  if (!isStripeConfigured()) {
+    return { error: "Payments aren't set up yet. Please try again soon." };
+  }
+
+  const supabase = await createClient();
+  const { data: creator } = await supabase
+    .from("creator_profiles")
+    .select("user_id, name, price, availability")
+    .eq("user_id", creatorId)
+    .maybeSingle();
+  if (!creator) return { error: "Creator not found." };
+  if (!creator.availability) {
+    return { error: "This creator isn't taking bookings right now." };
+  }
+
+  const base = getBaseUrl();
+  const session = await stripe().checkout.sessions.create({
+    mode: "payment",
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "gbp",
+          unit_amount: toPence(Number(creator.price)),
+          product_data: { name: `Booking — ${creator.name}` },
+        },
+      },
+    ],
+    payment_intent_data: {
+      metadata: { brand_id: me.id, creator_id: creator.user_id },
+    },
+    metadata: {
+      brand_id: me.id,
+      creator_id: creator.user_id,
+      price: String(creator.price),
+    },
+    success_url: `${base}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${base}/creator/${creator.user_id}?canceled=1`,
+  });
+
+  if (!session.url) return { error: "Could not start checkout." };
+  redirect(session.url);
+}
+
+/**
+ * Creator onboards (or resumes onboarding) a Stripe Express account for payouts.
+ */
+export async function startCreatorOnboarding() {
+  const me = await getCurrentUser();
+  if (!me) redirect("/login");
+  if (me.role !== "creator") return { error: "Only creators set up payouts." };
+  if (!isStripeConfigured()) return { error: "Payments aren't set up yet." };
+
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("creator_profiles")
+    .select("stripe_account_id")
+    .eq("user_id", me.id)
+    .maybeSingle();
+
+  let accountId = profile?.stripe_account_id ?? null;
+
+  if (!accountId) {
+    const account = await stripe().accounts.create({
+      type: "express",
+      country: "GB",
+      email: me.email,
+      business_type: "individual",
+      capabilities: { transfers: { requested: true } },
+    });
+    accountId = account.id;
+    await supabase
+      .from("creator_profiles")
+      .update({ stripe_account_id: accountId })
+      .eq("user_id", me.id);
+  }
+
+  const base = getBaseUrl();
+  const link = await stripe().accountLinks.create({
+    account: accountId,
+    refresh_url: `${base}/dashboard/creator?payouts=refresh`,
+    return_url: `${base}/dashboard/creator?payouts=done`,
+    type: "account_onboarding",
+  });
+
+  redirect(link.url);
+}
+
+/** Brand cancels/disputes an active booking → refund escrow, mark refunded. */
+export async function refundBooking(
+  bookingId: string,
+): Promise<{ ok: true } | { error: string }> {
+  const me = await getCurrentUser();
+  if (!me) return { error: "Please sign in." };
+
+  const supabase = await createClient();
+  const { data: booking } = await supabase
+    .from("bookings")
+    .select("id, brand_id, status")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (!booking) return { error: "Booking not found." };
+  if (booking.brand_id !== me.id) {
+    return { error: "Only the brand on this booking can request a refund." };
+  }
+  if (["completed", "declined", "refunded"].includes(booking.status)) {
+    return { error: "This booking can no longer be refunded." };
+  }
+
+  const result = await refundEscrow(bookingId, "refunded");
+  if ("error" in result) return result;
+
+  revalidatePath(`/bookings/${bookingId}`);
+  revalidatePath("/bookings");
+  revalidatePath("/dashboard/brand");
+  return { ok: true };
+}

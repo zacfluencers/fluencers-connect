@@ -31,6 +31,15 @@ Migrations live in `supabase/migrations/`.
 
 **`0010_messaging.sql`** — real messaging: `conversations` (between a brand and a creator, optionally tied to a booking) and `messages`. Powers both the booking deal room and direct creator→brand chats.
 
+**`0011_stripe_escrow.sql`** — Stripe Connect escrow: creators get a connected-account id + payout-ready flag; bookings track payment status (`unpaid`/`held`/`released`/`refunded`) and the Stripe payment/transfer/refund ids.
+
+## Payments & escrow (Stripe Connect)
+- A brand **pays at request time** via Stripe Checkout; the money is **held in escrow** on the platform balance and the booking is created (paid) once Stripe confirms.
+- **Approve & complete** → funds are **transferred** to the creator's connected account. **Decline** or a brand **refund/dispute** → funds are **returned** to the brand.
+- Creators set up **payouts** (Stripe Express) from their dashboard; they must finish setup before funds can be released.
+- A Stripe **webhook** (`/api/stripe/webhook`) is the source of truth for paid bookings and payout-readiness.
+- **Setup needed** (env vars in `.env.local` + Vercel): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL` (see `.env.local.example`). Subscriptions are still not built (Stage 2).
+
 Notes:
 - Every table has Row Level Security on. People only see their own data; creator profiles are public so brands can browse; the two parties on a booking can see each other.
 - Not built yet: payments/escrow ledger, per-booking messaging, brand subscriptions, portfolio media.

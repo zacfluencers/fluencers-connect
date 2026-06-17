@@ -9,50 +9,10 @@ import {
   findTransition,
   type BookingAction,
 } from "@/lib/bookings";
+import { releaseEscrow, refundEscrow } from "@/lib/stripe/escrow";
 
-/**
- * Brand requests a booking with a creator. Price is snapshotted from the
- * creator's profile so later rate changes don't affect this booking.
- * Status starts at "requested".
- */
-export async function createBooking(creatorId: string) {
-  const me = await getCurrentUser();
-  if (!me) redirect("/login");
-  if (me.role !== "brand") {
-    return { error: "Only brand accounts can request bookings." };
-  }
-
-  const supabase = await createClient();
-
-  const { data: creator, error: creatorErr } = await supabase
-    .from("creator_profiles")
-    .select("user_id, price, availability")
-    .eq("user_id", creatorId)
-    .maybeSingle();
-
-  if (creatorErr || !creator) return { error: "Creator not found." };
-  if (!creator.availability) {
-    return { error: "This creator isn't taking bookings right now." };
-  }
-
-  const { data: booking, error } = await supabase
-    .from("bookings")
-    .insert({
-      brand_id: me.id,
-      creator_id: creator.user_id,
-      price: creator.price,
-      status: "requested",
-    })
-    .select("id")
-    .single();
-
-  if (error || !booking) {
-    return { error: error?.message ?? "Could not create the booking." };
-  }
-
-  revalidatePath("/bookings");
-  redirect(`/bookings/${booking.id}`);
-}
+// Booking creation now happens through Stripe Checkout — see
+// createBookingCheckout in app/actions/payments.ts.
 
 /**
  * Move a booking through the state machine. Validates: the actor is a party on
@@ -98,6 +58,17 @@ export async function transitionBooking(
     return { error: "You can't take that action on this booking." };
   }
 
+  // Money-moving transitions go through escrow (these set the status too).
+  if (action === "approve" || action === "decline") {
+    const result =
+      action === "approve"
+        ? await releaseEscrow(bookingId)
+        : await refundEscrow(bookingId, "declined");
+    if ("error" in result) return result;
+    revalidateBooking(bookingId);
+    return { ok: true };
+  }
+
   const patch: { status: string; revision_count?: number } = {
     status: transition.to,
   };
@@ -116,8 +87,13 @@ export async function transitionBooking(
 
   if (error) return { error: error.message };
 
+  revalidateBooking(bookingId);
+  return { ok: true };
+}
+
+function revalidateBooking(bookingId: string) {
   revalidatePath(`/bookings/${bookingId}`);
   revalidatePath("/bookings");
   revalidatePath("/dashboard/creator");
-  return { ok: true };
+  revalidatePath("/dashboard/brand");
 }

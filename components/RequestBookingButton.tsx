@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { createBooking } from "@/app/actions/bookings";
+import { createBookingCheckout } from "@/app/actions/payments";
 
 /**
  * The "Request Booking" CTA on a creator profile.
@@ -44,8 +44,8 @@ export function RequestBookingButton({
   function request() {
     setError(null);
     startTransition(async () => {
-      const result = await createBooking(creatorId);
-      // On success the action redirects; we only get here on error.
+      const result = await createBookingCheckout(creatorId);
+      // On success the action redirects to Stripe Checkout; only errors return.
       if (result && "error" in result) setError(result.error);
     });
   }
@@ -58,8 +58,11 @@ export function RequestBookingButton({
         disabled={!available || pending}
         className="rounded-full bg-[var(--accent-2)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0] disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {pending ? "Requesting…" : "Request Booking"}
+        {pending ? "Redirecting…" : "Request & pay"}
       </button>
+      <p className="mt-1.5 text-xs text-[var(--muted)]">
+        Paid into escrow — released when you approve the work.
+      </p>
       {error && <p className="mt-2 text-sm text-rose-300">{error}</p>}
     </div>
   );

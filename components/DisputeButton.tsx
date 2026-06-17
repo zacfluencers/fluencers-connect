@@ -1,16 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { refundBooking } from "@/app/actions/payments";
 
 /**
- * Opens a dispute/refund request. UI only — actual refund processing depends on
- * escrow (not built). Submitting just confirms the request was logged.
+ * Brand-initiated refund / dispute. Refunds the escrowed payment back to the
+ * brand and marks the booking refunded.
+ *
+ * NOTE: this is an immediate brand-initiated refund. True dispute *adjudication*
+ * (who decides when work was delivered) is a later trust-&-safety stage.
  */
-export function DisputeButton() {
+export function DisputeButton({ bookingId }: { bookingId: string }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function submit() {
+    setError(null);
+    startTransition(async () => {
+      const result = await refundBooking(bookingId);
+      if ("error" in result) setError(result.error);
+      else {
+        setDone(true);
+        router.refresh();
+      }
+    });
+  }
 
   return (
     <>
@@ -23,12 +43,12 @@ export function DisputeButton() {
       </button>
 
       <Modal open={open} onClose={() => setOpen(false)} title="Request a refund">
-        {sent ? (
+        {done ? (
           <div className="text-sm text-[var(--muted)]">
-            <p className="text-[var(--foreground)]">Your dispute has been logged.</p>
+            <p className="text-[var(--foreground)]">Refund issued.</p>
             <p className="mt-2">
-              Our team reviews disputes within 48 hours. Funds remain held in
-              escrow until it&apos;s resolved.
+              The escrowed funds are being returned to your original payment
+              method.
             </p>
             <div className="mt-5 flex justify-end">
               <Button size="sm" variant="secondary" onClick={() => setOpen(false)}>
@@ -39,15 +59,16 @@ export function DisputeButton() {
         ) : (
           <div className="text-sm text-[var(--muted)]">
             <p>
-              If the content doesn&apos;t match what was agreed, you can open a
-              dispute. Escrowed funds stay held until it&apos;s resolved.
+              If the work isn&apos;t as agreed, you can refund this booking. The
+              escrowed payment is returned to you and the booking is closed.
             </p>
+            {error && <p className="mt-3 text-rose-300">{error}</p>}
             <div className="mt-5 flex justify-end gap-2">
               <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button size="sm" onClick={() => setSent(true)}>
-                Submit dispute
+              <Button size="sm" onClick={submit} disabled={pending}>
+                {pending ? "Refunding…" : "Refund booking"}
               </Button>
             </div>
           </div>

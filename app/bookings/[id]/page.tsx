@@ -127,7 +127,7 @@ export default async function DealRoomPage({
                 {gbp.format(booking.price)}
               </span>
             </div>
-            <p className="mt-1 text-xs text-[var(--muted)]">Held in escrow until completion.</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">{escrowNote(booking.payment_status)}</p>
 
             {/* Revision counter */}
             <div className="mt-5">
@@ -166,7 +166,7 @@ export default async function DealRoomPage({
             )}
             {canDispute && (
               <div className="mt-4 border-t border-[var(--border)] pt-4">
-                <DisputeButton />
+                <DisputeButton bookingId={booking.id} />
               </div>
             )}
           </Card>
@@ -174,6 +174,19 @@ export default async function DealRoomPage({
       </div>
     </main>
   );
+}
+
+function escrowNote(status: string) {
+  switch (status) {
+    case "held":
+      return "Funds held in escrow until completion.";
+    case "released":
+      return "Funds released to the creator.";
+    case "refunded":
+      return "Funds refunded to the brand.";
+    default:
+      return "Awaiting payment.";
+  }
 }
 
 function Party({

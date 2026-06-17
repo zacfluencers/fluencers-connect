@@ -16,7 +16,8 @@
     "framer-motion": "^12.40.0",
     "next": "16.1.2",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "stripe": "^22.2.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

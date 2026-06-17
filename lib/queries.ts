@@ -81,7 +81,9 @@ export async function getBookingDetail(
 
   const { data: booking } = await supabase
     .from("bookings")
-    .select("id, brand_id, creator_id, status, price, revision_count, created_at")
+    .select(
+      "id, brand_id, creator_id, status, price, revision_count, created_at, payment_status",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -284,7 +286,9 @@ export async function listMyBookings(creatorId?: string): Promise<BookingRow[]> 
 
   let query = supabase
     .from("bookings")
-    .select("id, brand_id, creator_id, status, price, revision_count, created_at")
+    .select(
+      "id, brand_id, creator_id, status, price, revision_count, created_at, payment_status",
+    )
     .order("created_at", { ascending: false });
 
   if (creatorId) query = query.eq("creator_id", creatorId);

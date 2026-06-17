@@ -18,6 +18,8 @@ export interface AppUser {
   role: UserRole;
 }
 
+export type PaymentStatus = "unpaid" | "held" | "released" | "refunded";
+
 /** A row in public.bookings. */
 export interface Booking {
   id: string;
@@ -27,6 +29,7 @@ export interface Booking {
   price: number;
   revision_count: number;
   created_at: string;
+  payment_status: PaymentStatus;
 }
 
 /** A creator's public marketplace profile (1:1 with a `creator` user). */
