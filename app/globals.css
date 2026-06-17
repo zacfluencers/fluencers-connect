@@ -139,6 +139,10 @@ body {
     170% 170%,
     170% 170%;
   background-repeat: no-repeat;
+  /* Fade the glow out toward every edge so it never shows a hard clipped line,
+     whatever phase the drift animation is in. */
+  -webkit-mask-image: radial-gradient(120% 95% at 50% 22%, #000 42%, transparent 82%);
+  mask-image: radial-gradient(120% 95% at 50% 22%, #000 42%, transparent 82%);
   animation: drift 26s ease-in-out infinite;
 }
 
