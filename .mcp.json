@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    },
+    "sanity": {
+      "type": "http",
+      "url": "https://mcp.sanity.io"
+    },
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=uskfxigjqlaxusaylezd"
+    }
+  }
+}
