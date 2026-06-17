@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { signOut } from "@/app/actions/auth";
 import { ButtonLink } from "@/components/ui/Button";
+import { Logo } from "@/components/Logo";
 
 export async function Nav() {
   const me = await getCurrentUser();
@@ -11,13 +12,8 @@ export async function Nav() {
   return (
     <nav className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-3.5">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[linear-gradient(120deg,var(--accent),var(--accent-2))] text-sm font-bold text-white shadow-[0_0_18px_-4px_rgba(132,105,237,0.8)]">
-            ic
-          </span>
-          <span className="text-[15px] font-semibold tracking-tight text-[var(--foreground)]">
-            Influencer Connect
-          </span>
+        <Link href="/" className="flex items-center" aria-label="Influencer Connect — home">
+          <Logo className="h-5 w-auto text-[var(--foreground)]" />
         </Link>
 
         <div className="ml-2 hidden items-center gap-1 text-sm md:flex">

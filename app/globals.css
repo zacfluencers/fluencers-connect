@@ -52,9 +52,11 @@ body {
    Use these instead of ad-hoc text-4xl/5xl so sizing stays consistent.
 --------------------------------------------------------------------------- */
 .text-hero {
-  font-size: clamp(2.85rem, 6.5vw, 5.25rem);
+  /* Lower min so the longest line ("No negotiation. No friction.") fits on a
+     phone without wrapping — the hero is kept to two stacked lines. */
+  font-size: clamp(1.55rem, 6.4vw, 5rem);
   letter-spacing: -0.035em;
-  line-height: 1;
+  line-height: 1.04;
 }
 .text-h1 {
   font-size: clamp(2.1rem, 4.4vw, 3.4rem);
