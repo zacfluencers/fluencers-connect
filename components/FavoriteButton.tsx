@@ -60,8 +60,8 @@ export function FavoriteButton({
         aria-pressed={favorited}
         className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
           favorited
-            ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
-            : "border-[var(--foreground)]/15 text-[var(--foreground)] hover:border-[var(--foreground)]/40"
+            ? "border-[var(--accent-2)] bg-[var(--accent-2)]/12 text-[var(--accent-2)]"
+            : "border-[var(--border-strong)] text-[var(--foreground)] hover:border-[var(--accent-2)]/50"
         }`}
       >
         {heart}

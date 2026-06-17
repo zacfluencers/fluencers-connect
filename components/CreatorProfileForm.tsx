@@ -38,7 +38,7 @@ export function CreatorProfileForm({
           name="bio"
           rows={3}
           defaultValue={profile?.bio ?? ""}
-          className="w-full rounded-lg border border-[var(--foreground)]/15 bg-[var(--background)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/40"
+          className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--accent-2)]/60"
         />
       </label>
 
@@ -55,10 +55,10 @@ export function CreatorProfileForm({
       </label>
 
       {state && "error" in state && (
-        <p className="text-sm text-[var(--accent)]">{state.error}</p>
+        <p className="text-sm text-rose-300">{state.error}</p>
       )}
       {state && "ok" in state && (
-        <p className="text-sm text-emerald-600">Profile saved.</p>
+        <p className="text-sm text-emerald-300">Profile saved.</p>
       )}
 
       <button
@@ -83,7 +83,7 @@ function Niche({ defaultValue }: { defaultValue: string }) {
       <select
         name="niche"
         defaultValue={defaultValue}
-        className="w-full rounded-lg border border-[var(--foreground)]/15 bg-[var(--background)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/40"
+        className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--accent-2)]/60"
       >
         <option value="">Select a niche…</option>
         {!isKnown && defaultValue && (
@@ -127,7 +127,7 @@ function Text({
         required={required}
         step={type === "number" ? "0.01" : undefined}
         min={type === "number" ? "0" : undefined}
-        className="w-full rounded-lg border border-[var(--foreground)]/15 bg-[var(--background)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/40"
+        className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--accent-2)]/60"
       />
     </label>
   );

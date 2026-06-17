@@ -81,7 +81,7 @@ export function PortfolioManager({
         {items.map((item) => (
           <div
             key={item.id}
-            className="group relative aspect-square overflow-hidden rounded-xl bg-[var(--foreground)]/5"
+            className="group relative aspect-square overflow-hidden rounded-xl bg-[var(--surface-2)]"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -102,7 +102,7 @@ export function PortfolioManager({
         ))}
 
         {/* Upload tile */}
-        <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-[var(--foreground)]/20 text-center text-sm text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)]">
+        <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-[var(--border-strong)] text-center text-sm text-[var(--muted)] hover:border-[var(--accent-2)] hover:text-[var(--accent-2)]">
           <input
             type="file"
             accept="image/*"
@@ -116,7 +116,7 @@ export function PortfolioManager({
         </label>
       </div>
 
-      {error && <p className="mt-3 text-sm text-[var(--accent)]">{error}</p>}
+      {error && <p className="mt-3 text-sm text-rose-300">{error}</p>}
       <p className="mt-3 text-xs text-[var(--muted)]">
         JPG or PNG, up to {MAX_MB}MB each. These show on your public profile.
       </p>

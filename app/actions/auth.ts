@@ -32,7 +32,7 @@ export async function signUp(
   }
 
   revalidatePath("/", "layout");
-  redirect(role === "creator" ? "/dashboard/creator" : "/marketplace");
+  redirect(role === "creator" ? "/dashboard/creator" : "/dashboard/brand");
 }
 
 export async function signIn(
@@ -56,7 +56,7 @@ export async function signIn(
     .maybeSingle();
 
   revalidatePath("/", "layout");
-  redirect(profile?.role === "creator" ? "/dashboard/creator" : "/marketplace");
+  redirect(profile?.role === "creator" ? "/dashboard/creator" : "/dashboard/brand");
 }
 
 export async function signOut() {

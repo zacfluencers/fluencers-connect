@@ -1,31 +1,119 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafaf9;
-  --foreground: #1c1917;
-  --muted: #78716c;
-  --accent: #dc2626;
+  /* Brand palette — strict. */
+  --background: #0b0715;
+  --foreground: #fbfafd;
+  --accent: #3717b6;
+  --accent-2: #8469ed; /* secondary accent / glow */
+
+  /* Derived surfaces (tints of the palette, no new hues). */
+  --surface: #120c20;
+  --surface-2: #181029;
+  --border: rgba(132, 105, 237, 0.14);
+  --border-strong: rgba(132, 105, 237, 0.28);
+  --muted: #a59cc4;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
   --color-accent: var(--accent);
-  --font-sans: var(--font-body);
-  --font-display: var(--font-display);
+  --color-accent-2: var(--accent-2);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-muted: var(--muted);
+  --font-sans: var(--font-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fafaf9;
-    --muted: #a8a29e;
-    --accent: #f87171;
-  }
+* {
+  border-color: var(--border);
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Confident headings with slightly increased tracking. */
+.h-display {
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+/* ---------------------------------------------------------------------------
+   Grain overlay — very light premium texture, fixed over the viewport.
+   Applied once in the layout via <div class="grain" />.
+--------------------------------------------------------------------------- */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ---------------------------------------------------------------------------
+   Soft animated gradient backdrop (hero). Very subtle, slow drift.
+--------------------------------------------------------------------------- */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(-4%, -2%, 0) scale(1.05);
+  }
+  50% {
+    transform: translate3d(4%, 2%, 0) scale(1.15);
+  }
+}
+
+.aurora {
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 120%;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 50% at 30% 30%, rgba(55, 23, 182, 0.55), transparent 70%),
+    radial-gradient(35% 45% at 70% 40%, rgba(132, 105, 237, 0.4), transparent 70%);
+  filter: blur(60px);
+  animation: drift 18s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora {
+    animation: none;
+  }
+}
+
+/* Soft glow used behind primary actions / accents. */
+.glow {
+  box-shadow:
+    0 0 0 1px var(--border-strong),
+    0 8px 30px -8px rgba(55, 23, 182, 0.6),
+    0 0 40px -12px rgba(132, 105, 237, 0.5);
+}
+
+.text-gradient {
+  background: linear-gradient(100deg, var(--foreground) 30%, var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Thin, premium scrollbars. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-2);
+  border-radius: 999px;
+  border: 2px solid var(--background);
 }

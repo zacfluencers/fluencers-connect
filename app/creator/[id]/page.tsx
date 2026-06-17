@@ -50,7 +50,7 @@ export default async function CreatorPage({
   const tt = formatFollowers(creator.tiktok_followers);
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div>
       <main className="mx-auto max-w-4xl px-6 py-12 sm:py-16">
         <Link
           href="/marketplace"
@@ -61,7 +61,7 @@ export default async function CreatorPage({
 
         {/* Header: image + key info */}
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-[260px_1fr]">
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-[var(--foreground)]/5">
+          <div className="relative aspect-square overflow-hidden rounded-2xl bg-[var(--surface-2)]">
             {creator.profile_image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -70,7 +70,7 @@ export default async function CreatorPage({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center font-[family-name:var(--font-display)] text-6xl font-bold text-[var(--foreground)]/20">
+              <div className="flex h-full w-full items-center justify-center text-6xl font-bold text-[var(--foreground)]/20">
                 {creator.name.charAt(0).toUpperCase()}
               </div>
             )}
@@ -78,7 +78,7 @@ export default async function CreatorPage({
 
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl">
+              <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)] sm:text-4xl">
                 {creator.name}
               </h1>
               <AvailabilityPill available={creator.availability} />
@@ -93,13 +93,13 @@ export default async function CreatorPage({
             </div>
 
             {creator.niche && (
-              <span className="mt-3 inline-block rounded-full bg-[var(--foreground)]/5 px-3 py-1 text-sm text-[var(--muted)]">
+              <span className="mt-3 inline-block rounded-full bg-[var(--surface-2)] px-3 py-1 text-sm text-[var(--muted)]">
                 {creator.niche}
               </span>
             )}
 
             {creator.bio && (
-              <p className="mt-4 text-[var(--foreground)]/80">{creator.bio}</p>
+              <p className="mt-4 text-[var(--muted)]">{creator.bio}</p>
             )}
 
             {/* Socials + follower counts */}
@@ -113,12 +113,12 @@ export default async function CreatorPage({
             </div>
 
             {/* Price + CTA */}
-            <div className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--foreground)]/10 p-5">
+            <div className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--border)] p-5">
               <div>
                 <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
                   Fixed price per job
                 </p>
-                <p className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--foreground)]">
+                <p className="text-2xl font-bold text-[var(--foreground)]">
                   {gbp.format(creator.price)}
                 </p>
               </div>
@@ -134,14 +134,14 @@ export default async function CreatorPage({
         {/* Portfolio */}
         {portfolio.length > 0 && (
           <section className="mt-14">
-            <h2 className="mb-5 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--foreground)]">
+            <h2 className="mb-5 text-xl font-semibold text-[var(--foreground)]">
               Portfolio
             </h2>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {portfolio.map((item) => (
                 <div
                   key={item.id}
-                  className="aspect-square overflow-hidden rounded-xl bg-[var(--foreground)]/5"
+                  className="aspect-square overflow-hidden rounded-xl bg-[var(--surface-2)]"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -164,8 +164,8 @@ function AvailabilityPill({ available }: { available: boolean }) {
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
         available
-          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-          : "bg-[var(--foreground)]/10 text-[var(--muted)]"
+          ? "bg-emerald-400/12 text-emerald-300"
+          : "bg-white/10 text-[var(--muted)]"
       }`}
     >
       <span

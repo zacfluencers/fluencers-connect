@@ -1,54 +1,45 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { signOut } from "@/app/actions/auth";
+import { ButtonLink } from "@/components/ui/Button";
 
 export async function Nav() {
   const me = await getCurrentUser();
+  const dashboardHref =
+    me?.role === "creator" ? "/dashboard/creator" : "/dashboard/brand";
 
   return (
-    <nav className="border-b border-[var(--foreground)]/10">
-      <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-4">
-        <Link
-          href="/marketplace"
-          className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight text-[var(--foreground)]"
-        >
-          Influencer<span className="text-[var(--accent)]">Connect</span>
+    <nav className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/70 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-3.5">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[linear-gradient(120deg,var(--accent),var(--accent-2))] text-sm font-bold text-white shadow-[0_0_18px_-4px_rgba(132,105,237,0.8)]">
+            ic
+          </span>
+          <span className="text-[15px] font-semibold tracking-tight text-[var(--foreground)]">
+            Influencer Connect
+          </span>
         </Link>
 
-        <div className="flex items-center gap-5 text-sm">
-          <Link href="/marketplace" className="text-[var(--muted)] hover:text-[var(--foreground)]">
-            Browse
-          </Link>
-          {me && (
-            <Link href="/favorites" className="text-[var(--muted)] hover:text-[var(--foreground)]">
-              Favourites
-            </Link>
-          )}
-          {me && (
-            <Link href="/bookings" className="text-[var(--muted)] hover:text-[var(--foreground)]">
-              My bookings
-            </Link>
-          )}
-          {me?.role === "creator" && (
-            <Link href="/dashboard/creator" className="text-[var(--muted)] hover:text-[var(--foreground)]">
-              Dashboard
-            </Link>
-          )}
+        <div className="ml-2 hidden items-center gap-1 text-sm md:flex">
+          <NavLink href="/marketplace">Browse</NavLink>
+          {me && <NavLink href="/favorites">Favourites</NavLink>}
+          {me && <NavLink href="/bookings">Bookings</NavLink>}
+          {me && <NavLink href={dashboardHref}>Dashboard</NavLink>}
         </div>
 
         <div className="ml-auto flex items-center gap-3 text-sm">
           {me ? (
             <>
-              <span className="hidden text-[var(--muted)] sm:inline">
-                {me.email}
-                <span className="ml-1 rounded-full bg-[var(--foreground)]/5 px-2 py-0.5 text-xs capitalize">
+              <span className="hidden items-center gap-2 text-[var(--muted)] sm:flex">
+                <span className="max-w-[160px] truncate">{me.email}</span>
+                <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-xs capitalize text-[var(--foreground)]">
                   {me.role}
                 </span>
               </span>
               <form action={signOut}>
                 <button
                   type="submit"
-                  className="rounded-full border border-[var(--foreground)]/15 px-4 py-1.5 text-[var(--foreground)] hover:border-[var(--foreground)]/40"
+                  className="rounded-xl px-3 py-1.5 text-[var(--muted)] transition-colors hover:bg-white/5 hover:text-[var(--foreground)]"
                 >
                   Sign out
                 </button>
@@ -56,19 +47,30 @@ export async function Nav() {
             </>
           ) : (
             <>
-              <Link href="/login" className="text-[var(--muted)] hover:text-[var(--foreground)]">
+              <Link
+                href="/login"
+                className="rounded-xl px-3 py-1.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+              >
                 Sign in
               </Link>
-              <Link
-                href="/signup"
-                className="rounded-full bg-[var(--foreground)] px-4 py-1.5 font-medium text-[var(--background)] hover:opacity-90"
-              >
-                Join
-              </Link>
+              <ButtonLink href="/signup" size="sm">
+                Get started
+              </ButtonLink>
             </>
           )}
         </div>
       </div>
     </nav>
+  );
+}
+
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="rounded-xl px-3 py-1.5 text-[var(--muted)] transition-colors hover:bg-white/5 hover:text-[var(--foreground)]"
+    >
+      {children}
+    </Link>
   );
 }

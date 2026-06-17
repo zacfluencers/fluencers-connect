@@ -17,7 +17,7 @@ export default async function BookingsPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--foreground)]">
+      <h1 className="text-3xl font-bold text-[var(--foreground)]">
         My Bookings
       </h1>
       <p className="mt-2 text-[var(--muted)]">
@@ -27,11 +27,11 @@ export default async function BookingsPage() {
       </p>
 
       {bookings.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-[var(--foreground)]/15 p-12 text-center">
+        <div className="mt-10 rounded-2xl border border-dashed border-[var(--border-strong)] p-12 text-center">
           <p className="text-[var(--muted)]">No bookings yet.</p>
           <Link
             href="/marketplace"
-            className="mt-4 inline-block text-sm font-medium text-[var(--accent)] underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-sm font-medium text-[var(--accent-2)] underline-offset-4 hover:underline"
           >
             Browse creators
           </Link>
@@ -47,7 +47,7 @@ export default async function BookingsPage() {
               <li key={b.id}>
                 <Link
                   href={`/bookings/${b.id}`}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-[var(--foreground)]/10 p-4 transition-colors hover:border-[var(--foreground)]/25"
+                  className="flex items-center justify-between gap-4 rounded-xl border border-[var(--border)] p-4 transition-colors hover:border-[var(--foreground)]/25"
                 >
                   <div>
                     <p className="font-medium text-[var(--foreground)]">

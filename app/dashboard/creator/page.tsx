@@ -39,7 +39,7 @@ export default async function CreatorDashboard() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
-      <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--foreground)]">
+      <h1 className="text-3xl font-bold text-[var(--foreground)]">
         Creator Dashboard
       </h1>
       <p className="mt-2 text-[var(--muted)]">
@@ -47,8 +47,8 @@ export default async function CreatorDashboard() {
       </p>
 
       {/* Profile */}
-      <section className="mt-10 rounded-2xl border border-[var(--foreground)]/10 p-6">
-        <h2 className="mb-1 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--foreground)]">
+      <section className="mt-10 rounded-2xl border border-[var(--border)] p-6">
+        <h2 className="mb-1 text-xl font-semibold text-[var(--foreground)]">
           Your profile
         </h2>
         <p className="mb-5 text-sm text-[var(--muted)]">
@@ -60,8 +60,8 @@ export default async function CreatorDashboard() {
       </section>
 
       {/* Portfolio */}
-      <section className="mt-10 rounded-2xl border border-[var(--foreground)]/10 p-6">
-        <h2 className="mb-1 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--foreground)]">
+      <section className="mt-10 rounded-2xl border border-[var(--border)] p-6">
+        <h2 className="mb-1 text-xl font-semibold text-[var(--foreground)]">
           Portfolio
         </h2>
         <p className="mb-5 text-sm text-[var(--muted)]">
@@ -125,7 +125,7 @@ function Section({
 }) {
   return (
     <section className="mt-10">
-      <h2 className="mb-4 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--foreground)]">
+      <h2 className="mb-4 text-xl font-semibold text-[var(--foreground)]">
         {title}{" "}
         <span className="text-base font-normal text-[var(--muted)]">({count})</span>
       </h2>
@@ -148,7 +148,7 @@ function BookingLine({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--foreground)]/10 p-4">
+    <div className="rounded-xl border border-[var(--border)] p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <Link href={`/bookings/${id}`} className="font-medium text-[var(--foreground)] hover:underline">
@@ -165,7 +165,7 @@ function BookingLine({
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <p className="rounded-xl border border-dashed border-[var(--foreground)]/15 p-4 text-sm text-[var(--muted)]">
+    <p className="rounded-xl border border-dashed border-[var(--border-strong)] p-4 text-sm text-[var(--muted)]">
       {children}
     </p>
   );

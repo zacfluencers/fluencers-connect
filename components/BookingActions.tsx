@@ -46,7 +46,7 @@ export function BookingActions({
           </button>
         ))}
       </div>
-      {error && <p className="text-sm text-[var(--accent)]">{error}</p>}
+      {error && <p className="text-sm text-rose-300">{error}</p>}
     </div>
   );
 }
@@ -57,6 +57,6 @@ function buttonClass(intent: Transition["intent"]) {
   if (intent === "primary")
     return `${base} bg-[var(--accent)] text-white hover:opacity-90`;
   if (intent === "danger")
-    return `${base} border border-[var(--accent)]/40 text-[var(--accent)] hover:bg-[var(--accent)]/10`;
-  return `${base} border border-[var(--foreground)]/20 text-[var(--foreground)] hover:border-[var(--foreground)]/40`;
+    return `${base} border border-[var(--accent-2)]/40 text-[var(--accent-2)] hover:bg-[var(--accent-2)]/10`;
+  return `${base} border border-[var(--border-strong)] text-[var(--foreground)] hover:border-[var(--accent-2)]/50`;
 }

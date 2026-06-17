@@ -15,7 +15,7 @@ export default async function FavoritesPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
-      <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--foreground)]">
+      <h1 className="text-3xl font-bold text-[var(--foreground)]">
         Favourites
       </h1>
       <p className="mt-2 text-[var(--muted)]">
@@ -23,13 +23,13 @@ export default async function FavoritesPage() {
       </p>
 
       {creators.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-[var(--foreground)]/15 p-12 text-center">
+        <div className="mt-10 rounded-2xl border border-dashed border-[var(--border-strong)] p-12 text-center">
           <p className="text-[var(--muted)]">
             You haven&apos;t saved any creators yet.
           </p>
           <Link
             href="/marketplace"
-            className="mt-4 inline-block text-sm font-medium text-[var(--accent)] underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-sm font-medium text-[var(--accent-2)] underline-offset-4 hover:underline"
           >
             Browse creators
           </Link>

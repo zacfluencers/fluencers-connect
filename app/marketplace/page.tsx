@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { CreatorCard } from "@/components/CreatorCard";
 import { MarketplaceFilters } from "@/components/MarketplaceFilters";
+import { Reveal } from "@/components/ui/motion";
 import { CREATOR_PROFILE_COLUMNS, getFavoriteIds } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
 import type { CreatorProfile } from "@/lib/types";
@@ -79,13 +80,14 @@ export default async function MarketplacePage({
             {creators.length} creator{creators.length === 1 ? "" : "s"}
           </p>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {creators.map((c) => (
-              <CreatorCard
-                key={c.user_id}
-                creator={c}
-                initialFavorited={favoriteIds.has(c.user_id)}
-                canFavorite={!!me}
-              />
+            {creators.map((c, i) => (
+              <Reveal key={c.user_id} index={i}>
+                <CreatorCard
+                  creator={c}
+                  initialFavorited={favoriteIds.has(c.user_id)}
+                  canFavorite={!!me}
+                />
+              </Reveal>
             ))}
           </div>
         </>
@@ -96,36 +98,32 @@ export default async function MarketplacePage({
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[var(--background)]">
-      <main className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
-        <header className="mb-10">
-          <p className="mb-2 text-sm font-medium uppercase tracking-wider text-[var(--accent)]">
-            Influencer Connect
-          </p>
-          <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold tracking-tight text-[var(--foreground)] sm:text-5xl">
-            Browse Creators
-          </h1>
-          <p className="mt-3 max-w-xl text-lg text-[var(--muted)]">
-            Find the right influencer for your campaign. Fixed pricing, clear
-            availability, no back-and-forth.
-          </p>
-        </header>
-        {children}
-      </main>
-    </div>
+    <main className="mx-auto max-w-7xl px-6 py-14 sm:py-20">
+      <header className="mb-10">
+        <p className="mb-2 text-sm font-medium uppercase tracking-widest text-[var(--accent-2)]">
+          Marketplace
+        </p>
+        <h1 className="h-display text-4xl font-bold sm:text-5xl">
+          Browse Creators
+        </h1>
+        <p className="mt-3 max-w-xl text-lg text-[var(--muted)]">
+          Find the right creator for your campaign. Fixed pricing, clear
+          availability, no back-and-forth.
+        </p>
+      </header>
+      {children}
+    </main>
   );
 }
 
 function EmptyState({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-[var(--foreground)]/15 p-12 text-center">
-      <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--foreground)]">
-        {title}
-      </h2>
+    <div className="rounded-2xl border border-dashed border-[var(--border-strong)] p-12 text-center">
+      <h2 className="text-xl font-semibold text-[var(--foreground)]">{title}</h2>
       <p className="mx-auto mt-2 max-w-md text-[var(--muted)]">{body}</p>
       <Link
         href="/marketplace"
-        className="mt-6 inline-block text-sm font-medium text-[var(--accent)] underline-offset-4 hover:underline"
+        className="mt-6 inline-block text-sm font-medium text-[var(--accent-2)] underline-offset-4 hover:underline"
       >
         Reset
       </Link>

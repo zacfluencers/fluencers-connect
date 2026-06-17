@@ -60,7 +60,7 @@ export function RequestBookingButton({
       >
         {pending ? "Requesting…" : "Request Booking"}
       </button>
-      {error && <p className="mt-2 text-sm text-[var(--accent)]">{error}</p>}
+      {error && <p className="mt-2 text-sm text-rose-300">{error}</p>}
     </div>
   );
 }
