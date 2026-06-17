@@ -32,9 +32,10 @@
 
 html {
   color-scheme: dark;
-  /* Always reserve space for the scrollbar so centered content (e.g. the nav)
-     sits identically on pages that scroll and pages that don't. */
-  scrollbar-gutter: stable;
+  /* Always show the vertical scrollbar so the page width is identical on every
+     page — whether it scrolls or not. This is what keeps centered content like
+     the nav from shifting between, e.g., the homepage and the browse page. */
+  overflow-y: scroll;
 }
 
 body {
