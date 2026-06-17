@@ -32,6 +32,9 @@
 
 html {
   color-scheme: dark;
+  /* Always reserve space for the scrollbar so centered content (e.g. the nav)
+     sits identically on pages that scroll and pages that don't. */
+  scrollbar-gutter: stable;
 }
 
 body {
