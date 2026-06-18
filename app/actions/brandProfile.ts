@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
@@ -45,5 +46,13 @@ export async function upsertBrandProfile(
 
   revalidatePath("/dashboard/brand");
   revalidatePath("/brands");
+
+  // Onboarding: if the form asked to move on after saving, go there.
+  // Only internal paths are allowed (no open redirects).
+  const redirectTo = String(formData.get("redirect_to") ?? "");
+  if (redirectTo.startsWith("/") && !redirectTo.startsWith("//")) {
+    redirect(redirectTo);
+  }
+
   return { ok: true };
 }

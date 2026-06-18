@@ -32,7 +32,9 @@ export async function signUp(
   }
 
   revalidatePath("/", "layout");
-  redirect(role === "creator" ? "/dashboard/creator" : "/dashboard/brand");
+  // First run: brands fill in their profile (then land on the marketplace);
+  // creators land on their dashboard to set up their bookable profile.
+  redirect(role === "creator" ? "/dashboard/creator" : "/welcome");
 }
 
 export async function signIn(
@@ -56,7 +58,7 @@ export async function signIn(
     .maybeSingle();
 
   revalidatePath("/", "layout");
-  redirect(profile?.role === "creator" ? "/dashboard/creator" : "/dashboard/brand");
+  redirect(profile?.role === "creator" ? "/dashboard/creator" : "/marketplace");
 }
 
 export async function signOut() {

@@ -15,9 +15,12 @@ import type { BrandProfile } from "@/lib/types";
 export function BrandProfileForm({
   profile,
   userId,
+  redirectTo,
 }: {
   profile: BrandProfile | null;
   userId: string;
+  /** If set, the form navigates here after a successful save (e.g. onboarding). */
+  redirectTo?: string;
 }) {
   const [state, formAction, pending] = useActionState<BrandProfileState, FormData>(
     upsertBrandProfile,
@@ -26,6 +29,7 @@ export function BrandProfileForm({
 
   return (
     <form action={formAction} className="space-y-4">
+      {redirectTo && <input type="hidden" name="redirect_to" value={redirectTo} />}
       <Field label="Company logo" hint="Shown on your card. Falls back to your initial if empty.">
         <ImageUpload userId={userId} name="logo_url" defaultUrl={profile?.logo_url} label="Upload logo" />
       </Field>
@@ -89,8 +93,12 @@ export function BrandProfileForm({
         <p className="text-sm text-emerald-300">Saved.</p>
       )}
 
-      <Button type="submit" variant="secondary" disabled={pending}>
-        {pending ? "Saving…" : "Save brand profile"}
+      <Button type="submit" variant={redirectTo ? "primary" : "secondary"} disabled={pending}>
+        {pending
+          ? "Saving…"
+          : redirectTo
+            ? "Save & continue"
+            : "Save brand profile"}
       </Button>
     </form>
   );

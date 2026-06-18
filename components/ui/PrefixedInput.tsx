@@ -34,20 +34,32 @@ export function HandleInput({
   defaultValue,
   placeholder = "yourhandle",
   label,
+  value,
+  onValueChange,
 }: {
   name: string;
   defaultValue?: string | null;
   placeholder?: string;
   label?: string;
+  /** Optional controlled value (handle without the @). */
+  value?: string;
+  onValueChange?: (handle: string) => void;
 }) {
-  const [val, setVal] = useState((defaultValue ?? "").replace(/^@+/, ""));
+  const [internal, setInternal] = useState((defaultValue ?? "").replace(/^@+/, ""));
+  const controlled = value !== undefined;
+  const val = controlled ? value : internal;
+  const setVal = (raw: string) => {
+    const clean = raw.replace(/^@+/, "");
+    if (controlled) onValueChange?.(clean);
+    else setInternal(clean);
+  };
   return (
     <Labelled label={label}>
       <div className={WRAP}>
         <span className="select-none pl-3.5 pr-1 text-[var(--muted)]">@</span>
         <input
           value={val}
-          onChange={(e) => setVal(e.target.value.replace(/^@+/, ""))}
+          onChange={(e) => setVal(e.target.value)}
           placeholder={placeholder}
           className={INNER}
           autoCapitalize="none"
