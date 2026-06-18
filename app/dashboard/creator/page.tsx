@@ -187,7 +187,7 @@ export default async function CreatorDashboard() {
                 : "Create your profile so brands can find and book you."
             }
           >
-            <CreatorProfileForm profile={(profile as CreatorProfile) ?? null} />
+            <CreatorProfileForm profile={(profile as CreatorProfile) ?? null} userId={me.id} />
           </Panel>
 
           {/* Portfolio */}

@@ -7,13 +7,16 @@ import {
 } from "@/app/actions/profile";
 import { NICHES } from "@/lib/niches";
 import { GENDERS, COUNTRIES } from "@/lib/demographics";
+import { ImageUpload } from "@/components/ImageUpload";
 import type { CreatorProfile } from "@/lib/types";
 
 /** Lets a creator create/edit the marketplace profile that makes them bookable. */
 export function CreatorProfileForm({
   profile,
+  userId,
 }: {
   profile: CreatorProfile | null;
+  userId: string;
 }) {
   const [state, formAction, pending] = useActionState<ProfileState, FormData>(
     upsertCreatorProfile,
@@ -22,6 +25,18 @@ export function CreatorProfileForm({
 
   return (
     <form action={formAction} className="space-y-4">
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-[var(--foreground)]">
+          Profile photo
+        </span>
+        <ImageUpload
+          userId={userId}
+          name="profile_image"
+          defaultUrl={profile?.profile_image}
+          label="Upload photo"
+        />
+      </label>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Text label="Display name" name="name" defaultValue={profile?.name} required />
         <Niche defaultValue={profile?.niche ?? ""} />
@@ -36,7 +51,6 @@ export function CreatorProfileForm({
             <option key={c} value={c}>{c}</option>
           ))}
         </Dropdown>
-        <Text label="Profile image URL" name="profile_image" defaultValue={profile?.profile_image ?? ""} placeholder="https://…" />
         <Text label="Instagram" name="instagram" defaultValue={profile?.instagram ?? ""} placeholder="@handle" />
         <Text label="TikTok" name="tiktok" defaultValue={profile?.tiktok ?? ""} placeholder="@handle" />
         <Text label="Instagram followers" name="instagram_followers" type="number" defaultValue={profile?.instagram_followers != null ? String(profile.instagram_followers) : ""} placeholder="e.g. 12400" />
