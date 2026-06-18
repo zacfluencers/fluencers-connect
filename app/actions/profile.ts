@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
+import {
+  fetchInstagramFollowers,
+  fetchTiktokFollowers,
+} from "@/lib/social/scrape";
 
 export type ProfileState = { error: string } | { ok: true } | null;
 
@@ -55,18 +59,39 @@ export async function upsertCreatorProfile(
     return { error: "Enter a valid age." };
   }
 
+  const instagram = String(formData.get("instagram") ?? "").trim() || null;
+  const tiktok = String(formData.get("tiktok") ?? "").trim() || null;
+
+  // Auto-fill follower counts from the handles (best-effort, unofficial). If a
+  // platform can't be read, fall back to whatever was entered manually.
+  // Scraping must NEVER break a save, so it's fully guarded.
+  let scrapedIg: number | null = null;
+  let scrapedTt: number | null = null;
+  try {
+    [scrapedIg, scrapedTt] = await Promise.all([
+      instagram ? fetchInstagramFollowers(instagram) : Promise.resolve(null),
+      tiktok ? fetchTiktokFollowers(tiktok) : Promise.resolve(null),
+    ]);
+  } catch {
+    // ignore — keep manual values
+  }
+  const instagram_followers = scrapedIg ?? toCount("instagram_followers");
+  const tiktok_followers = scrapedTt ?? toCount("tiktok_followers");
+  const synced = scrapedIg != null || scrapedTt != null;
+
   const supabase = await createClient();
   const { error } = await supabase.from("creator_profiles").upsert({
     user_id: me.id,
     name,
     bio: String(formData.get("bio") ?? "").trim() || null,
     niche: String(formData.get("niche") ?? "").trim() || null,
-    instagram: String(formData.get("instagram") ?? "").trim() || null,
-    tiktok: String(formData.get("tiktok") ?? "").trim() || null,
+    instagram,
+    tiktok,
     profile_image: String(formData.get("profile_image") ?? "").trim() || null,
     availability: formData.get("availability") === "on",
-    instagram_followers: toCount("instagram_followers"),
-    tiktok_followers: toCount("tiktok_followers"),
+    instagram_followers,
+    tiktok_followers,
+    followers_synced_at: synced ? new Date().toISOString() : null,
     ugc_rate,
     event_rate,
     broll_rate,

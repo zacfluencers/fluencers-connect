@@ -69,7 +69,12 @@ export function SocialFields({
         <NumberField label="TikTok followers" name="tiktok_followers" value={ttF} onChange={setTtF} placeholder="e.g. 8300" />
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-3">
+      <p className="mt-3 text-xs text-[var(--muted)]">
+        Follower counts fill in <span className="text-[var(--foreground)]">automatically from your @handles when you save</span>.
+        You can also preview now, or type them in manually.
+      </p>
+
+      <div className="mt-2 flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={autoFill}
@@ -79,7 +84,7 @@ export function SocialFields({
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" />
           </svg>
-          {pending ? "Fetching…" : "Auto-fill followers from handles"}
+          {pending ? "Fetching…" : "Preview now"}
         </button>
         {msg && <span className="text-xs text-[var(--muted)]">{msg}</span>}
       </div>
