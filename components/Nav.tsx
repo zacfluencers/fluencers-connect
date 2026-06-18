@@ -38,23 +38,32 @@ export async function Nav() {
           <Logo className="h-5 w-auto text-[var(--foreground)]" />
         </Link>
 
-        <div className="ml-2 hidden items-center gap-1 text-sm md:flex">
-          {links.map((l) => (
-            <NavLink key={l.href} href={l.href}>
-              {l.label}
-            </NavLink>
-          ))}
-        </div>
+        {/* Signed-in: full link bar at lg+ (hamburger below). Signed-out: just
+            Browse from sm+ (the CTAs stay visible on the right). */}
+        {me ? (
+          <div className="ml-2 hidden items-center gap-1 text-sm lg:flex">
+            {links.map((l) => (
+              <NavLink key={l.href} href={l.href}>
+                {l.label}
+              </NavLink>
+            ))}
+          </div>
+        ) : (
+          <div className="ml-2 hidden items-center gap-1 text-sm sm:flex">
+            <NavLink href={links[0].href}>{links[0].label}</NavLink>
+          </div>
+        )}
 
         <div className="ml-auto flex items-center gap-2 text-sm sm:gap-3">
-          {me && <NotificationBell notifications={notifications} unread={unread} />}
+          {me ? (
+            <>
+              <NotificationBell notifications={notifications} unread={unread} />
 
-          {/* Desktop auth actions */}
-          <div className="hidden items-center gap-3 md:flex">
-            {me ? (
-              <>
+              {/* Account actions — desktop only; the hamburger covers below lg */}
+              <div className="hidden items-center gap-3 lg:flex">
                 <span className="flex items-center gap-2 text-[var(--muted)]">
-                  <span className="max-w-[160px] truncate">{me.email}</span>
+                  {/* Email is the longest item — only show it when there's room. */}
+                  <span className="hidden max-w-[160px] truncate xl:block">{me.email}</span>
                   <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-xs capitalize text-[var(--foreground)]">
                     {me.role}
                   </span>
@@ -67,27 +76,24 @@ export async function Nav() {
                     Sign out
                   </button>
                 </form>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="rounded-xl px-3 py-1.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
-                >
-                  Sign in
-                </Link>
-                <ButtonLink href="/signup" size="sm">
-                  Get started
-                </ButtonLink>
-              </>
-            )}
-          </div>
+              </div>
 
-          {/* Mobile hamburger */}
-          <MobileNav
-            me={me ? { email: me.email, role: me.role } : null}
-            links={links}
-          />
+              <MobileNav me={{ email: me.email, role: me.role }} links={links} />
+            </>
+          ) : (
+            /* Signed-out: primary CTAs always visible — never hidden behind a menu */
+            <>
+              <Link
+                href="/login"
+                className="rounded-xl px-3 py-1.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+              >
+                Sign in
+              </Link>
+              <ButtonLink href="/signup" size="sm">
+                Get started
+              </ButtonLink>
+            </>
+          )}
         </div>
       </div>
     </nav>

@@ -51,7 +51,7 @@ export function MobileNav({
         onClick={() => setOpen(true)}
         aria-label="Open menu"
         aria-expanded={open}
-        className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--foreground)] transition-colors hover:bg-white/5 active:scale-95 md:hidden"
+        className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--foreground)] transition-colors hover:bg-white/5 active:scale-95 lg:hidden"
       >
         <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
           <path d="M3.5 7h17M3.5 12h17M3.5 17h17" />
@@ -63,7 +63,7 @@ export function MobileNav({
           <AnimatePresence>
             {open && (
               <motion.div
-                className="fixed inset-0 z-[100] flex flex-col bg-[var(--background)] md:hidden"
+                className="fixed inset-0 z-[100] flex flex-col bg-[var(--background)] lg:hidden"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}

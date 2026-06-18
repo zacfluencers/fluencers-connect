@@ -71,7 +71,7 @@ People sign up as either a **brand** (books creators) or a **creator** (gets boo
 `requested → accepted → in_progress → in_review → completed`. A creator can **decline** a request (→ declined). While a booking is in review, the brand can **request a revision** (sends it back to in progress), up to **3 times**. Each button only appears for the person allowed to press it. **No payments yet** — "completed" just marks the work done; escrow/Stripe comes later.
 
 ## Components
-- **Nav** — top navigation; shows who's signed in and the right links for their role. On mobile it collapses to a **hamburger** that opens a full-screen, animated menu (`MobileNav`).
+- **Nav** — top navigation; auth-aware. **Signed-in:** the full link bar (5 links + account) shows at ≥1024px; below that it collapses to a **hamburger** full-screen menu (`MobileNav`) so it never bleeds off screen (the email only appears at extra-large widths). **Signed-out:** the **Sign in / Get started** CTAs stay visible on every screen size (never hidden behind a menu), with the Browse link showing from ~640px — so the primary actions are always one tap away.
 - **MobileNav** — the mobile-only full-screen menu (staggered links, sign-in/out, scroll-lock, Escape-to-close).
 - **Avatar** — round profile image (or gradient initial) used across messaging.
 - **CreatorCard** — the marketplace card: photo, name, niche, clickable IG/TikTok follower counts, transparent per-service prices, an **Auto book** button, and a **Chat** button.
