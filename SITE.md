@@ -80,6 +80,7 @@ People sign up as either a **brand** (books creators) or a **creator** (gets boo
 - **ServiceBooking** — the transparent pricing panel on a creator profile, one **Request & pay** button per service.
 - **SocialIcons** — the Instagram and TikTok glyphs.
 - **DashboardPanel** (`Panel` / `Stat`) — the shared modular card + stat tile used by both the creator and brand dashboards, so they stay visually in sync.
+- **DealRoomLink** — the single, clearly-labelled **"Open deal room"** button used on every booking surface (lists, cards, dashboards) so the way into a booking is obvious and consistent.
 - **NotificationBell** — the bell + unread badge + dropdown in the top nav; lists recent alerts, marks them read, and links through to the relevant page.
 - **ImageUpload** — a reusable single-image uploader (used for brand logos) that stores to the `avatars` bucket and submits the URL with its form.
 - **BrandCard** — now shows the brand's uploaded logo (or initial), the "Looking for creators" badge on its own row, and clickable website / Instagram / TikTok links.
@@ -106,6 +107,8 @@ The site reads creators from Supabase. To switch it on, copy `.env.local.example
 - 2026-06-18: **Transparent per-service pricing + richer creator profiles + powerful search.** Creators now set three rates (**UGC / Event Day / B-Roll**) and capture **gender, age, country**. Creator cards show every rate, clickable **Instagram/TikTok follower counts**, an **Auto book** button (fast pre-filled booking request), and a **Chat** button. The marketplace gained a full filter bar — **industry (multi-select), gender, country, availability**, plus sliders for **age, rate, and minimum IG/TikTok followers**. Bookings record which service was booked.
 - 2026-06-18: **Modular dashboards** for both creators and brands (card-as-clients-see-it on the left, modular panels on the right), and the **Become a creator/brand** links now pre-select the right role on signup.
 - 2026-06-18: **Notifications for both sides** (a bell in the nav, with messages + every booking update), **brand logo upload + website/socials** (logo falls back to the company initial; "Looking for creators" badge moved to its own row), larger **150MB** portfolio video uploads, and cleaner Instagram/TikTok icons.
+- 2026-06-18: Portfolio videos now show their **first frame as a thumbnail** (no more black boxes), and every booking has a clear **"Open deal room"** button across lists, cards, and dashboards.
+- 2026-06-18: **Messages upgrades** — conversations are labelled **deal room (+ live status)** vs **direct message**; inside a conversation you can **view the other party's profile**, **open the deal room**, or **Book now** (brand → creator, when there's no active booking). Added a **brand profile page** (`/brand/[id]`).
 
 ## Two-sided access (who sees what)
 - **Brands** browse the **creator** marketplace, favourite creators, and book them.
@@ -114,6 +117,10 @@ The site reads creators from Supabase. To switch it on, copy `.env.local.example
 
 ## Messaging (`/messages`, `/messages/[id]`)
 Real, saved conversations. Started two ways: a creator messaging a brand from the Brands directory, or the per-booking thread inside the deal room. Each conversation is private to its two people.
+
+- **Inbox labels:** every conversation shows whether it's a **deal room** (with the booking's live **status** badge) or a **direct message**.
+- **Inside a conversation:** the header has the counterpart's name linking to their profile, a **View profile** button, and either **Open deal room** (for booking conversations) or, for a brand messaging a creator with no active booking, a **Book now** button.
+- **Brand profile page** (`/brand/[id]`) — a brand's public page (logo, about, budget, website/socials). Creators can reach it from messages, the Brands directory, or the deal room; a relationship-based RLS rule lets a creator view a brand they share a conversation or booking with even if the brand has paused "looking for creators".
 
 ## Live follower sync — not connected yet
 Follower counts are entered manually by creators for now. True live sync from Instagram/TikTok needs external developer-app approvals (Meta + TikTok) or a paid creator-data provider (e.g. Modash/Phyllo) plus API keys you'd provide. The database columns and an integration seam (`lib/social/sync.ts`) are ready so it can be plugged in later without rework.

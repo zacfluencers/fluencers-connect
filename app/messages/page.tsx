@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getMyConversations } from "@/lib/queries";
 import { Card } from "@/components/ui/Card";
+import { StatusBadge } from "@/components/StatusBadge";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Messages — Influencer Connect" };
@@ -40,7 +41,18 @@ export default async function MessagesPage() {
                     <p className="font-semibold text-[var(--foreground)]">
                       {c.counterpartName}
                     </p>
-                    <span className="text-sm text-[var(--accent-2)]">Open →</span>
+                    {c.bookingStatus ? (
+                      <span className="flex items-center gap-2">
+                        <span className="hidden text-xs font-medium uppercase tracking-wide text-[var(--accent-2)] sm:inline">
+                          Deal room
+                        </span>
+                        <StatusBadge status={c.bookingStatus} />
+                      </span>
+                    ) : (
+                      <span className="rounded-full border border-[var(--border-strong)] px-2.5 py-0.5 text-xs text-[var(--muted)]">
+                        Direct message
+                      </span>
+                    )}
                   </div>
                   <p className="mt-1 truncate text-sm text-[var(--muted)]">
                     {c.lastMessage ?? "No messages yet"}

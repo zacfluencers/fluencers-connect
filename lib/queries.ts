@@ -4,6 +4,7 @@ import type {
   AppUser,
   AppNotification,
   Booking,
+  BookingStatus,
   BrandProfile,
   CreatorProfile,
   Message,
@@ -135,6 +136,8 @@ export interface ConversationSummary {
   counterpartName: string;
   lastMessage: string | null;
   lastAt: string | null;
+  bookingId: string | null;
+  bookingStatus: BookingStatus | null;
 }
 
 /** Conversations the current user is part of, with counterpart + last message. */
@@ -153,8 +156,11 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
   const creatorIds = [...new Set(convos.map((c) => c.creator_id))];
   const brandIds = [...new Set(convos.map((c) => c.brand_id))];
   const ids = convos.map((c) => c.id);
+  const bookingIds = [
+    ...new Set(convos.map((c) => c.booking_id).filter(Boolean)),
+  ] as string[];
 
-  const [{ data: creators }, { data: brands }, { data: msgs }] =
+  const [{ data: creators }, { data: brands }, { data: msgs }, { data: bks }] =
     await Promise.all([
       supabase.from("creator_profiles").select("user_id, name").in("user_id", creatorIds),
       supabase.from("brand_profiles").select("user_id, company_name").in("user_id", brandIds),
@@ -163,10 +169,16 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
         .select("conversation_id, body, created_at")
         .in("conversation_id", ids)
         .order("created_at", { ascending: false }),
+      bookingIds.length
+        ? supabase.from("bookings").select("id, status").in("id", bookingIds)
+        : Promise.resolve({ data: [] as { id: string; status: BookingStatus }[] }),
     ]);
 
   const creatorName = new Map((creators ?? []).map((c) => [c.user_id, c.name]));
   const brandName = new Map((brands ?? []).map((b) => [b.user_id, b.company_name]));
+  const bookingStatus = new Map(
+    (bks ?? []).map((b) => [b.id, b.status as BookingStatus]),
+  );
   const lastByConvo = new Map<string, { body: string; created_at: string }>();
   for (const m of msgs ?? []) {
     if (!lastByConvo.has(m.conversation_id)) {
@@ -185,6 +197,10 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
       counterpartName: counterpart,
       lastMessage: last?.body ?? null,
       lastAt: last?.created_at ?? null,
+      bookingId: c.booking_id ?? null,
+      bookingStatus: c.booking_id
+        ? (bookingStatus.get(c.booking_id) ?? null)
+        : null,
     };
   });
 }
@@ -192,7 +208,10 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
 export interface ConversationDetail {
   id: string;
   counterpartName: string;
+  counterpartId: string;
+  counterpartRole: "brand" | "creator";
   bookingId: string | null;
+  bookingStatus: BookingStatus | null;
   messages: Message[];
 }
 
@@ -212,7 +231,8 @@ export async function getConversation(
   if (!convo) return null;
 
   const counterpartId = me.role === "brand" ? convo.creator_id : convo.brand_id;
-  const [{ data: messages }, counterpartName] = await Promise.all([
+  const counterpartRole = me.role === "brand" ? "creator" : "brand";
+  const [{ data: messages }, counterpartName, bookingStatus] = await Promise.all([
     supabase
       .from("messages")
       .select("id, conversation_id, sender_id, body, created_at")
@@ -231,12 +251,23 @@ export async function getConversation(
           .eq("user_id", counterpartId)
           .maybeSingle()
           .then((r) => r.data?.company_name ?? "Brand"),
+    convo.booking_id
+      ? supabase
+          .from("bookings")
+          .select("status")
+          .eq("id", convo.booking_id)
+          .maybeSingle()
+          .then((r) => (r.data?.status as BookingStatus) ?? null)
+      : Promise.resolve(null),
   ]);
 
   return {
     id: convo.id,
     counterpartName,
+    counterpartId,
+    counterpartRole,
     bookingId: convo.booking_id,
+    bookingStatus,
     messages: messages ?? [],
   };
 }

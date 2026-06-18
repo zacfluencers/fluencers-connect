@@ -4,6 +4,9 @@ import { getCurrentUser } from "@/lib/session";
 import { getConversation } from "@/lib/queries";
 import { Card } from "@/components/ui/Card";
 import { Conversation } from "@/components/Conversation";
+import { StatusBadge } from "@/components/StatusBadge";
+import { DealRoomLink } from "@/components/DealRoomLink";
+import { ButtonLink } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
@@ -28,17 +31,36 @@ export default async function ConversationPage({
         ← Messages
       </Link>
 
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-h3 font-semibold">{convo.counterpartName}</h1>
-        {convo.bookingId && (
-          <Link
-            href={`/bookings/${convo.bookingId}`}
-            className="text-sm text-[var(--accent-2)] hover:underline"
-          >
-            View booking →
-          </Link>
-        )}
-      </div>
+      {(() => {
+        const profileHref =
+          convo.counterpartRole === "creator"
+            ? `/creator/${convo.counterpartId}`
+            : `/brand/${convo.counterpartId}`;
+        return (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Link href={profileHref} className="text-h3 font-semibold hover:underline">
+                {convo.counterpartName}
+              </Link>
+              {convo.bookingStatus && <StatusBadge status={convo.bookingStatus} />}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <ButtonLink href={profileHref} variant="secondary" size="sm">
+                View profile
+              </ButtonLink>
+              {convo.bookingId ? (
+                <DealRoomLink id={convo.bookingId} />
+              ) : (
+                me.role === "brand" && (
+                  <ButtonLink href={`/creator/${convo.counterpartId}`} size="sm">
+                    Book now
+                  </ButtonLink>
+                )
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       <Card className="flex h-[60vh] flex-col p-5">
         <Conversation

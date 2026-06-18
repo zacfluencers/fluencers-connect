@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { MessageBrandButton } from "@/components/MessageBrandButton";
@@ -43,9 +44,12 @@ export function BrandCard({
             {brand.company_name.charAt(0).toUpperCase()}
           </span>
         )}
-        <h3 className="text-h3 font-semibold text-[var(--foreground)]">
+        <Link
+          href={`/brand/${brand.user_id}`}
+          className="text-h3 font-semibold text-[var(--foreground)] hover:underline"
+        >
           {brand.company_name}
-        </h3>
+        </Link>
       </div>
 
       {/* Status badge on its own row so long names never collide with it */}

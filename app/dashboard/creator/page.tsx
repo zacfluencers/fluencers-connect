@@ -15,6 +15,7 @@ import { CreatorCard } from "@/components/CreatorCard";
 import { PortfolioManager } from "@/components/PortfolioManager";
 import { PayoutSetup } from "@/components/PayoutSetup";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DealRoomLink } from "@/components/DealRoomLink";
 import { Panel, Stat } from "@/components/ui/DashboardPanel";
 import { gbp } from "@/lib/format";
 import type { CreatorProfile } from "@/lib/types";
@@ -237,7 +238,10 @@ function BookingLine({
         </div>
         <StatusBadge status={status} />
       </div>
-      {children && <div className="mt-3">{children}</div>}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <DealRoomLink id={id} />
+        {children}
+      </div>
     </div>
   );
 }

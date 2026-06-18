@@ -118,6 +118,7 @@ export default async function DealRoomPage({
               initials={(brand?.email ?? "B").charAt(0).toUpperCase()}
               name={brand?.email ?? "Brand"}
               sub="Brand"
+              href={`/brand/${booking.brand_id}`}
             />
           </Card>
 

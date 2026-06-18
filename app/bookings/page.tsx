@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { listMyBookings } from "@/lib/queries";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DealRoomLink } from "@/components/DealRoomLink";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "My Bookings — Influencer Connect" };
@@ -44,11 +45,11 @@ export default async function BookingsPage() {
                 ? b.creatorName ?? "Creator"
                 : b.brandEmail ?? "Brand";
             return (
-              <li key={b.id}>
-                <Link
-                  href={`/bookings/${b.id}`}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-[var(--border)] p-4 transition-colors hover:border-[var(--foreground)]/25"
-                >
+              <li
+                key={b.id}
+                className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[var(--border)] p-4"
+              >
+                <div className="flex items-center gap-4">
                   <div>
                     <p className="font-medium text-[var(--foreground)]">
                       {counterparty}
@@ -58,7 +59,8 @@ export default async function BookingsPage() {
                     </p>
                   </div>
                   <StatusBadge status={b.status} />
-                </Link>
+                </div>
+                <DealRoomLink id={b.id} />
               </li>
             );
           })}
