@@ -59,10 +59,14 @@ export async function fetchInstagramFollowers(
   if (!h) return null;
 
   // 1) Unofficial web-profile JSON endpoint — most reliable (uses the public
-  //    web app id; the HTML profile page is otherwise login-walled).
+  //    web app id). Instagram rate-limits an IP after repeated hits and will
+  //    return 401, so we keep calls minimal (see the save action).
   const json = await getHtml(
     `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(h)}`,
-    { "x-ig-app-id": "936619743392459" },
+    {
+      "x-ig-app-id": "936619743392459",
+      referer: `https://www.instagram.com/${encodeURIComponent(h)}/`,
+    },
   );
   if (json) {
     const m = json.match(/"edge_followed_by":\s*\{\s*"count":\s*(\d+)/);

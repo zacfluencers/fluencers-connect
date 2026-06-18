@@ -62,24 +62,44 @@ export async function upsertCreatorProfile(
   const instagram = String(formData.get("instagram") ?? "").trim() || null;
   const tiktok = String(formData.get("tiktok") ?? "").trim() || null;
 
-  // Auto-fill follower counts from the handles (best-effort, unofficial). If a
-  // platform can't be read, fall back to whatever was entered manually.
+  const supabase = await createClient();
+
+  // What we already have, so we only re-scrape when something actually changed.
+  // (Instagram rate-limits an IP that's hit too often — minimise the calls.)
+  const { data: existing } = await supabase
+    .from("creator_profiles")
+    .select("instagram, tiktok, instagram_followers, tiktok_followers")
+    .eq("user_id", me.id)
+    .maybeSingle();
+
+  const manualIg = toCount("instagram_followers");
+  const manualTt = toCount("tiktok_followers");
+
+  const needIg =
+    !!instagram &&
+    (instagram !== existing?.instagram || existing?.instagram_followers == null);
+  const needTt =
+    !!tiktok &&
+    (tiktok !== existing?.tiktok || existing?.tiktok_followers == null);
+
+  // Auto-fill follower counts from the handles (best-effort, unofficial).
   // Scraping must NEVER break a save, so it's fully guarded.
   let scrapedIg: number | null = null;
   let scrapedTt: number | null = null;
   try {
     [scrapedIg, scrapedTt] = await Promise.all([
-      instagram ? fetchInstagramFollowers(instagram) : Promise.resolve(null),
-      tiktok ? fetchTiktokFollowers(tiktok) : Promise.resolve(null),
+      needIg ? fetchInstagramFollowers(instagram!) : Promise.resolve(null),
+      needTt ? fetchTiktokFollowers(tiktok!) : Promise.resolve(null),
     ]);
   } catch {
     // ignore — keep manual values
   }
-  const instagram_followers = scrapedIg ?? toCount("instagram_followers");
-  const tiktok_followers = scrapedTt ?? toCount("tiktok_followers");
+  // Prefer a fresh scrape; else the manual value; else what we already had.
+  const instagram_followers =
+    scrapedIg ?? manualIg ?? existing?.instagram_followers ?? null;
+  const tiktok_followers =
+    scrapedTt ?? manualTt ?? existing?.tiktok_followers ?? null;
   const synced = scrapedIg != null || scrapedTt != null;
-
-  const supabase = await createClient();
   const { error } = await supabase.from("creator_profiles").upsert({
     user_id: me.id,
     name,
@@ -91,7 +111,8 @@ export async function upsertCreatorProfile(
     availability: formData.get("availability") === "on",
     instagram_followers,
     tiktok_followers,
-    followers_synced_at: synced ? new Date().toISOString() : null,
+    // Only stamp when we actually fetched; otherwise leave the existing value.
+    followers_synced_at: synced ? new Date().toISOString() : undefined,
     ugc_rate,
     event_rate,
     broll_rate,
