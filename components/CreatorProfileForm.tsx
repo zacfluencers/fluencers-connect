@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   upsertCreatorProfile,
   type ProfileState,
@@ -73,27 +73,9 @@ export function CreatorProfileForm({
         </div>
       </fieldset>
 
-      <label className="block">
-        <span className="mb-1 block text-sm font-medium text-[var(--foreground)]">Bio</span>
-        <textarea
-          name="bio"
-          rows={3}
-          defaultValue={profile?.bio ?? ""}
-          className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--accent-2)]/60"
-        />
-      </label>
+      <Bio defaultValue={profile?.bio ?? ""} />
 
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          name="availability"
-          defaultChecked={profile?.availability ?? true}
-          className="accent-[var(--accent)]"
-        />
-        <span className="text-sm text-[var(--foreground)]">
-          Available for bookings
-        </span>
-      </label>
+      <Availability defaultChecked={profile?.availability ?? true} />
 
       {state && "error" in state && (
         <p className="text-sm text-rose-300">{state.error}</p>
@@ -113,9 +95,16 @@ export function CreatorProfileForm({
   );
 }
 
+// All fields below are CONTROLLED (driven by state) so React 19's automatic
+// form-reset after a Server Action can't blank them on save.
+
+const FIELD =
+  "w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--accent-2)]/60";
+
 function Niche({ defaultValue }: { defaultValue: string }) {
+  const [value, setValue] = useState(defaultValue);
   // Keep any legacy free-text value selectable so it isn't lost.
-  const isKnown = (NICHES as readonly string[]).includes(defaultValue);
+  const isKnown = (NICHES as readonly string[]).includes(value);
   return (
     <label className="block">
       <span className="mb-1 block text-sm font-medium text-[var(--foreground)]">
@@ -123,13 +112,12 @@ function Niche({ defaultValue }: { defaultValue: string }) {
       </span>
       <select
         name="niche"
-        defaultValue={defaultValue}
-        className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--accent-2)]/60"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className={FIELD}
       >
         <option value="">Select a niche…</option>
-        {!isKnown && defaultValue && (
-          <option value={defaultValue}>{defaultValue}</option>
-        )}
+        {!isKnown && value && <option value={value}>{value}</option>}
         {NICHES.map((n) => (
           <option key={n} value={n}>
             {n}
@@ -153,6 +141,7 @@ function Dropdown({
   placeholder: string;
   children: React.ReactNode;
 }) {
+  const [value, setValue] = useState(defaultValue);
   return (
     <label className="block">
       <span className="mb-1 block text-sm font-medium text-[var(--foreground)]">
@@ -160,8 +149,9 @@ function Dropdown({
       </span>
       <select
         name={name}
-        defaultValue={defaultValue}
-        className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--accent-2)]/60"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className={FIELD}
       >
         <option value="">{placeholder}</option>
         {children}
@@ -173,7 +163,7 @@ function Dropdown({
 function Text({
   label,
   name,
-  defaultValue,
+  defaultValue = "",
   placeholder,
   type = "text",
   required,
@@ -185,6 +175,7 @@ function Text({
   type?: string;
   required?: boolean;
 }) {
+  const [value, setValue] = useState(defaultValue);
   return (
     <label className="block">
       <span className="mb-1 block text-sm font-medium text-[var(--foreground)]">
@@ -193,13 +184,48 @@ function Text({
       <input
         name={name}
         type={type}
-        defaultValue={defaultValue}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         required={required}
         step={type === "number" ? "0.01" : undefined}
         min={type === "number" ? "0" : undefined}
-        className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--accent-2)]/60"
+        className={FIELD}
       />
+    </label>
+  );
+}
+
+function Bio({ defaultValue }: { defaultValue: string }) {
+  const [value, setValue] = useState(defaultValue);
+  return (
+    <label className="block">
+      <span className="mb-1 block text-sm font-medium text-[var(--foreground)]">Bio</span>
+      <textarea
+        name="bio"
+        rows={3}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className={FIELD}
+      />
+    </label>
+  );
+}
+
+function Availability({ defaultChecked }: { defaultChecked: boolean }) {
+  const [checked, setChecked] = useState(defaultChecked);
+  return (
+    <label className="flex items-center gap-2">
+      <input
+        type="checkbox"
+        name="availability"
+        checked={checked}
+        onChange={(e) => setChecked(e.target.checked)}
+        className="accent-[var(--accent)]"
+      />
+      <span className="text-sm text-[var(--foreground)]">
+        Available for bookings
+      </span>
     </label>
   );
 }

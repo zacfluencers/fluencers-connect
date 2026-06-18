@@ -71,7 +71,9 @@ People sign up as either a **brand** (books creators) or a **creator** (gets boo
 `requested → accepted → in_progress → in_review → completed`. A creator can **decline** a request (→ declined). While a booking is in review, the brand can **request a revision** (sends it back to in progress), up to **3 times**. Each button only appears for the person allowed to press it. **No payments yet** — "completed" just marks the work done; escrow/Stripe comes later.
 
 ## Components
-- **Nav** — top navigation; shows who's signed in and the right links for their role.
+- **Nav** — top navigation; shows who's signed in and the right links for their role. On mobile it collapses to a **hamburger** that opens a full-screen, animated menu (`MobileNav`).
+- **MobileNav** — the mobile-only full-screen menu (staggered links, sign-in/out, scroll-lock, Escape-to-close).
+- **Avatar** — round profile image (or gradient initial) used across messaging.
 - **CreatorCard** — the marketplace card: photo, name, niche, clickable IG/TikTok follower counts, transparent per-service prices, an **Auto book** button, and a **Chat** button.
 - **MarketplaceFilters** — the full filter bar (industry multi-select, gender, country, availability + a sliders panel for age, rate, and follower minimums). Writes everything to the URL.
 - **RangeSlider** (`DualRange` / `MinSlider`) — the two-handle range and single "minimum" sliders used in the filters.
@@ -111,6 +113,8 @@ The site reads creators from Supabase. To switch it on, copy `.env.local.example
 - 2026-06-18: **Messages upgrades** — conversations are labelled **deal room (+ live status)** vs **direct message**; inside a conversation you can **view the other party's profile**, **open the deal room**, or **Book now** (brand → creator, when there's no active booking). Added a **brand profile page** (`/brand/[id]`).
 - 2026-06-18: Creator profile image is now an **upload** (not a URL). The favourite button no longer shows to creators on creator cards/profiles, and **creators can now favourite brands** (bookmark on brand cards/profiles); the **Favourites** page is role-aware (brands→creators, creators→brands).
 - 2026-06-18: Portfolio video uploads now show a **live progress bar** (with a per-file counter) instead of a silent "Uploading…", via a direct browser→storage upload that reports progress.
+- 2026-06-18: **Fixed** creator-profile fields (niche, etc.) sometimes needing to be saved twice — the form fields are now **controlled**, so React 19's automatic post-save form reset can't blank them.
+- 2026-06-18: **Mobile pass** — a smooth full-screen **hamburger menu**, the hero eyebrow now scales to stay on one line with a **gently pulsing dot**, and the hero headline/spacing scale down cleanly on small phones.
 - 2026-06-18: Social-handle fields now show a fixed **`@`** prefix and website fields a fixed **`https://`** prefix (you type just the handle/domain), so links and handles are always saved in the right format.
 - 2026-06-18: **Signed-out visitors see teaser cards** — name, photo, niche, and follower counts, but **pricing and booking are hidden** behind a "Sign up to see pricing & book" button (on browse, the homepage, and creator profiles). Signed-in brands still get full pricing, auto-book, chat, and favourites.
 - 2026-06-18: First-time **brands** get a focused **`/welcome`** profile-setup step (then land on the marketplace). Homepage "Vetted creators" stat shows the live creator count with a trailing **+**; second/fourth stats reworded.

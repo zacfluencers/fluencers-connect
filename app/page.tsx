@@ -70,10 +70,10 @@ export default async function LandingPage() {
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden">
         <div className="aurora" aria-hidden />
-        <div className="relative mx-auto max-w-5xl px-6 pb-32 pt-28 text-center sm:pb-40 sm:pt-44">
+        <div className="relative mx-auto max-w-5xl px-6 pb-24 pt-20 text-center sm:pb-40 sm:pt-44">
           <Reveal>
-            <span className="text-eyebrow inline-flex items-center gap-2 rounded-full border border-[var(--border-strong)] bg-white/5 px-4 py-1.5 text-[var(--muted)]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-2)]" />
+            <span className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-[var(--border-strong)] bg-white/5 px-3 py-1.5 text-[clamp(0.56rem,2.7vw,0.78rem)] font-medium uppercase tracking-[0.14em] text-[var(--muted)] sm:px-4 sm:tracking-[0.2em]">
+              <span className="pulse-dot h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent-2)]" />
               The influencer marketplace, reimagined
             </span>
           </Reveal>
@@ -132,7 +132,7 @@ export default async function LandingPage() {
 
           {/* Trusted by — endless, seamless marquee with edge fades */}
           <Reveal index={4}>
-            <div className="mt-20">
+            <div className="mt-14 sm:mt-20">
               <p className="text-xs uppercase tracking-widest text-[var(--muted)]">
                 Trusted by modern brands
               </p>
