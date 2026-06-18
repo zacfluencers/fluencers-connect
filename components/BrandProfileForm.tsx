@@ -7,10 +7,17 @@ import {
 } from "@/app/actions/brandProfile";
 import { Field, Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { ImageUpload } from "@/components/ImageUpload";
 import type { BrandProfile } from "@/lib/types";
 
-/** Brand dashboard form: company details + the "looking for creators" toggle. */
-export function BrandProfileForm({ profile }: { profile: BrandProfile | null }) {
+/** Brand dashboard form: company details, media/links + the "looking for creators" toggle. */
+export function BrandProfileForm({
+  profile,
+  userId,
+}: {
+  profile: BrandProfile | null;
+  userId: string;
+}) {
   const [state, formAction, pending] = useActionState<BrandProfileState, FormData>(
     upsertBrandProfile,
     null,
@@ -18,6 +25,10 @@ export function BrandProfileForm({ profile }: { profile: BrandProfile | null }) 
 
   return (
     <form action={formAction} className="space-y-4">
+      <Field label="Company logo" hint="Shown on your card. Falls back to your initial if empty.">
+        <ImageUpload userId={userId} name="logo_url" defaultUrl={profile?.logo_url} label="Upload logo" />
+      </Field>
+
       <Field label="Company name">
         <Input name="company_name" defaultValue={profile?.company_name ?? ""} required />
       </Field>
@@ -25,6 +36,18 @@ export function BrandProfileForm({ profile }: { profile: BrandProfile | null }) 
       <Field label="What you're looking for" hint="Tell creators about the work, vibe, and deliverables.">
         <Textarea name="about" rows={3} defaultValue={profile?.about ?? ""} />
       </Field>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="Website">
+          <Input name="website" type="url" defaultValue={profile?.website ?? ""} placeholder="https://…" />
+        </Field>
+        <Field label="Instagram">
+          <Input name="instagram" defaultValue={profile?.instagram ?? ""} placeholder="@handle" />
+        </Field>
+        <Field label="TikTok">
+          <Input name="tiktok" defaultValue={profile?.tiktok ?? ""} placeholder="@handle" />
+        </Field>
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Budget min (£)">

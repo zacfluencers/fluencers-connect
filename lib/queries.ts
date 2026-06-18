@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
 import type {
   AppUser,
+  AppNotification,
   Booking,
   BrandProfile,
   CreatorProfile,
@@ -10,7 +11,7 @@ import type {
 } from "@/lib/types";
 
 const BRAND_PROFILE_COLUMNS =
-  "user_id, company_name, about, budget_min, budget_max, looking_for_creators, created_at";
+  "user_id, company_name, about, budget_min, budget_max, looking_for_creators, logo_url, website, instagram, tiktok, created_at";
 
 /** Every column on creator_profiles — shared so selects stay in sync. */
 export const CREATOR_PROFILE_COLUMNS =
@@ -269,6 +270,33 @@ export async function getOrCreateBookingConversation(
     .eq("booking_id", bookingId)
     .maybeSingle();
   return retry.data?.id ?? null;
+}
+
+/** The current user's recent notifications (newest first). */
+export async function getMyNotifications(
+  limit = 20,
+): Promise<AppNotification[]> {
+  const me = await getCurrentUser();
+  if (!me) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("notifications")
+    .select("id, user_id, type, title, body, link, read, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return data ?? [];
+}
+
+/** How many unread notifications the current user has. */
+export async function getUnreadNotificationCount(): Promise<number> {
+  const me = await getCurrentUser();
+  if (!me) return 0;
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("read", false);
+  return count ?? 0;
 }
 
 export interface BookingRow extends Booking {

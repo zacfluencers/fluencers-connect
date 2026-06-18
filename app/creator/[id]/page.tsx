@@ -188,7 +188,8 @@ export default async function CreatorPage({
                   key={item.id}
                   className="aspect-[9/16] overflow-hidden rounded-xl bg-black"
                 >                  <video
-                    src={item.image_url}
+                    // #t=0.1 renders the first frame as the poster (no black box).
+                    src={`${item.image_url}#t=0.1`}
                     className="h-full w-full object-cover"
                     controls
                     playsInline

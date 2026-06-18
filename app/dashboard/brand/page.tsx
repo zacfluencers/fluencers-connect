@@ -163,7 +163,7 @@ export default async function BrandDashboard() {
             title="Brand profile"
             subtitle="Turn on “Looking for creators” to appear in the creator directory and get messages from creators."
           >
-            <BrandProfileForm profile={brandProfile} />
+            <BrandProfileForm profile={brandProfile} userId={me.id} />
           </Panel>
 
           {/* History */}

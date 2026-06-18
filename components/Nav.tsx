@@ -1,13 +1,19 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
+import { getMyNotifications, getUnreadNotificationCount } from "@/lib/queries";
 import { signOut } from "@/app/actions/auth";
 import { ButtonLink } from "@/components/ui/Button";
 import { Logo } from "@/components/Logo";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export async function Nav() {
   const me = await getCurrentUser();
   const dashboardHref =
     me?.role === "creator" ? "/dashboard/creator" : "/dashboard/brand";
+
+  const [notifications, unread] = me
+    ? await Promise.all([getMyNotifications(), getUnreadNotificationCount()])
+    : [[], 0];
 
   return (
     <nav className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/70 backdrop-blur-xl">
@@ -31,6 +37,7 @@ export async function Nav() {
         <div className="ml-auto flex items-center gap-3 text-sm">
           {me ? (
             <>
+              <NotificationBell notifications={notifications} unread={unread} />
               <span className="hidden items-center gap-2 text-[var(--muted)] sm:flex">
                 <span className="max-w-[160px] truncate">{me.email}</span>
                 <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-xs capitalize text-[var(--foreground)]">

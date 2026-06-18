@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/session";
 import { stripe, isStripeConfigured, getBaseUrl, toPence } from "@/lib/stripe/server";
 import { refundEscrow } from "@/lib/stripe/escrow";
 import { rateFor, serviceDef, type ServiceType } from "@/lib/services";
+import { notify } from "@/lib/notifications";
 
 /**
  * Brand pays into escrow at request time, for a specific service (UGC / Event
@@ -131,7 +132,7 @@ export async function refundBooking(
   const supabase = await createClient();
   const { data: booking } = await supabase
     .from("bookings")
-    .select("id, brand_id, status")
+    .select("id, brand_id, creator_id, status")
     .eq("id", bookingId)
     .maybeSingle();
   if (!booking) return { error: "Booking not found." };
@@ -144,6 +145,16 @@ export async function refundBooking(
 
   const result = await refundEscrow(bookingId, "refunded");
   if ("error" in result) return result;
+
+  const brandName =
+    (await supabase.from("brand_profiles").select("company_name").eq("user_id", me.id).maybeSingle()).data?.company_name ?? "The brand";
+  await notify(supabase, {
+    userId: booking.creator_id,
+    type: "booking_update",
+    title: `${brandName} cancelled the booking`,
+    body: "The escrow has been refunded to the brand.",
+    link: `/bookings/${bookingId}`,
+  });
 
   revalidatePath(`/bookings/${bookingId}`);
   revalidatePath("/bookings");

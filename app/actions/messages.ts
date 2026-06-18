@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
+import { notify } from "@/lib/notifications";
 
 /**
  * Creator opens (or reuses) a direct conversation with a brand, then lands in it.
@@ -118,6 +119,28 @@ export async function sendMessage(
     body: text,
   });
   if (error) return { error: error.message };
+
+  // Notify the other party in the conversation.
+  const { data: convo } = await supabase
+    .from("conversations")
+    .select("brand_id, creator_id")
+    .eq("id", conversationId)
+    .maybeSingle();
+  if (convo) {
+    const recipientId =
+      convo.brand_id === me.id ? convo.creator_id : convo.brand_id;
+    const senderName =
+      me.role === "brand"
+        ? (await supabase.from("brand_profiles").select("company_name").eq("user_id", me.id).maybeSingle()).data?.company_name ?? "A brand"
+        : (await supabase.from("creator_profiles").select("name").eq("user_id", me.id).maybeSingle()).data?.name ?? "A creator";
+    await notify(supabase, {
+      userId: recipientId,
+      type: "message",
+      title: `New message from ${senderName}`,
+      body: text.slice(0, 140),
+      link: `/messages/${conversationId}`,
+    });
+  }
 
   revalidatePath(`/messages/${conversationId}`);
   return { ok: true };

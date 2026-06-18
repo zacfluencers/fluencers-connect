@@ -10,6 +10,47 @@ import {
   type BookingAction,
 } from "@/lib/bookings";
 import { releaseEscrow, refundEscrow } from "@/lib/stripe/escrow";
+import { notify } from "@/lib/notifications";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/** Alert the counterparty that a booking moved. Best-effort. */
+async function notifyBookingAction(
+  supabase: SupabaseClient,
+  args: {
+    action: BookingAction;
+    actorRole: "brand" | "creator";
+    actorId: string;
+    brandId: string;
+    creatorId: string;
+    bookingId: string;
+  },
+) {
+  const { action, actorRole, brandId, creatorId, bookingId } = args;
+  const recipientId = actorRole === "brand" ? creatorId : brandId;
+
+  const actorName =
+    actorRole === "brand"
+      ? (await supabase.from("brand_profiles").select("company_name").eq("user_id", brandId).maybeSingle()).data?.company_name ?? "The brand"
+      : (await supabase.from("creator_profiles").select("name").eq("user_id", creatorId).maybeSingle()).data?.name ?? "The creator";
+
+  const map: Record<BookingAction, { title: string; body?: string }> = {
+    accept: { title: `${actorName} accepted your booking` },
+    decline: { title: `${actorName} declined your booking`, body: "Any escrow held has been refunded." },
+    start: { title: `${actorName} started work on your booking` },
+    submit: { title: `${actorName} submitted work for review`, body: "Review it and approve or request a revision." },
+    approve: { title: `${actorName} approved & completed your booking`, body: "Funds have been released to you." },
+    request_revision: { title: `${actorName} requested a revision` },
+  };
+
+  const msg = map[action];
+  await notify(supabase, {
+    userId: recipientId,
+    type: "booking_update",
+    title: msg.title,
+    body: msg.body ?? null,
+    link: `/bookings/${bookingId}`,
+  });
+}
 
 // Booking creation now happens through Stripe Checkout — see
 // createBookingCheckout in app/actions/payments.ts.
@@ -58,6 +99,16 @@ export async function transitionBooking(
     return { error: "You can't take that action on this booking." };
   }
 
+  const actorRole = me.role as "brand" | "creator";
+  const notifyArgs = {
+    action,
+    actorRole,
+    actorId: me.id,
+    brandId: booking.brand_id,
+    creatorId: booking.creator_id,
+    bookingId,
+  };
+
   // Money-moving transitions go through escrow (these set the status too).
   if (action === "approve" || action === "decline") {
     const result =
@@ -65,6 +116,7 @@ export async function transitionBooking(
         ? await releaseEscrow(bookingId)
         : await refundEscrow(bookingId, "declined");
     if ("error" in result) return result;
+    await notifyBookingAction(supabase, notifyArgs);
     revalidateBooking(bookingId);
     return { ok: true };
   }
@@ -87,6 +139,7 @@ export async function transitionBooking(
 
   if (error) return { error: error.message };
 
+  await notifyBookingAction(supabase, notifyArgs);
   revalidateBooking(bookingId);
   return { ok: true };
 }

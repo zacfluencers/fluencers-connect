@@ -25,14 +25,21 @@ export async function upsertBrandProfile(
     return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null;
   };
 
+  const clean = (key: string): string | null =>
+    String(formData.get(key) ?? "").trim() || null;
+
   const supabase = await createClient();
   const { error } = await supabase.from("brand_profiles").upsert({
     user_id: me.id,
     company_name: companyName,
-    about: String(formData.get("about") ?? "").trim() || null,
+    about: clean("about"),
     budget_min: toCount("budget_min"),
     budget_max: toCount("budget_max"),
     looking_for_creators: formData.get("looking_for_creators") === "on",
+    logo_url: clean("logo_url"),
+    website: clean("website"),
+    instagram: clean("instagram"),
+    tiktok: clean("tiktok"),
   });
   if (error) return { error: error.message };
 

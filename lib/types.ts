@@ -78,6 +78,22 @@ export interface BrandProfile {
   budget_min: number | null;
   budget_max: number | null;
   looking_for_creators: boolean;
+  logo_url: string | null;
+  website: string | null;
+  instagram: string | null;
+  tiktok: string | null;
+  created_at: string;
+}
+
+/** A notification delivered to a user. */
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  read: boolean;
   created_at: string;
 }
 

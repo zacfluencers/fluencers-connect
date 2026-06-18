@@ -35,6 +35,8 @@ Migrations live in `supabase/migrations/`.
 
 **`0012_creator_attributes_and_rates.sql`** — richer creators + transparent per-service pricing. Replaces the single price with three rates — **UGC**, **Event Day**, **B-Roll** (any a creator doesn't offer is left blank) — and adds **gender**, **age**, and **country** for filtering. Bookings now record which **service** was booked. (The old single price was carried over into the UGC rate, and is kept in sync with the lowest set rate behind the scenes.)
 
+**`0013_brand_media_and_notifications.sql`** + **`0014`** — brands get a **logo, website, Instagram, and TikTok**; a new **`avatars`** storage bucket holds uploaded logos; the **portfolio** bucket's per-file limit was raised to **150MB**; and a **`notifications`** table was added (one row per alert, with read/unread state) so both sides get notified about messages and booking activity. RLS lets people read/clear only their own notifications and create one only for someone they share a booking or conversation with.
+
 ## Payments & escrow (Stripe Connect)
 - A brand **pays at request time** via Stripe Checkout; the money is **held in escrow** on the platform balance and the booking is created (paid) once Stripe confirms.
 - **Approve & complete** → funds are **transferred** to the creator's connected account. **Decline** or a brand **refund/dispute** → funds are **returned** to the brand.
@@ -58,7 +60,7 @@ People sign up as either a **brand** (books creators) or a **creator** (gets boo
 - **Sign in / Join** (`/login`, `/signup`) — account creation and login. Signup includes the brand/creator choice.
 - **Creator Dashboard** (`/dashboard/creator`) — a **modular two-column layout**. The **left rail** shows a live preview of the creator's **card exactly as brands see it** (plus a link to their public profile) and their **payout setup**. The **right side** is a set of panels: quick stats (new requests / active / completed), **booking requests** (accept/decline), **active bookings**, a **Messages** panel (recent conversations → inbox), the **profile editor** (niche, gender/age/country, socials + follower counts, and the three service rates — UGC / Event Day / B-Roll), the **portfolio** uploader (9:16 videos), and past bookings.
 - **Favourites** (`/favorites`) — creators a signed-in user has saved (via the heart on any creator card or profile) so they can come back to them.
-- **Brand Dashboard** (`/dashboard/brand`) — the same **modular two-column layout** as the creator dashboard. The **left rail** shows a live preview of the brand's **card as creators see it** in the directory (with a "Visible / Hidden" status) plus quick links (browse, saved creators, messages, all bookings). The **right side** has panels for quick stats (active / in escrow / completed), **active bookings** (cards with a mini progress bar), a **Messages** panel, the **brand profile** editor, and history. Brands land here after login.
+- **Brand Dashboard** (`/dashboard/brand`) — the same **modular two-column layout** as the creator dashboard. The **left rail** shows a live preview of the brand's **card as creators see it** in the directory (with a "Visible / Hidden" status) plus quick links (browse, saved creators, messages, all bookings). The **right side** has panels for quick stats (active / in escrow / completed), **active bookings** (cards with a mini progress bar), a **Messages** panel, the **brand profile** editor (now with a **logo upload**, **website**, and **Instagram/TikTok**), and history. Brands land here after login.
 - **Booking Detail / "Deal Room"** (`/bookings/[id]`) — the centrepiece. A full status **stepper**, a participants panel (creator + brand), the agreed price, a **revision counter** (out of 3), a **content delivery** area (file preview/empty states by stage), a clean **message thread**, and the action buttons (approve, request revision, and — for brands — dispute/refund via a modal). Designed to feel like a deal room, not a chat app.
 
 > UI-only for now (no backend yet, per brief): the message thread (composing is local — needs a `messages` table to persist), the content-delivery file area, and the dispute modal. The approve / request-revision / accept / decline actions are fully wired to the real booking flow.
@@ -78,6 +80,12 @@ People sign up as either a **brand** (books creators) or a **creator** (gets boo
 - **ServiceBooking** — the transparent pricing panel on a creator profile, one **Request & pay** button per service.
 - **SocialIcons** — the Instagram and TikTok glyphs.
 - **DashboardPanel** (`Panel` / `Stat`) — the shared modular card + stat tile used by both the creator and brand dashboards, so they stay visually in sync.
+- **NotificationBell** — the bell + unread badge + dropdown in the top nav; lists recent alerts, marks them read, and links through to the relevant page.
+- **ImageUpload** — a reusable single-image uploader (used for brand logos) that stores to the `avatars` bucket and submits the URL with its form.
+- **BrandCard** — now shows the brand's uploaded logo (or initial), the "Looking for creators" badge on its own row, and clickable website / Instagram / TikTok links.
+
+## Notifications
+Both brands and creators get notifications (a **bell** in the top nav with an unread count). They're created for: a **new message**, a **new booking request** (creator), and every **booking update** — accepted, declined, started, submitted for review, revision requested, approved/completed, or cancelled/refunded. Opening one marks it read and jumps to the booking or conversation. (Counts refresh when you move around the site — there's no live push yet.)
 - **AuthForm** — the sign in / sign up form.
 - **CreatorProfileForm** — where a creator fills in their bookable profile.
 - **RequestBookingButton** — the "Request Booking" action on a creator's page.
@@ -96,6 +104,8 @@ The site reads creators from Supabase. To switch it on, copy `.env.local.example
 - 2026-06-17: Restyled toward a clean dark-mode-Airbnb feel (borderless photo cards, calmer buttons, more whitespace, responsive type scale, save icon).
 - 2026-06-17: **Portfolios are now 9:16 vertical videos**; **creators can no longer see/favourite other creators** (they browse the new **Brands** directory instead); added **brand profiles** with a "Looking for creators" toggle; and shipped **real persisted messaging** (powers both the brands outreach and the booking deal room).
 - 2026-06-18: **Transparent per-service pricing + richer creator profiles + powerful search.** Creators now set three rates (**UGC / Event Day / B-Roll**) and capture **gender, age, country**. Creator cards show every rate, clickable **Instagram/TikTok follower counts**, an **Auto book** button (fast pre-filled booking request), and a **Chat** button. The marketplace gained a full filter bar — **industry (multi-select), gender, country, availability**, plus sliders for **age, rate, and minimum IG/TikTok followers**. Bookings record which service was booked.
+- 2026-06-18: **Modular dashboards** for both creators and brands (card-as-clients-see-it on the left, modular panels on the right), and the **Become a creator/brand** links now pre-select the right role on signup.
+- 2026-06-18: **Notifications for both sides** (a bell in the nav, with messages + every booking update), **brand logo upload + website/socials** (logo falls back to the company initial; "Looking for creators" badge moved to its own row), larger **150MB** portfolio video uploads, and cleaner Instagram/TikTok icons.
 
 ## Two-sided access (who sees what)
 - **Brands** browse the **creator** marketplace, favourite creators, and book them.

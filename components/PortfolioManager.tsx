@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { addPortfolioItem, deletePortfolioItem } from "@/app/actions/portfolio";
 import type { PortfolioItem } from "@/lib/types";
 
-const MAX_MB = 50;
+const MAX_MB = 150;
 
 /**
  * Upload + manage portfolio videos. Files go to Supabase Storage; rows are
@@ -86,7 +86,9 @@ export function PortfolioManager({
             key={item.id}
             className="group relative aspect-[9/16] overflow-hidden rounded-xl bg-black"
           >            <video
-              src={item.image_url}
+              // #t=0.1 makes the browser render the first frame as the poster
+              // instead of showing a black box before playback.
+              src={`${item.image_url}#t=0.1`}
               className="h-full w-full object-cover"
               controls
               playsInline

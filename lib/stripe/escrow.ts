@@ -1,5 +1,7 @@
 import { stripe, isStripeConfigured, platformFeeBps, toPence } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { notify } from "@/lib/notifications";
+import { serviceLabel } from "@/lib/services";
 
 type Result = { ok: true } | { error: string };
 
@@ -45,7 +47,20 @@ export async function ensureBookingForSession(
     })
     .select("id")
     .maybeSingle();
-  if (inserted.data) return inserted.data.id;
+  if (inserted.data) {
+    // Alert the creator of the new paid request.
+    const brandName =
+      (await admin.from("brand_profiles").select("company_name").eq("user_id", brandId).maybeSingle()).data?.company_name ?? "A brand";
+    const svc = serviceLabel(service);
+    await notify(admin, {
+      userId: creatorId,
+      type: "booking_request",
+      title: `New booking request from ${brandName}`,
+      body: svc ? `${svc} · paid into escrow` : "Paid into escrow",
+      link: `/bookings/${inserted.data.id}`,
+    });
+    return inserted.data.id;
+  }
 
   // Race (unique session index) — re-read.
   const retry = await admin
