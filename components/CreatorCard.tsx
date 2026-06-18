@@ -89,7 +89,7 @@ export function CreatorCard({
 
         {/* Socials with per-platform follower counts → external profiles */}
         {(creator.instagram || creator.tiktok) && (
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-7 gap-y-1.5 text-sm">
             {creator.instagram && (
               <a
                 href={instagramUrl(creator.instagram)}

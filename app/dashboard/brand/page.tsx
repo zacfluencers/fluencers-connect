@@ -1,8 +1,15 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { listMyBookings, getBrandProfile } from "@/lib/queries";
+import {
+  listMyBookings,
+  getBrandProfile,
+  getMyConversations,
+} from "@/lib/queries";
 import { BookingCard } from "@/components/BookingCard";
+import { BrandCard } from "@/components/BrandCard";
 import { BrandProfileForm } from "@/components/BrandProfileForm";
+import { Panel, Stat } from "@/components/ui/DashboardPanel";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/motion";
 import { gbp } from "@/lib/format";
@@ -15,9 +22,10 @@ export default async function BrandDashboard() {
   if (!me) redirect("/login");
   if (me.role !== "brand") redirect("/dashboard/creator");
 
-  const [bookings, brandProfile] = await Promise.all([
+  const [bookings, brandProfile, conversations] = await Promise.all([
     listMyBookings(),
     getBrandProfile(me.id),
+    getMyConversations(),
   ]);
   const active = bookings.filter(
     (b) => !["completed", "declined", "refunded"].includes(b.status),
@@ -25,12 +33,12 @@ export default async function BrandDashboard() {
   const past = bookings.filter((b) =>
     ["completed", "declined", "refunded"].includes(b.status),
   );
-
+  const completed = past.filter((b) => b.status === "completed");
   const liveSpend = active.reduce((sum, b) => sum + Number(b.price), 0);
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-14">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <main className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mb-2 text-sm font-medium uppercase tracking-widest text-[var(--accent-2)]">
             Dashboard
@@ -41,82 +49,155 @@ export default async function BrandDashboard() {
           </p>
         </div>
         <ButtonLink href="/marketplace">Book a creator</ButtonLink>
+      </header>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-[340px_1fr]">
+        {/* ----------------------------------------------------- Left rail */}
+        <aside className="space-y-6 lg:sticky lg:top-20 lg:self-start">
+          <Panel
+            title="Your brand card"
+            subtitle="How creators see you in the directory"
+          >
+            {brandProfile ? (
+              <>
+                <BrandCard brand={brandProfile} canMessage={false} />
+                <p className="mt-4 text-sm">
+                  {brandProfile.looking_for_creators ? (
+                    <span className="text-emerald-300">
+                      ● Visible to creators
+                    </span>
+                  ) : (
+                    <span className="text-[var(--muted)]">
+                      ○ Hidden — turn on “Looking for creators” below to appear.
+                    </span>
+                  )}
+                </p>
+              </>
+            ) : (
+              <div className="rounded-xl border border-dashed border-[var(--border-strong)] p-6 text-center text-sm text-[var(--muted)]">
+                Fill in your brand profile below and your card will appear here
+                — this is what creators will see.
+              </div>
+            )}
+          </Panel>
+
+          <Panel title="Quick links">
+            <div className="space-y-2">
+              <QuickLink href="/marketplace" label="Browse creators" />
+              <QuickLink href="/favorites" label="Saved creators" />
+              <QuickLink href="/messages" label="Messages" />
+              <QuickLink href="/bookings" label="All bookings" />
+            </div>
+          </Panel>
+        </aside>
+
+        {/* ----------------------------------------------------- Main panels */}
+        <div className="space-y-6">
+          {/* Quick stats */}
+          <div className="grid grid-cols-3 gap-4">
+            <Stat label="Active bookings" value={active.length} accent />
+            <Stat label="In escrow (active)" value={gbp.format(liveSpend)} />
+            <Stat label="Completed" value={completed.length} />
+          </div>
+
+          {/* Active */}
+          <Panel title="Active bookings" count={active.length}>
+            {active.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-[var(--border-strong)] p-8 text-center">
+                <p className="text-[var(--muted)]">No active bookings yet.</p>
+                <ButtonLink href="/marketplace" variant="secondary" size="sm" className="mt-4">
+                  Browse creators
+                </ButtonLink>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {active.map((b, i) => (
+                  <Reveal key={b.id} index={i}>
+                    <BookingCard
+                      id={b.id}
+                      counterparty={b.creatorName ?? "Creator"}
+                      sublabel="Booking"
+                      price={b.price}
+                      status={b.status}
+                    />
+                  </Reveal>
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          {/* Messages */}
+          <Panel
+            title="Messages"
+            count={conversations.length}
+            action={{ href: "/messages", label: "Open inbox →" }}
+          >
+            {conversations.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-[var(--border-strong)] p-4 text-sm text-[var(--muted)]">
+                No conversations yet.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {conversations.slice(0, 4).map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/messages/${c.id}`}
+                    className="block rounded-xl border border-[var(--border)] p-3.5 transition-colors hover:border-[var(--accent-2)]/50 hover:bg-white/5"
+                  >
+                    <p className="font-medium text-[var(--foreground)]">
+                      {c.counterpartName}
+                    </p>
+                    {c.lastMessage && (
+                      <p className="mt-0.5 truncate text-sm text-[var(--muted)]">
+                        {c.lastMessage}
+                      </p>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          {/* Brand profile */}
+          <Panel
+            title="Brand profile"
+            subtitle="Turn on “Looking for creators” to appear in the creator directory and get messages from creators."
+          >
+            <BrandProfileForm profile={brandProfile} />
+          </Panel>
+
+          {/* History */}
+          {past.length > 0 && (
+            <Panel title="History" count={past.length}>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {past.map((b, i) => (
+                  <Reveal key={b.id} index={i}>
+                    <BookingCard
+                      id={b.id}
+                      counterparty={b.creatorName ?? "Creator"}
+                      sublabel="Booking"
+                      price={b.price}
+                      status={b.status}
+                    />
+                  </Reveal>
+                ))}
+              </div>
+            </Panel>
+          )}
+        </div>
       </div>
-
-      {/* Summary stats */}
-      <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Active bookings" value={String(active.length)} />
-        <StatCard label="In escrow (active)" value={gbp.format(liveSpend)} />
-        <StatCard label="Completed" value={String(
-          past.filter((b) => b.status === "completed").length,
-        )} />
-      </div>
-
-      {/* Brand profile */}
-      <section className="mt-12 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-7">
-        <h2 className="text-h3 font-semibold">Brand profile</h2>
-        <p className="mb-5 mt-1 text-sm text-[var(--muted)]">
-          Turn on “Looking for creators” to appear in the creator directory and
-          get messages from creators.
-        </p>
-        <BrandProfileForm profile={brandProfile} />
-      </section>
-
-      {/* Active */}
-      <section className="mt-12">
-        <h2 className="mb-6 text-h3 font-semibold">Active</h2>
-        {active.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[var(--border-strong)] p-12 text-center">
-            <p className="text-[var(--muted)]">No active bookings yet.</p>
-            <ButtonLink href="/marketplace" variant="secondary" size="sm" className="mt-4">
-              Browse creators
-            </ButtonLink>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {active.map((b, i) => (
-              <Reveal key={b.id} index={i}>
-                <BookingCard
-                  id={b.id}
-                  counterparty={b.creatorName ?? "Creator"}
-                  sublabel="Booking"
-                  price={b.price}
-                  status={b.status}
-                />
-              </Reveal>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Past */}
-      {past.length > 0 && (
-        <section className="mt-12">
-          <h2 className="mb-6 text-h3 font-semibold">History</h2>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {past.map((b, i) => (
-              <Reveal key={b.id} index={i}>
-                <BookingCard
-                  id={b.id}
-                  counterparty={b.creatorName ?? "Creator"}
-                  sublabel="Booking"
-                  price={b.price}
-                  status={b.status}
-                />
-              </Reveal>
-            ))}
-          </div>
-        </section>
-      )}
     </main>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function QuickLink({ href, label }: { href: string; label: string }) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
-      <p className="text-sm text-[var(--muted)]">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-[var(--foreground)]">{value}</p>
-    </div>
+    <Link
+      href={href}
+      className="flex items-center justify-between rounded-xl border border-[var(--border)] px-4 py-3 text-sm text-[var(--foreground)] transition-colors hover:border-[var(--accent-2)]/50 hover:bg-white/5"
+    >
+      {label}
+      <span className="text-[var(--accent-2)]">→</span>
+    </Link>
   );
 }
