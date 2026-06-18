@@ -1,10 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 
-/** Scale + fade modal with a blurred backdrop. */
+/**
+ * Scale + fade modal with a blurred backdrop. Rendered through a portal to
+ * <body> so it centres on the viewport (the app wraps pages in a transformed
+ * motion.div, which would otherwise trap `position: fixed`).
+ */
 export function Modal({
   open,
   onClose,
@@ -16,6 +21,12 @@ export function Modal({
   title?: string;
   children: ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- portal needs a client mount flag
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -24,11 +35,22 @@ export function Modal({
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  return (
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -56,6 +78,7 @@ export function Modal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

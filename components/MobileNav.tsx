@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { signOut } from "@/app/actions/auth";
 import { ButtonLink } from "@/components/ui/Button";
@@ -9,7 +11,10 @@ import { Logo } from "@/components/Logo";
 
 type NavItem = { href: string; label: string };
 
-/** Mobile-only hamburger that opens a full-screen, animated menu. */
+/**
+ * Mobile-only menu. Rendered through a portal to <body> so it can't be trapped
+ * by any ancestor's overflow/stacking context (the app clips overflow-x).
+ */
 export function MobileNav({
   me,
   links,
@@ -18,132 +23,162 @@ export function MobileNav({
   links: NavItem[];
 }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
-  // Lock body scroll + close on Escape while the menu is open.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- portal needs a client mount flag
+    setMounted(true);
+  }, []);
+
+  // Lock scroll + Escape-to-close while open.
   useEffect(() => {
     if (!open) return;
+    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);
 
   return (
-    <div className="md:hidden">
+    <>
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="flex h-9 w-9 items-center justify-center rounded-xl text-[var(--foreground)] transition-colors hover:bg-white/5"
+        aria-expanded={open}
+        className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--foreground)] transition-colors hover:bg-white/5 active:scale-95 md:hidden"
       >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="M3 6h18M3 12h18M3 18h18" />
+        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
+          <path d="M3.5 7h17M3.5 12h17M3.5 17h17" />
         </svg>
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="fixed inset-0 z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="absolute inset-0 bg-[var(--background)]/95 backdrop-blur-xl" />
-
-            <motion.div
-              className="relative flex h-full flex-col px-6 py-3.5"
-              initial={{ y: -10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -10, opacity: 0 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-            >
-              {/* Top bar mirrors the real nav height */}
-              <div className="flex items-center justify-between">
-                <Link href="/" onClick={() => setOpen(false)} aria-label="Home">
-                  <Logo className="h-5 w-auto text-[var(--foreground)]" />
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  aria-label="Close menu"
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-[var(--foreground)] transition-colors hover:bg-white/5"
-                >
-                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M18 6 6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Links — staggered in */}
-              <motion.nav
-                className="mt-12 flex flex-1 flex-col gap-1"
-                initial="hidden"
-                animate="show"
-                variants={{
-                  hidden: {},
-                  show: { transition: { staggerChildren: 0.05, delayChildren: 0.08 } },
-                }}
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {open && (
+              <motion.div
+                className="fixed inset-0 z-[100] flex flex-col bg-[var(--background)] md:hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
               >
-                {links.map((l) => (
-                  <motion.div
-                    key={l.href}
-                    variants={{
-                      hidden: { opacity: 0, y: 10 },
-                      show: { opacity: 1, y: 0 },
-                    }}
-                  >
-                    <Link
-                      href={l.href}
-                      onClick={() => setOpen(false)}
-                      className="block py-3 text-3xl font-semibold tracking-tight text-[var(--foreground)] transition-colors hover:text-[var(--accent-2)]"
-                    >
-                      {l.label}
-                    </Link>
-                  </motion.div>
-                ))}
-              </motion.nav>
+                {/* soft glow at the top */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 top-0 h-64"
+                  style={{
+                    background:
+                      "radial-gradient(70% 100% at 50% 0%, rgba(132,105,237,0.18), transparent 70%)",
+                  }}
+                />
 
-              {/* Auth footer */}
-              <div className="border-t border-[var(--border)] pt-5">
-                {me ? (
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm text-[var(--muted)]">{me.email}</span>
-                      <span className="text-xs capitalize text-[var(--foreground)]">{me.role}</span>
-                    </span>
-                    <form action={signOut}>
-                      <button
-                        type="submit"
-                        className="rounded-xl border border-[var(--border-strong)] px-4 py-2 text-sm text-[var(--foreground)] transition-colors hover:bg-white/5"
+                {/* Top bar — matches the real nav */}
+                <div className="relative flex items-center justify-between px-5 py-3.5">
+                  <Link href="/" aria-label="Home" onClick={() => setOpen(false)}>
+                    <Logo className="h-5 w-auto text-[var(--foreground)]" />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    aria-label="Close menu"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--foreground)] transition-colors hover:bg-white/5 active:scale-95"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
+                      <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Links */}
+                <motion.nav
+                  className="relative flex flex-1 flex-col px-5 pt-4"
+                  initial="hidden"
+                  animate="show"
+                  variants={{
+                    hidden: {},
+                    show: { transition: { staggerChildren: 0.045, delayChildren: 0.06 } },
+                  }}
+                >
+                  {links.map((l) => {
+                    const active =
+                      pathname === l.href || pathname.startsWith(`${l.href}/`);
+                    return (
+                      <motion.div
+                        key={l.href}
+                        variants={{
+                          hidden: { opacity: 0, y: 14 },
+                          show: { opacity: 1, y: 0 },
+                        }}
+                        transition={{ type: "spring", stiffness: 420, damping: 32 }}
                       >
-                        Sign out
-                      </button>
-                    </form>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-3">
-                    <ButtonLink href="/signup" size="lg" className="w-full">
-                      Get started
-                    </ButtonLink>
-                    <Link
-                      href="/login"
-                      onClick={() => setOpen(false)}
-                      className="py-1 text-center text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
-                    >
-                      Sign in
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
+                        <Link
+                          href={l.href}
+                          onClick={() => setOpen(false)}
+                          className={`flex items-center justify-between border-b border-[var(--border)] py-4 text-2xl font-semibold tracking-tight transition-colors ${
+                            active
+                              ? "text-[var(--accent-2)]"
+                              : "text-[var(--foreground)] active:text-[var(--accent-2)]"
+                          }`}
+                        >
+                          {l.label}
+                          <svg viewBox="0 0 24 24" className="h-5 w-5 text-[var(--muted)]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m9 18 6-6-6-6" />
+                          </svg>
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </motion.nav>
+
+                {/* Auth footer */}
+                <motion.div
+                  className="relative px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-5"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.18 }}
+                >
+                  {me ? (
+                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/50 p-4">
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm text-[var(--foreground)]">{me.email}</span>
+                        <span className="text-xs capitalize text-[var(--muted)]">{me.role}</span>
+                      </span>
+                      <form action={signOut}>
+                        <button
+                          type="submit"
+                          className="shrink-0 rounded-xl border border-[var(--border-strong)] px-4 py-2 text-sm text-[var(--foreground)] transition-colors hover:bg-white/5 active:scale-95"
+                        >
+                          Sign out
+                        </button>
+                      </form>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <ButtonLink href="/signup" size="lg" className="w-full">
+                        Get started
+                      </ButtonLink>
+                      <Link
+                        href="/login"
+                        onClick={() => setOpen(false)}
+                        className="py-2 text-center text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+                      >
+                        Sign in
+                      </Link>
+                    </div>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
-    </div>
+    </>
   );
 }
