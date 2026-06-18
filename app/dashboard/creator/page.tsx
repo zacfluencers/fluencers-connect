@@ -62,9 +62,9 @@ export default async function CreatorDashboard() {
         </p>
       </header>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[340px_1fr]">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
         {/* ----------------------------------------------------- Left rail */}
-        <aside className="space-y-6 lg:sticky lg:top-20 lg:self-start">
+        <aside className="min-w-0 space-y-6 lg:sticky lg:top-20 lg:self-start">
           <Panel
             title="Your card"
             subtitle="Exactly how brands see you in the marketplace"
@@ -101,9 +101,9 @@ export default async function CreatorDashboard() {
         </aside>
 
         {/* ----------------------------------------------------- Main panels */}
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {/* Quick stats */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
             <Stat label="New requests" value={incoming.length} accent />
             <Stat label="Active" value={active.length} />
             <Stat label="Completed" value={completed.length} />
@@ -233,9 +233,9 @@ function BookingLine({
 }) {
   return (
     <div className="rounded-xl border border-[var(--border)] p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <Link href={`/bookings/${id}`} className="font-medium text-[var(--foreground)] hover:underline">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <Link href={`/bookings/${id}`} className="block truncate font-medium text-[var(--foreground)] hover:underline">
             {who}
           </Link>
           <p className="text-sm text-[var(--muted)]">{gbp.format(price)}</p>

@@ -52,9 +52,9 @@ export default async function BrandDashboard() {
         <ButtonLink href="/marketplace">Book a creator</ButtonLink>
       </header>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[340px_1fr]">
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
         {/* ----------------------------------------------------- Left rail */}
-        <aside className="space-y-6 lg:sticky lg:top-20 lg:self-start">
+        <aside className="min-w-0 space-y-6 lg:sticky lg:top-20 lg:self-start">
           <Panel
             title="Your brand card"
             subtitle="How creators see you in the directory"
@@ -93,9 +93,9 @@ export default async function BrandDashboard() {
         </aside>
 
         {/* ----------------------------------------------------- Main panels */}
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {/* Quick stats */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
             <Stat label="Active bookings" value={active.length} accent />
             <Stat label="In escrow (active)" value={gbp.format(liveSpend)} />
             <Stat label="Completed" value={completed.length} />

@@ -57,13 +57,15 @@ export function Stat({
   const highlight = accent && Number(value) > 0;
   return (
     <div
-      className={`rounded-2xl border p-4 ${
+      className={`min-w-0 rounded-2xl border p-3 sm:p-4 ${
         highlight
           ? "border-[var(--accent-2)]/40 bg-[var(--accent-2)]/10"
           : "border-[var(--border)] bg-[var(--surface)]/40"
       }`}
     >
-      <p className="text-2xl font-bold text-[var(--foreground)]">{value}</p>
+      <p className="truncate text-xl font-bold text-[var(--foreground)] tabular-nums sm:text-2xl">
+        {value}
+      </p>
       <p className="mt-0.5 text-xs text-[var(--muted)]">{label}</p>
     </div>
   );
