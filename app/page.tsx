@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
-import { CREATOR_PROFILE_COLUMNS, getFavoriteIds } from "@/lib/queries";
+import {
+  CREATOR_PROFILE_COLUMNS,
+  getFavoriteIds,
+  getFavoriteBrandIds,
+  listBrandsLookingForCreators,
+} from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
 import { CreatorCard } from "@/components/CreatorCard";
+import { BrandCard } from "@/components/BrandCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal, RevealOnView } from "@/components/ui/motion";
 import type { CreatorProfile } from "@/lib/types";
@@ -16,7 +22,7 @@ async function getPreviewCreators(): Promise<CreatorProfile[]> {
     .from("creator_profiles")
     .select(CREATOR_PROFILE_COLUMNS)
     .order("instagram_followers", { ascending: false, nullsFirst: false })
-    .limit(6);
+    .limit(4);
   return data ?? [];
 }
 
@@ -40,6 +46,12 @@ export default async function LandingPage() {
   const isCreator = me?.role === "creator";
   const creatorCountLabel = `${new Intl.NumberFormat("en-GB").format(creatorCount)}+`;
 
+  // For signed-in creators, show real brands (looking for creators) on the home
+  // page instead of the creator grid.
+  const [brands, favoriteBrandIds] = isCreator
+    ? await Promise.all([listBrandsLookingForCreators(), getFavoriteBrandIds()])
+    : [[], new Set<string>()];
+
   return (
     <main>
       {/* ---------------------------------------------------------------- Hero */}
@@ -55,29 +67,53 @@ export default async function LandingPage() {
 
           <Reveal index={1}>
             <h1 className="text-hero h-display mx-auto mt-8 font-bold">
-              <span className="block whitespace-nowrap">Book creators instantly.</span>
-              <span className="block whitespace-nowrap text-gradient pb-[0.12em]">
-                No negotiation. No friction.
-              </span>
+              {isCreator ? (
+                <>
+                  <span className="block whitespace-nowrap">Get booked by brands.</span>
+                  <span className="block whitespace-nowrap text-gradient pb-[0.12em]">
+                    No negotiation. No friction.
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="block whitespace-nowrap">Book creators instantly.</span>
+                  <span className="block whitespace-nowrap text-gradient pb-[0.12em]">
+                    No negotiation. No friction.
+                  </span>
+                </>
+              )}
             </h1>
           </Reveal>
 
           <Reveal index={2}>
             <p className="text-lead mx-auto mt-8 max-w-2xl text-[var(--muted)]">
-              A high-end marketplace where brands book vetted creators at fixed
-              prices. Browse, request, and pay through escrow — content delivered,
-              no chasing.
+              {isCreator
+                ? "Set your rates, show your work, and let brands book you at fixed prices — paid safely through escrow, no chasing invoices."
+                : "A high-end marketplace where brands book vetted creators at fixed prices. Browse, request, and pay through escrow — content delivered, no chasing."}
             </p>
           </Reveal>
 
           <Reveal index={3}>
             <div className="mt-11 flex flex-wrap items-center justify-center gap-3">
-              <ButtonLink href="/marketplace" size="lg">
-                Browse Creators
-              </ButtonLink>
-              <ButtonLink href="/signup?role=brand" size="lg" variant="secondary">
-                Become a Brand
-              </ButtonLink>
+              {isCreator ? (
+                <>
+                  <ButtonLink href="/brands" size="lg">
+                    Browse Brands
+                  </ButtonLink>
+                  <ButtonLink href="/dashboard/creator" size="lg" variant="secondary">
+                    Your dashboard
+                  </ButtonLink>
+                </>
+              ) : (
+                <>
+                  <ButtonLink href="/marketplace" size="lg">
+                    Browse Creators
+                  </ButtonLink>
+                  <ButtonLink href="/signup?role=brand" size="lg" variant="secondary">
+                    Become a Brand
+                  </ButtonLink>
+                </>
+              )}
             </div>
           </Reveal>
         </div>
@@ -105,19 +141,26 @@ export default async function LandingPage() {
         </RevealOnView>
 
         {isCreator ? (
-          <RevealOnView>
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-10 text-center sm:p-14">
-              <h3 className="text-h3 font-semibold">Find your next collaboration</h3>
-              <p className="mx-auto mt-2 max-w-md text-[var(--muted)]">
-                Browse brands looking for creators and start a conversation.
-              </p>
-              <div className="mt-6 flex justify-center">
-                <ButtonLink href="/brands">Browse brands</ButtonLink>
-              </div>
+          brands.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {brands.slice(0, 4).map((b, i) => (
+                <Reveal key={b.user_id} index={i}>
+                  <BrandCard
+                    brand={b}
+                    canMessage
+                    canFavorite
+                    initialFavorited={favoriteBrandIds.has(b.user_id)}
+                  />
+                </Reveal>
+              ))}
             </div>
-          </RevealOnView>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-[var(--border-strong)] p-12 text-center text-[var(--muted)]">
+              No brands are looking right now — check back soon.
+            </div>
+          )
         ) : creators.length > 0 ? (
-          <div className="grid grid-cols-1 gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
             {creators.map((c, i) => (
               <Reveal key={c.user_id} index={i}>
                 <CreatorCard

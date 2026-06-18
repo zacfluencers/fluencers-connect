@@ -170,6 +170,7 @@ export async function listBrandsLookingForCreators(): Promise<BrandProfile[]> {
 export interface ConversationSummary {
   id: string;
   counterpartName: string;
+  counterpartImage: string | null;
   lastMessage: string | null;
   lastAt: string | null;
   bookingId: string | null;
@@ -198,8 +199,8 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
 
   const [{ data: creators }, { data: brands }, { data: msgs }, { data: bks }] =
     await Promise.all([
-      supabase.from("creator_profiles").select("user_id, name").in("user_id", creatorIds),
-      supabase.from("brand_profiles").select("user_id, company_name").in("user_id", brandIds),
+      supabase.from("creator_profiles").select("user_id, name, profile_image").in("user_id", creatorIds),
+      supabase.from("brand_profiles").select("user_id, company_name, logo_url").in("user_id", brandIds),
       supabase
         .from("messages")
         .select("conversation_id, body, created_at")
@@ -211,7 +212,9 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
     ]);
 
   const creatorName = new Map((creators ?? []).map((c) => [c.user_id, c.name]));
+  const creatorImage = new Map((creators ?? []).map((c) => [c.user_id, c.profile_image]));
   const brandName = new Map((brands ?? []).map((b) => [b.user_id, b.company_name]));
+  const brandLogo = new Map((brands ?? []).map((b) => [b.user_id, b.logo_url]));
   const bookingStatus = new Map(
     (bks ?? []).map((b) => [b.id, b.status as BookingStatus]),
   );
@@ -224,13 +227,17 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
 
   return convos.map((c) => {
     const last = lastByConvo.get(c.id);
-    const counterpart =
-      me.role === "brand"
-        ? (creatorName.get(c.creator_id) ?? "Creator")
-        : (brandName.get(c.brand_id) ?? "Brand");
+    const isBrandViewer = me.role === "brand";
+    const counterpart = isBrandViewer
+      ? (creatorName.get(c.creator_id) ?? "Creator")
+      : (brandName.get(c.brand_id) ?? "Brand");
+    const counterpartImage = isBrandViewer
+      ? (creatorImage.get(c.creator_id) ?? null)
+      : (brandLogo.get(c.brand_id) ?? null);
     return {
       id: c.id,
       counterpartName: counterpart,
+      counterpartImage,
       lastMessage: last?.body ?? null,
       lastAt: last?.created_at ?? null,
       bookingId: c.booking_id ?? null,
@@ -244,6 +251,7 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
 export interface ConversationDetail {
   id: string;
   counterpartName: string;
+  counterpartImage: string | null;
   counterpartId: string;
   counterpartRole: "brand" | "creator";
   bookingId: string | null;
@@ -268,25 +276,34 @@ export async function getConversation(
 
   const counterpartId = me.role === "brand" ? convo.creator_id : convo.brand_id;
   const counterpartRole = me.role === "brand" ? "creator" : "brand";
-  const [{ data: messages }, counterpartName, bookingStatus] = await Promise.all([
+  const counterpartQuery =
+    me.role === "brand"
+      ? supabase
+          .from("creator_profiles")
+          .select("name, profile_image")
+          .eq("user_id", counterpartId)
+          .maybeSingle()
+          .then((r) => ({
+            name: r.data?.name ?? "Creator",
+            image: r.data?.profile_image ?? null,
+          }))
+      : supabase
+          .from("brand_profiles")
+          .select("company_name, logo_url")
+          .eq("user_id", counterpartId)
+          .maybeSingle()
+          .then((r) => ({
+            name: r.data?.company_name ?? "Brand",
+            image: r.data?.logo_url ?? null,
+          }));
+
+  const [{ data: messages }, counterpart, bookingStatus] = await Promise.all([
     supabase
       .from("messages")
       .select("id, conversation_id, sender_id, body, created_at")
       .eq("conversation_id", id)
       .order("created_at", { ascending: true }),
-    me.role === "brand"
-      ? supabase
-          .from("creator_profiles")
-          .select("name")
-          .eq("user_id", counterpartId)
-          .maybeSingle()
-          .then((r) => r.data?.name ?? "Creator")
-      : supabase
-          .from("brand_profiles")
-          .select("company_name")
-          .eq("user_id", counterpartId)
-          .maybeSingle()
-          .then((r) => r.data?.company_name ?? "Brand"),
+    counterpartQuery,
     convo.booking_id
       ? supabase
           .from("bookings")
@@ -299,7 +316,8 @@ export async function getConversation(
 
   return {
     id: convo.id,
-    counterpartName,
+    counterpartName: counterpart.name,
+    counterpartImage: counterpart.image,
     counterpartId,
     counterpartRole,
     bookingId: convo.booking_id,

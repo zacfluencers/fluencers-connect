@@ -10,6 +10,7 @@ import { BookingCard } from "@/components/BookingCard";
 import { BrandCard } from "@/components/BrandCard";
 import { BrandProfileForm } from "@/components/BrandProfileForm";
 import { Panel, Stat } from "@/components/ui/DashboardPanel";
+import { Avatar } from "@/components/Avatar";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/motion";
 import { gbp } from "@/lib/format";
@@ -142,16 +143,19 @@ export default async function BrandDashboard() {
                   <Link
                     key={c.id}
                     href={`/messages/${c.id}`}
-                    className="block rounded-xl border border-[var(--border)] p-3.5 transition-colors hover:border-[var(--accent-2)]/50 hover:bg-white/5"
+                    className="flex items-center gap-3 rounded-xl border border-[var(--border)] p-3.5 transition-colors hover:border-[var(--accent-2)]/50 hover:bg-white/5"
                   >
-                    <p className="font-medium text-[var(--foreground)]">
-                      {c.counterpartName}
-                    </p>
-                    {c.lastMessage && (
-                      <p className="mt-0.5 truncate text-sm text-[var(--muted)]">
-                        {c.lastMessage}
-                      </p>
-                    )}
+                    <Avatar src={c.counterpartImage} name={c.counterpartName} className="h-9 w-9" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-medium text-[var(--foreground)]">
+                        {c.counterpartName}
+                      </span>
+                      {c.lastMessage && (
+                        <span className="mt-0.5 block truncate text-sm text-[var(--muted)]">
+                          {c.lastMessage}
+                        </span>
+                      )}
+                    </span>
                   </Link>
                 ))}
               </div>

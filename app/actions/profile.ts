@@ -3,10 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
-import {
-  fetchInstagramFollowers,
-  fetchTiktokFollowers,
-} from "@/lib/social/scrape";
 
 export type ProfileState = { error: string } | { ok: true } | null;
 
@@ -59,60 +55,20 @@ export async function upsertCreatorProfile(
     return { error: "Enter a valid age." };
   }
 
-  const instagram = String(formData.get("instagram") ?? "").trim() || null;
-  const tiktok = String(formData.get("tiktok") ?? "").trim() || null;
-
   const supabase = await createClient();
-
-  // What we already have, so we only re-scrape when something actually changed.
-  // (Instagram rate-limits an IP that's hit too often — minimise the calls.)
-  const { data: existing } = await supabase
-    .from("creator_profiles")
-    .select("instagram, tiktok, instagram_followers, tiktok_followers")
-    .eq("user_id", me.id)
-    .maybeSingle();
-
-  const manualIg = toCount("instagram_followers");
-  const manualTt = toCount("tiktok_followers");
-
-  const needIg =
-    !!instagram &&
-    (instagram !== existing?.instagram || existing?.instagram_followers == null);
-  const needTt =
-    !!tiktok &&
-    (tiktok !== existing?.tiktok || existing?.tiktok_followers == null);
-
-  // Auto-fill follower counts from the handles (best-effort, unofficial).
-  // Scraping must NEVER break a save, so it's fully guarded.
-  let scrapedIg: number | null = null;
-  let scrapedTt: number | null = null;
-  try {
-    [scrapedIg, scrapedTt] = await Promise.all([
-      needIg ? fetchInstagramFollowers(instagram!) : Promise.resolve(null),
-      needTt ? fetchTiktokFollowers(tiktok!) : Promise.resolve(null),
-    ]);
-  } catch {
-    // ignore — keep manual values
-  }
-  // Prefer a fresh scrape; else the manual value; else what we already had.
-  const instagram_followers =
-    scrapedIg ?? manualIg ?? existing?.instagram_followers ?? null;
-  const tiktok_followers =
-    scrapedTt ?? manualTt ?? existing?.tiktok_followers ?? null;
-  const synced = scrapedIg != null || scrapedTt != null;
   const { error } = await supabase.from("creator_profiles").upsert({
     user_id: me.id,
     name,
     bio: String(formData.get("bio") ?? "").trim() || null,
     niche: String(formData.get("niche") ?? "").trim() || null,
-    instagram,
-    tiktok,
+    instagram: String(formData.get("instagram") ?? "").trim() || null,
+    tiktok: String(formData.get("tiktok") ?? "").trim() || null,
     profile_image: String(formData.get("profile_image") ?? "").trim() || null,
     availability: formData.get("availability") === "on",
-    instagram_followers,
-    tiktok_followers,
-    // Only stamp when we actually fetched; otherwise leave the existing value.
-    followers_synced_at: synced ? new Date().toISOString() : undefined,
+    // Follower counts are entered manually (or filled via the "Auto-fill" button
+    // on the form before saving).
+    instagram_followers: toCount("instagram_followers"),
+    tiktok_followers: toCount("tiktok_followers"),
     ugc_rate,
     event_rate,
     broll_rate,

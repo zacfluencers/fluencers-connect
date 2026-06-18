@@ -16,6 +16,7 @@ import { PortfolioManager } from "@/components/PortfolioManager";
 import { PayoutSetup } from "@/components/PayoutSetup";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DealRoomLink } from "@/components/DealRoomLink";
+import { Avatar } from "@/components/Avatar";
 import { Panel, Stat } from "@/components/ui/DashboardPanel";
 import { gbp } from "@/lib/format";
 import type { CreatorProfile } from "@/lib/types";
@@ -162,16 +163,19 @@ export default async function CreatorDashboard() {
                   <Link
                     key={c.id}
                     href={`/messages/${c.id}`}
-                    className="block rounded-xl border border-[var(--border)] p-3.5 transition-colors hover:border-[var(--accent-2)]/50 hover:bg-white/5"
+                    className="flex items-center gap-3 rounded-xl border border-[var(--border)] p-3.5 transition-colors hover:border-[var(--accent-2)]/50 hover:bg-white/5"
                   >
-                    <p className="font-medium text-[var(--foreground)]">
-                      {c.counterpartName}
-                    </p>
-                    {c.lastMessage && (
-                      <p className="mt-0.5 truncate text-sm text-[var(--muted)]">
-                        {c.lastMessage}
-                      </p>
-                    )}
+                    <Avatar src={c.counterpartImage} name={c.counterpartName} className="h-9 w-9" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-medium text-[var(--foreground)]">
+                        {c.counterpartName}
+                      </span>
+                      {c.lastMessage && (
+                        <span className="mt-0.5 block truncate text-sm text-[var(--muted)]">
+                          {c.lastMessage}
+                        </span>
+                      )}
+                    </span>
                   </Link>
                 ))}
               </div>

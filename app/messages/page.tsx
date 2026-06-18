@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getMyConversations } from "@/lib/queries";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Avatar } from "@/components/Avatar";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Messages — Influencer Connect" };
@@ -38,9 +39,12 @@ export default async function MessagesPage() {
               <Link href={`/messages/${c.id}`} className="block">
                 <Card interactive className="p-5">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="font-semibold text-[var(--foreground)]">
-                      {c.counterpartName}
-                    </p>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Avatar src={c.counterpartImage} name={c.counterpartName} className="h-10 w-10" />
+                      <p className="truncate font-semibold text-[var(--foreground)]">
+                        {c.counterpartName}
+                      </p>
+                    </div>
                     {c.bookingStatus ? (
                       <span className="flex items-center gap-2">
                         <span className="hidden text-xs font-medium uppercase tracking-wide text-[var(--accent-2)] sm:inline">

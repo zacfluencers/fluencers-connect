@@ -7,6 +7,7 @@ import { Conversation } from "@/components/Conversation";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DealRoomLink } from "@/components/DealRoomLink";
 import { ButtonLink } from "@/components/ui/Button";
+import { Avatar } from "@/components/Avatar";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,9 @@ export default async function ConversationPage({
         return (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
+              <Link href={profileHref} aria-label={convo.counterpartName}>
+                <Avatar src={convo.counterpartImage} name={convo.counterpartName} className="h-11 w-11" />
+              </Link>
               <Link href={profileHref} className="text-h3 font-semibold hover:underline">
                 {convo.counterpartName}
               </Link>

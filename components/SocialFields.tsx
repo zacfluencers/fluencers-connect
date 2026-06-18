@@ -70,8 +70,8 @@ export function SocialFields({
       </div>
 
       <p className="mt-3 text-xs text-[var(--muted)]">
-        Follower counts fill in <span className="text-[var(--foreground)]">automatically from your @handles when you save</span>.
-        You can also preview now, or type them in manually.
+        Enter your follower counts, or use the button to try auto-filling them
+        from your @handles (Instagram can be rate-limited — just type it in if so).
       </p>
 
       <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -84,7 +84,7 @@ export function SocialFields({
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" />
           </svg>
-          {pending ? "Fetching…" : "Preview now"}
+          {pending ? "Fetching…" : "Auto-fill from handles"}
         </button>
         {msg && <span className="text-xs text-[var(--muted)]">{msg}</span>}
       </div>
