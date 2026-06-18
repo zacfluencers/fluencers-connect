@@ -49,7 +49,7 @@ Notes:
 - Not built yet: payments/escrow ledger, per-booking messaging, brand subscriptions, portfolio media.
 
 ## Landing Page (`/`)
-A high-impact homepage: hero with the statement "Book creators instantly. No negotiation. No friction.", subtext, two CTAs (Browse Creators / Become a Brand), a soft animated gradient, a featured-creator grid pulled live from the database, a social-proof stats + logos band, and a minimal footer.
+A high-impact homepage: hero with the statement "Book creators instantly. No negotiation. No friction.", subtext, two CTAs (Browse Creators / Become a Brand), a soft animated gradient, a featured-creator grid pulled live from the database, a social-proof stats + logos band, and a minimal footer. The first stat ("Vetted creators") is the **live count of creator profiles** from the database; the others are Rapid · Content delivery, &lt; 48h · Avg. turnaround, and Endless · Content.
 
 ## Accounts & Login
 People sign up as either a **brand** (books creators) or a **creator** (gets booked), using email + password (Supabase Auth). A signed-in person sees their email and role in the top navigation, with a Sign out button. Brands land on the marketplace; creators land on their dashboard.
@@ -112,6 +112,7 @@ The site reads creators from Supabase. To switch it on, copy `.env.local.example
 - 2026-06-18: Creator profile image is now an **upload** (not a URL). The favourite button no longer shows to creators on creator cards/profiles, and **creators can now favourite brands** (bookmark on brand cards/profiles); the **Favourites** page is role-aware (brands→creators, creators→brands).
 - 2026-06-18: Portfolio video uploads now show a **live progress bar** (with a per-file counter) instead of a silent "Uploading…", via a direct browser→storage upload that reports progress.
 - 2026-06-18: Social-handle fields now show a fixed **`@`** prefix and website fields a fixed **`https://`** prefix (you type just the handle/domain), so links and handles are always saved in the right format.
+- 2026-06-18: **Signed-out visitors see teaser cards** — name, photo, niche, and follower counts, but **pricing and booking are hidden** behind a "Sign up to see pricing & book" button (on browse, the homepage, and creator profiles). Signed-in brands still get full pricing, auto-book, chat, and favourites.
 
 ## Two-sided access (who sees what)
 - **Brands** browse the **creator** marketplace, favourite creators, and book them.

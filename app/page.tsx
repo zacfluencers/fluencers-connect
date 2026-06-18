@@ -20,13 +20,25 @@ async function getPreviewCreators(): Promise<CreatorProfile[]> {
   return data ?? [];
 }
 
+/** Live count of creators on the platform (creator profiles). */
+async function getCreatorCount(): Promise<number> {
+  if (!isSupabaseConfigured()) return 0;
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("creator_profiles")
+    .select("user_id", { count: "exact", head: true });
+  return count ?? 0;
+}
+
 export default async function LandingPage() {
-  const [creators, favoriteIds, me] = await Promise.all([
+  const [creators, favoriteIds, me, creatorCount] = await Promise.all([
     getPreviewCreators(),
     getFavoriteIds(),
     getCurrentUser(),
+    getCreatorCount(),
   ]);
   const isCreator = me?.role === "creator";
+  const creatorCountLabel = `${new Intl.NumberFormat("en-GB").format(creatorCount)}+`;
 
   return (
     <main>
@@ -128,10 +140,10 @@ export default async function LandingPage() {
       <section className="border-y border-[var(--border)] bg-[var(--surface)]/40">
         <div className="mx-auto max-w-7xl px-6 py-20 sm:py-24">
           <RevealOnView className="grid grid-cols-2 gap-10 text-center sm:grid-cols-4">
-            <Stat value="2,400+" label="Vetted creators" />
-            <Stat value="98%" label="On-time delivery" />
+            <Stat value={creatorCountLabel} label="Vetted creators" />
+            <Stat value="Rapid" label="Content delivery" />
             <Stat value="< 48h" label="Avg. turnaround" />
-            <Stat value="£1.2M+" label="Paid to creators" />
+            <Stat value="Endless" label="Content opportunities" />
           </RevealOnView>
 
           <RevealOnView className="mt-14">

@@ -52,8 +52,9 @@ export function CreatorCard({
 
         <Link href={href} className="absolute inset-0" aria-label={creator.name} />
 
-        {/* Favouriting creators is a brand action — never shown to creators. */}
-        {viewerRole !== "creator" && (
+        {/* Favouriting creators is a brand action — not shown to creators or
+            signed-out visitors. */}
+        {viewerRole === "brand" && (
           <div className="absolute right-3 top-3">
             <FavoriteButton
               creatorId={creator.user_id}
@@ -118,8 +119,8 @@ export function CreatorCard({
           </div>
         )}
 
-        {/* Transparent per-service pricing */}
-        {services.length > 0 && (
+        {/* Transparent per-service pricing — hidden from signed-out visitors. */}
+        {viewerRole !== null && services.length > 0 && (
           <div className="mt-3 space-y-1 border-t border-[var(--border)] pt-3">
             {services.map((s) => (
               <div
@@ -135,8 +136,8 @@ export function CreatorCard({
           </div>
         )}
 
-        {/* Actions */}
-        {viewerRole !== "creator" && (
+        {/* Brand actions: book + chat */}
+        {viewerRole === "brand" && (
           <div className="mt-3 flex items-stretch gap-2">
             <div className="flex-1">
               <AutoBookButton
@@ -151,6 +152,16 @@ export function CreatorCard({
               viewerRole={viewerRole}
             />
           </div>
+        )}
+
+        {/* Signed-out: prompt to join (pricing + booking are gated). */}
+        {viewerRole === null && (
+          <Link
+            href="/signup"
+            className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+          >
+            Sign up to see pricing &amp; book
+          </Link>
         )}
       </div>
     </div>

@@ -166,7 +166,7 @@ export default async function CreatorPage({
               />
             </div>
 
-            {viewerRole !== "creator" && (
+            {viewerRole === "brand" && (
               <div className="mt-3">
                 <MessageCreatorButton
                   creatorId={creator.user_id}

@@ -48,6 +48,36 @@ export function ServiceBooking({
     );
   }
 
+  // Signed-out visitors see what's offered, but pricing + booking are gated.
+  if (viewerRole === null) {
+    return (
+      <div className="rounded-2xl border border-[var(--border)] p-5">
+        <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
+          Services offered
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {services.map((s) => (
+            <span
+              key={s.key}
+              className="rounded-full bg-[var(--surface-2)] px-3 py-1 text-sm text-[var(--foreground)]"
+            >
+              {s.label}
+            </span>
+          ))}
+        </div>
+        <p className="mt-4 text-sm text-[var(--muted)]">
+          Sign up to see transparent pricing and send a booking request.
+        </p>
+        <Link
+          href="/signup"
+          className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+        >
+          Sign up to see pricing &amp; book
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-2xl border border-[var(--border)] p-5">
       <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
