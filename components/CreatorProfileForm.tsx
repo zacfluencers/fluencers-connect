@@ -8,6 +8,7 @@ import {
 import { NICHES } from "@/lib/niches";
 import { GENDERS, COUNTRIES } from "@/lib/demographics";
 import { ImageUpload } from "@/components/ImageUpload";
+import { HandleInput } from "@/components/ui/PrefixedInput";
 import type { CreatorProfile } from "@/lib/types";
 
 /** Lets a creator create/edit the marketplace profile that makes them bookable. */
@@ -51,8 +52,8 @@ export function CreatorProfileForm({
             <option key={c} value={c}>{c}</option>
           ))}
         </Dropdown>
-        <Text label="Instagram" name="instagram" defaultValue={profile?.instagram ?? ""} placeholder="@handle" />
-        <Text label="TikTok" name="tiktok" defaultValue={profile?.tiktok ?? ""} placeholder="@handle" />
+        <HandleInput label="Instagram" name="instagram" defaultValue={profile?.instagram} />
+        <HandleInput label="TikTok" name="tiktok" defaultValue={profile?.tiktok} />
         <Text label="Instagram followers" name="instagram_followers" type="number" defaultValue={profile?.instagram_followers != null ? String(profile.instagram_followers) : ""} placeholder="e.g. 12400" />
         <Text label="TikTok followers" name="tiktok_followers" type="number" defaultValue={profile?.tiktok_followers != null ? String(profile.tiktok_followers) : ""} placeholder="e.g. 8300" />
       </div>

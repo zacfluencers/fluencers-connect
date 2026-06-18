@@ -8,6 +8,7 @@ import {
 import { Field, Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { ImageUpload } from "@/components/ImageUpload";
+import { HandleInput, UrlInput } from "@/components/ui/PrefixedInput";
 import type { BrandProfile } from "@/lib/types";
 
 /** Brand dashboard form: company details, media/links + the "looking for creators" toggle. */
@@ -38,15 +39,9 @@ export function BrandProfileForm({
       </Field>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Website">
-          <Input name="website" type="url" defaultValue={profile?.website ?? ""} placeholder="https://…" />
-        </Field>
-        <Field label="Instagram">
-          <Input name="instagram" defaultValue={profile?.instagram ?? ""} placeholder="@handle" />
-        </Field>
-        <Field label="TikTok">
-          <Input name="tiktok" defaultValue={profile?.tiktok ?? ""} placeholder="@handle" />
-        </Field>
+        <UrlInput label="Website" name="website" defaultValue={profile?.website} />
+        <HandleInput label="Instagram" name="instagram" defaultValue={profile?.instagram} />
+        <HandleInput label="TikTok" name="tiktok" defaultValue={profile?.tiktok} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

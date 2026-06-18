@@ -111,6 +111,7 @@ The site reads creators from Supabase. To switch it on, copy `.env.local.example
 - 2026-06-18: **Messages upgrades** — conversations are labelled **deal room (+ live status)** vs **direct message**; inside a conversation you can **view the other party's profile**, **open the deal room**, or **Book now** (brand → creator, when there's no active booking). Added a **brand profile page** (`/brand/[id]`).
 - 2026-06-18: Creator profile image is now an **upload** (not a URL). The favourite button no longer shows to creators on creator cards/profiles, and **creators can now favourite brands** (bookmark on brand cards/profiles); the **Favourites** page is role-aware (brands→creators, creators→brands).
 - 2026-06-18: Portfolio video uploads now show a **live progress bar** (with a per-file counter) instead of a silent "Uploading…", via a direct browser→storage upload that reports progress.
+- 2026-06-18: Social-handle fields now show a fixed **`@`** prefix and website fields a fixed **`https://`** prefix (you type just the handle/domain), so links and handles are always saved in the right format.
 
 ## Two-sided access (who sees what)
 - **Brands** browse the **creator** marketplace, favourite creators, and book them.
