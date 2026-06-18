@@ -69,6 +69,42 @@ export async function getFavoriteCreators(): Promise<CreatorProfile[]> {
   return ids.map((id) => byId.get(id)).filter(Boolean) as CreatorProfile[];
 }
 
+/** Brand IDs the current creator has favourited (empty if signed out). */
+export async function getFavoriteBrandIds(): Promise<Set<string>> {
+  const me = await getCurrentUser();
+  if (!me) return new Set();
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("brand_favorites")
+    .select("brand_id")
+    .eq("user_id", me.id);
+  return new Set((data ?? []).map((r) => r.brand_id));
+}
+
+/** Full brand profiles the current creator has favourited (most recent first). */
+export async function getFavoriteBrands(): Promise<BrandProfile[]> {
+  const me = await getCurrentUser();
+  if (!me) return [];
+  const supabase = await createClient();
+
+  const { data: favs } = await supabase
+    .from("brand_favorites")
+    .select("brand_id")
+    .eq("user_id", me.id)
+    .order("created_at", { ascending: false });
+
+  const ids = (favs ?? []).map((f) => f.brand_id);
+  if (ids.length === 0) return [];
+
+  const { data } = await supabase
+    .from("brand_profiles")
+    .select(BRAND_PROFILE_COLUMNS)
+    .in("user_id", ids);
+
+  const byId = new Map((data ?? []).map((b) => [b.user_id, b]));
+  return ids.map((id) => byId.get(id)).filter(Boolean) as BrandProfile[];
+}
+
 export interface BookingDetail {
   booking: Booking;
   creator: CreatorProfile | null;

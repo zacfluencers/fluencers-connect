@@ -28,7 +28,7 @@ export async function Nav() {
           ) : (
             <NavLink href="/marketplace">Browse</NavLink>
           )}
-          {me?.role === "brand" && <NavLink href="/favorites">Favourites</NavLink>}
+          {me && <NavLink href="/favorites">Favourites</NavLink>}
           {me && <NavLink href="/messages">Messages</NavLink>}
           {me && <NavLink href="/bookings">Bookings</NavLink>}
           {me && <NavLink href={dashboardHref}>Dashboard</NavLink>}

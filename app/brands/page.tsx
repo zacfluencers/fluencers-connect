@@ -1,4 +1,4 @@
-import { listBrandsLookingForCreators } from "@/lib/queries";
+import { listBrandsLookingForCreators, getFavoriteBrandIds } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
 import { BrandCard } from "@/components/BrandCard";
 import { Reveal } from "@/components/ui/motion";
@@ -7,10 +7,12 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Brands hiring — Influencer Connect" };
 
 export default async function BrandsPage() {
-  const [brands, me] = await Promise.all([
+  const [brands, me, favoriteBrandIds] = await Promise.all([
     listBrandsLookingForCreators(),
     getCurrentUser(),
+    getFavoriteBrandIds(),
   ]);
+  const isCreator = me?.role === "creator";
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
@@ -30,7 +32,12 @@ export default async function BrandsPage() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {brands.map((b, i) => (
             <Reveal key={b.user_id} index={i}>
-              <BrandCard brand={b} canMessage={me?.role === "creator"} />
+              <BrandCard
+                brand={b}
+                canMessage={isCreator}
+                canFavorite={isCreator}
+                initialFavorited={favoriteBrandIds.has(b.user_id)}
+              />
             </Reveal>
           ))}
         </div>

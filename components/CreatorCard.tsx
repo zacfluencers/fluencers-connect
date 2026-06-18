@@ -52,13 +52,16 @@ export function CreatorCard({
 
         <Link href={href} className="absolute inset-0" aria-label={creator.name} />
 
-        <div className="absolute right-3 top-3">
-          <FavoriteButton
-            creatorId={creator.user_id}
-            initialFavorited={initialFavorited}
-            canFavorite={canFavorite}
-          />
-        </div>
+        {/* Favouriting creators is a brand action — never shown to creators. */}
+        {viewerRole !== "creator" && (
+          <div className="absolute right-3 top-3">
+            <FavoriteButton
+              creatorId={creator.user_id}
+              initialFavorited={initialFavorited}
+              canFavorite={canFavorite}
+            />
+          </div>
+        )}
 
         {!creator.availability && (
           <div className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">

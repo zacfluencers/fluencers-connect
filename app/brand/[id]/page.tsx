@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { getBrandProfile } from "@/lib/queries";
+import { getBrandProfile, getFavoriteBrandIds } from "@/lib/queries";
 import { MessageBrandButton } from "@/components/MessageBrandButton";
+import { BrandFavoriteButton } from "@/components/BrandFavoriteButton";
 import { InstagramIcon, TikTokIcon } from "@/components/SocialIcons";
 import { Badge } from "@/components/ui/Badge";
 import { gbp, instagramUrl, tiktokUrl } from "@/lib/format";
@@ -15,7 +16,11 @@ export default async function BrandPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [brand, me] = await Promise.all([getBrandProfile(id), getCurrentUser()]);
+  const [brand, me, favoriteBrandIds] = await Promise.all([
+    getBrandProfile(id),
+    getCurrentUser(),
+    getFavoriteBrandIds(),
+  ]);
   if (!brand) notFound();
 
   const budget =
@@ -66,6 +71,14 @@ export default async function BrandPage({
             </div>
           )}
         </div>
+
+        {me?.role === "creator" && (
+          <BrandFavoriteButton
+            brandId={brand.user_id}
+            initialFavorited={favoriteBrandIds.has(brand.user_id)}
+            variant="full"
+          />
+        )}
       </div>
 
       {brand.about && (

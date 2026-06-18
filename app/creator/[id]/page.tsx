@@ -104,14 +104,16 @@ export default async function CreatorPage({
                 {creator.name}
               </h1>
               <AvailabilityPill available={creator.availability} />
-              <div className="ml-auto">
-                <FavoriteButton
-                  creatorId={creator.user_id}
-                  initialFavorited={favoriteIds.has(creator.user_id)}
-                  canFavorite={!!me}
-                  variant="full"
-                />
-              </div>
+              {viewerRole !== "creator" && (
+                <div className="ml-auto">
+                  <FavoriteButton
+                    creatorId={creator.user_id}
+                    initialFavorited={favoriteIds.has(creator.user_id)}
+                    canFavorite={!!me}
+                    variant="full"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">

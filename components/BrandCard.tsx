@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { MessageBrandButton } from "@/components/MessageBrandButton";
+import { BrandFavoriteButton } from "@/components/BrandFavoriteButton";
 import { InstagramIcon, TikTokIcon } from "@/components/SocialIcons";
 import { gbp, instagramUrl, tiktokUrl } from "@/lib/format";
 import type { BrandProfile } from "@/lib/types";
@@ -9,9 +10,13 @@ import type { BrandProfile } from "@/lib/types";
 export function BrandCard({
   brand,
   canMessage,
+  canFavorite = false,
+  initialFavorited = false,
 }: {
   brand: BrandProfile;
   canMessage: boolean;
+  canFavorite?: boolean;
+  initialFavorited?: boolean;
 }) {
   const budget =
     brand.budget_min != null && brand.budget_max != null
@@ -30,26 +35,34 @@ export function BrandCard({
 
   return (
     <Card className="flex flex-col p-6">
-      {/* Logo + name */}
-      <div className="flex items-center gap-3">
-        {brand.logo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={brand.logo_url}
-            alt={brand.company_name}
-            className="h-11 w-11 shrink-0 rounded-xl object-cover"
+      {/* Logo + name (+ save) */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {brand.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={brand.logo_url}
+              alt={brand.company_name}
+              className="h-11 w-11 shrink-0 rounded-xl object-cover"
+            />
+          ) : (
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(120deg,var(--accent),var(--accent-2))] text-base font-semibold text-white">
+              {brand.company_name.charAt(0).toUpperCase()}
+            </span>
+          )}
+          <Link
+            href={`/brand/${brand.user_id}`}
+            className="truncate text-h3 font-semibold text-[var(--foreground)] hover:underline"
+          >
+            {brand.company_name}
+          </Link>
+        </div>
+        {canFavorite && (
+          <BrandFavoriteButton
+            brandId={brand.user_id}
+            initialFavorited={initialFavorited}
           />
-        ) : (
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(120deg,var(--accent),var(--accent-2))] text-base font-semibold text-white">
-            {brand.company_name.charAt(0).toUpperCase()}
-          </span>
         )}
-        <Link
-          href={`/brand/${brand.user_id}`}
-          className="text-h3 font-semibold text-[var(--foreground)] hover:underline"
-        >
-          {brand.company_name}
-        </Link>
       </div>
 
       {/* Status badge on its own row so long names never collide with it */}

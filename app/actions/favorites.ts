@@ -41,3 +41,44 @@ export async function toggleFavorite(
   revalidatePath("/marketplace");
   return { favorited: !existing };
 }
+
+/**
+ * Add or remove a brand from the current creator's favourites.
+ * Returns the new state so the button can update instantly.
+ */
+export async function toggleBrandFavorite(
+  brandId: string,
+): Promise<{ favorited: boolean } | { error: string }> {
+  const me = await getCurrentUser();
+  if (!me) return { error: "Please sign in to save favourites." };
+  if (me.role !== "creator") {
+    return { error: "Only creators can save brands." };
+  }
+
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("brand_favorites")
+    .select("brand_id")
+    .eq("user_id", me.id)
+    .eq("brand_id", brandId)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await supabase
+      .from("brand_favorites")
+      .delete()
+      .eq("user_id", me.id)
+      .eq("brand_id", brandId);
+    if (error) return { error: error.message };
+  } else {
+    const { error } = await supabase
+      .from("brand_favorites")
+      .insert({ user_id: me.id, brand_id: brandId });
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath("/favorites");
+  revalidatePath("/brands");
+  return { favorited: !existing };
+}
