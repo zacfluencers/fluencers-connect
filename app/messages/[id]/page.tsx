@@ -24,7 +24,7 @@ export default async function ConversationPage({
   if (!convo) notFound();
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
+    <main className="mx-auto max-w-2xl px-6 py-14 sm:py-20">
       <Link
         href="/messages"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)]"

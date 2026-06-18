@@ -49,7 +49,7 @@ export default async function DealRoomPage({
     : null;
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-16">
+    <main className="mx-auto max-w-6xl px-6 py-14 sm:py-20">
       <Link
         href={me.role === "brand" ? "/dashboard/brand" : "/bookings"}
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)]"

@@ -16,7 +16,7 @@ export default async function WelcomePage() {
   const profile = await getBrandProfile(me.id);
 
   return (
-    <main className="mx-auto max-w-xl px-6 py-16 sm:py-20">
+    <main className="mx-auto max-w-xl px-6 py-14 sm:py-20">
       <p className="text-eyebrow mb-2 text-[var(--accent-2)]">Welcome</p>
       <h1 className="text-h1 h-display font-bold text-[var(--foreground)]">
         Set up your brand

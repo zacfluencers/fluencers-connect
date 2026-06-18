@@ -73,7 +73,7 @@ export default async function CreatorPage({
 
   return (
     <div>
-      <main className="mx-auto max-w-4xl px-6 py-12 sm:py-16">
+      <main className="mx-auto max-w-4xl px-6 py-14 sm:py-20">
         <Link
           href="/marketplace"
           className="mb-8 inline-flex items-center gap-1.5 text-sm text-[var(--muted)] underline-offset-4 hover:text-[var(--foreground)] hover:underline"

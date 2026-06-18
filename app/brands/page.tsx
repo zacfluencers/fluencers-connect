@@ -15,7 +15,7 @@ export default async function BrandsPage() {
   const isCreator = me?.role === "creator";
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
+    <main className="mx-auto max-w-7xl px-6 py-14 sm:py-20">
       <header className="mb-10">
         <p className="text-eyebrow mb-2 text-[var(--accent-2)]">For creators</p>
         <h1 className="text-h1 h-display font-bold">Brands looking for creators</h1>

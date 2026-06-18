@@ -38,7 +38,7 @@ export default async function BrandDashboard() {
   const liveSpend = active.reduce((sum, b) => sum + Number(b.price), 0);
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
+    <main className="mx-auto max-w-6xl px-6 py-14 sm:py-20">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mb-2 text-sm font-medium uppercase tracking-widest text-[var(--accent-2)]">

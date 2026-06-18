@@ -16,7 +16,7 @@ export default async function MessagesPage() {
   const conversations = await getMyConversations();
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto max-w-3xl px-6 py-14 sm:py-20">
       <h1 className="text-h1 h-display font-bold">Messages</h1>
       <p className="mt-2 text-[var(--muted)]">Your conversations.</p>
 

@@ -52,7 +52,7 @@ export default async function CreatorDashboard() {
   const completed = bookings.filter((b) => b.status === "completed");
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-12 sm:py-16">
+    <main className="mx-auto max-w-6xl px-6 py-14 sm:py-20">
       <header>
         <h1 className="text-h1 h-display font-bold text-[var(--foreground)]">
           Creator Dashboard

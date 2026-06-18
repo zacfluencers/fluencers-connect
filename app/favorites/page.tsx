@@ -15,7 +15,7 @@ export default async function FavoritesPage() {
   const isCreator = me.role === "creator";
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-16">
+    <main className="mx-auto max-w-6xl px-6 py-14 sm:py-20">
       <h1 className="text-h1 h-display font-bold text-[var(--foreground)]">
         Favourites
       </h1>

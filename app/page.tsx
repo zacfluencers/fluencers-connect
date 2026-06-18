@@ -240,7 +240,7 @@ export default async function LandingPage() {
       </section>
 
       {/* -------------------------------------------------------------- Footer */}
-      <footer className="mx-auto max-w-7xl px-6 py-16">
+      <footer className="mx-auto max-w-7xl px-6 py-12 sm:py-16">
         <div className="flex flex-col items-center justify-between gap-5 sm:flex-row">
           <span className="text-sm text-[var(--muted)]">
             © {new Date().getFullYear()} Influencer Connect
