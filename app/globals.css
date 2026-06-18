@@ -168,6 +168,48 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+   Endless logo marquee. Two identical copies translate by -50% for a seamless
+   loop; the mask fades both edges so logos appear/disappear softly.
+--------------------------------------------------------------------------- */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 34s linear infinite;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 10%,
+    #000 90%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 10%,
+    #000 90%,
+    transparent
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Range sliders (filters). Two overlaid inputs form a dual-range; the track is
    non-interactive so only the thumbs catch the pointer.
 --------------------------------------------------------------------------- */

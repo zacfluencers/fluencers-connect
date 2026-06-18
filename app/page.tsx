@@ -15,6 +15,19 @@ import type { CreatorProfile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+/** Placeholder brand names for the "trusted by" marquee. */
+const BRANDS = [
+  "Northwind",
+  "Lumen",
+  "Vertex",
+  "Halcyon",
+  "Ardent",
+  "Monera",
+  "Cassio",
+  "Verdant",
+  "Otto & Co",
+];
+
 async function getPreviewCreators(): Promise<CreatorProfile[]> {
   if (!isSupabaseConfigured()) return [];
   const supabase = await createClient();
@@ -116,6 +129,27 @@ export default async function LandingPage() {
               )}
             </div>
           </Reveal>
+
+          {/* Trusted by — endless, seamless marquee with edge fades */}
+          <Reveal index={4}>
+            <div className="mt-20">
+              <p className="text-xs uppercase tracking-widest text-[var(--muted)]">
+                Trusted by modern brands
+              </p>
+              <div className="marquee-mask mt-6 overflow-hidden">
+                <div className="marquee-track">
+                  {[...BRANDS, ...BRANDS].map((b, i) => (
+                    <span
+                      key={`${b}-${i}`}
+                      className="whitespace-nowrap pr-12 text-lg font-semibold tracking-tight text-[var(--foreground)]/45"
+                    >
+                      {b}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -179,28 +213,26 @@ export default async function LandingPage() {
         )}
       </section>
 
-      {/* ------------------------------------------------------- Social proof */}
+      {/* ------------------------------------------------------- Stats (framed) */}
       <section className="border-y border-[var(--border)] bg-[var(--surface)]/40">
-        <div className="mx-auto max-w-7xl px-6 py-20 sm:py-24">
-          <RevealOnView className="grid grid-cols-2 gap-10 text-center sm:grid-cols-4">
-            <Stat value={creatorCountLabel} label="Vetted creators" />
-            <Stat value="Rapid" label="Content delivery" />
-            <Stat value="< 48h" label="Avg. turnaround" />
-            <Stat value="Endless" label="Content opportunities" />
-          </RevealOnView>
-
-          <RevealOnView className="mt-14">
-            <p className="text-center text-xs uppercase tracking-widest text-[var(--muted)]">
-              Trusted by modern brands
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-12 gap-y-4 opacity-50">
-              {["Northwind", "Lumen", "Vertex", "Halcyon", "Ardent"].map((b) => (
-                <span
-                  key={b}
-                  className="text-lg font-semibold tracking-tight text-[var(--foreground)]"
+        <div className="mx-auto max-w-7xl px-6 py-16 sm:py-20">
+          <RevealOnView>
+            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--border)] sm:grid-cols-4">
+              {[
+                { value: creatorCountLabel, label: "Vetted creators" },
+                { value: "Rapid", label: "Content delivery" },
+                { value: "< 48h", label: "Avg. turnaround" },
+                { value: "Endless", label: "Content opportunities" },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="bg-[var(--background)] px-6 py-10 text-center sm:py-12"
                 >
-                  {b}
-                </span>
+                  <p className="text-h2 h-display font-bold text-[var(--foreground)]">
+                    {s.value}
+                  </p>
+                  <p className="mt-2 text-sm text-[var(--muted)]">{s.label}</p>
+                </div>
               ))}
             </div>
           </RevealOnView>
@@ -230,14 +262,5 @@ export default async function LandingPage() {
         </div>
       </footer>
     </main>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <p className="text-h2 h-display font-bold text-[var(--foreground)]">{value}</p>
-      <p className="mt-2 text-sm text-[var(--muted)]">{label}</p>
-    </div>
   );
 }
