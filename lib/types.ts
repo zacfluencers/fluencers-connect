@@ -20,6 +20,9 @@ export interface AppUser {
 
 export type PaymentStatus = "unpaid" | "held" | "released" | "refunded";
 
+/** Which transparent service a booking is for. */
+export type ServiceType = "ugc" | "event" | "broll";
+
 /** A row in public.bookings. */
 export interface Booking {
   id: string;
@@ -30,6 +33,7 @@ export interface Booking {
   revision_count: number;
   created_at: string;
   payment_status: PaymentStatus;
+  service_type: ServiceType | null;
 }
 
 /** A creator's public marketplace profile (1:1 with a `creator` user). */
@@ -41,7 +45,15 @@ export interface CreatorProfile {
   instagram: string | null;
   tiktok: string | null;
   availability: boolean;
-  price: number;
+  /** Legacy single price — kept in sync with the lowest service rate. */
+  price: number | null;
+  /** Per-service rates (GBP). Null = not offered. */
+  ugc_rate: number | null;
+  event_rate: number | null;
+  broll_rate: number | null;
+  gender: string | null;
+  age: number | null;
+  country: string | null;
   profile_image: string | null;
   instagram_followers: number | null;
   tiktok_followers: number | null;

@@ -44,6 +44,7 @@ export default async function FavoritesPage() {
               creator={c}
               initialFavorited={true}
               canFavorite={true}
+              viewerRole="brand"
             />
           ))}
         </div>

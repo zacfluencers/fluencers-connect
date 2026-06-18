@@ -6,16 +6,25 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
 import { stripe, isStripeConfigured, getBaseUrl, toPence } from "@/lib/stripe/server";
 import { refundEscrow } from "@/lib/stripe/escrow";
+import { rateFor, serviceDef, type ServiceType } from "@/lib/services";
 
 /**
- * Brand pays into escrow at request time. Creates a Stripe Checkout Session;
- * the booking itself is created (idempotently) once payment succeeds, via the
- * webhook / success page. Funds sit on the platform balance until release.
+ * Brand pays into escrow at request time, for a specific service (UGC / Event
+ * Day / B-Roll). Creates a Stripe Checkout Session; the booking is created
+ * (idempotently) once payment succeeds, via the webhook / success page.
+ * Funds sit on the platform balance until release.
  */
-export async function createBookingCheckout(creatorId: string) {
+export async function createBookingCheckout(
+  creatorId: string,
+  service: ServiceType = "ugc",
+) {
   const me = await getCurrentUser();
   if (!me) redirect("/login");
   if (me.role !== "brand") return { error: "Only brands can book creators." };
+
+  const def = serviceDef(service);
+  if (!def) return { error: "Unknown service." };
+
   if (!isStripeConfigured()) {
     return { error: "Payments aren't set up yet. Please try again soon." };
   }
@@ -23,12 +32,19 @@ export async function createBookingCheckout(creatorId: string) {
   const supabase = await createClient();
   const { data: creator } = await supabase
     .from("creator_profiles")
-    .select("user_id, name, price, availability")
+    .select(
+      "user_id, name, ugc_rate, event_rate, broll_rate, availability",
+    )
     .eq("user_id", creatorId)
     .maybeSingle();
   if (!creator) return { error: "Creator not found." };
   if (!creator.availability) {
     return { error: "This creator isn't taking bookings right now." };
+  }
+
+  const rate = rateFor(creator, service);
+  if (rate == null) {
+    return { error: `This creator doesn't offer ${def.label}.` };
   }
 
   const base = getBaseUrl();
@@ -39,18 +55,19 @@ export async function createBookingCheckout(creatorId: string) {
         quantity: 1,
         price_data: {
           currency: "gbp",
-          unit_amount: toPence(Number(creator.price)),
-          product_data: { name: `Booking — ${creator.name}` },
+          unit_amount: toPence(rate),
+          product_data: { name: `${def.label} — ${creator.name}` },
         },
       },
     ],
     payment_intent_data: {
-      metadata: { brand_id: me.id, creator_id: creator.user_id },
+      metadata: { brand_id: me.id, creator_id: creator.user_id, service },
     },
     metadata: {
       brand_id: me.id,
       creator_id: creator.user_id,
-      price: String(creator.price),
+      price: String(rate),
+      service,
     },
     success_url: `${base}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${base}/creator/${creator.user_id}?canceled=1`,

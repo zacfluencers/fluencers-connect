@@ -14,7 +14,7 @@ const BRAND_PROFILE_COLUMNS =
 
 /** Every column on creator_profiles — shared so selects stay in sync. */
 export const CREATOR_PROFILE_COLUMNS =
-  "user_id, name, bio, niche, instagram, tiktok, availability, price, profile_image, instagram_followers, tiktok_followers, followers_synced_at";
+  "user_id, name, bio, niche, instagram, tiktok, availability, price, ugc_rate, event_rate, broll_rate, gender, age, country, profile_image, instagram_followers, tiktok_followers, followers_synced_at";
 
 const PROFILE_COLS = CREATOR_PROFILE_COLUMNS;
 
@@ -82,7 +82,7 @@ export async function getBookingDetail(
   const { data: booking } = await supabase
     .from("bookings")
     .select(
-      "id, brand_id, creator_id, status, price, revision_count, created_at, payment_status",
+      "id, brand_id, creator_id, status, price, revision_count, created_at, payment_status, service_type",
     )
     .eq("id", id)
     .maybeSingle();
@@ -287,7 +287,7 @@ export async function listMyBookings(creatorId?: string): Promise<BookingRow[]> 
   let query = supabase
     .from("bookings")
     .select(
-      "id, brand_id, creator_id, status, price, revision_count, created_at, payment_status",
+      "id, brand_id, creator_id, status, price, revision_count, created_at, payment_status, service_type",
     )
     .order("created_at", { ascending: false });
 

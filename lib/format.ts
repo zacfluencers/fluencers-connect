@@ -16,3 +16,19 @@ function trim(v: number): string {
   // One decimal, but drop a trailing ".0".
   return v.toFixed(1).replace(/\.0$/, "");
 }
+
+/** Strip a leading @ from a handle. */
+export function cleanHandle(handle: string): string {
+  return handle.replace(/^@+/, "").trim();
+}
+
+/** Public profile URL for a handle (accepts a full URL too). */
+export function instagramUrl(handle: string): string {
+  if (/^https?:\/\//i.test(handle)) return handle;
+  return `https://instagram.com/${cleanHandle(handle)}`;
+}
+
+export function tiktokUrl(handle: string): string {
+  if (/^https?:\/\//i.test(handle)) return handle;
+  return `https://tiktok.com/@${cleanHandle(handle)}`;
+}

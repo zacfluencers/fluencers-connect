@@ -7,9 +7,17 @@ import {
   getPortfolio,
   getFavoriteIds,
 } from "@/lib/queries";
-import { RequestBookingButton } from "@/components/RequestBookingButton";
+import { ServiceBooking } from "@/components/ServiceBooking";
+import { MessageCreatorButton } from "@/components/MessageCreatorButton";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { gbp, formatFollowers } from "@/lib/format";
+import { InstagramIcon, TikTokIcon } from "@/components/SocialIcons";
+import {
+  formatFollowers,
+  instagramUrl,
+  tiktokUrl,
+} from "@/lib/format";
+import { offeredServices } from "@/lib/services";
+import { genderLabel } from "@/lib/demographics";
 import type { CreatorProfile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +59,17 @@ export default async function CreatorPage({
   const viewerRole = me?.role ?? null;
   const ig = formatFollowers(creator.instagram_followers);
   const tt = formatFollowers(creator.tiktok_followers);
+  const services = offeredServices(creator).map((s) => ({
+    key: s.def.key,
+    label: s.def.label,
+    unit: s.def.unit,
+    rate: s.rate,
+  }));
+  const facts = [
+    genderLabel(creator.gender),
+    creator.age != null ? `${creator.age} yrs` : null,
+    creator.country,
+  ].filter(Boolean) as string[];
 
   return (
     <div>
@@ -95,42 +114,65 @@ export default async function CreatorPage({
               </div>
             </div>
 
-            {creator.niche && (
-              <span className="mt-3 inline-block rounded-full bg-[var(--surface-2)] px-3 py-1 text-sm text-[var(--muted)]">
-                {creator.niche}
-              </span>
-            )}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {creator.niche && (
+                <span className="inline-block rounded-full bg-[var(--surface-2)] px-3 py-1 text-sm text-[var(--muted)]">
+                  {creator.niche}
+                </span>
+              )}
+              {facts.map((f) => (
+                <span
+                  key={f}
+                  className="inline-block rounded-full bg-[var(--surface-2)] px-3 py-1 text-sm text-[var(--muted)]"
+                >
+                  {f}
+                </span>
+              ))}
+            </div>
 
             {creator.bio && (
               <p className="mt-4 text-[var(--muted)]">{creator.bio}</p>
             )}
 
-            {/* Socials + follower counts */}
-            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            {/* Socials → external profiles, with follower counts */}
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
               {creator.instagram && (
-                <Social label="Instagram" handle={creator.instagram} followers={ig} />
+                <Social
+                  icon={<InstagramIcon className="h-4 w-4" />}
+                  href={instagramUrl(creator.instagram)}
+                  handle={creator.instagram}
+                  followers={ig}
+                />
               )}
               {creator.tiktok && (
-                <Social label="TikTok" handle={creator.tiktok} followers={tt} />
+                <Social
+                  icon={<TikTokIcon className="h-4 w-4" />}
+                  href={tiktokUrl(creator.tiktok)}
+                  handle={creator.tiktok}
+                  followers={tt}
+                />
               )}
             </div>
 
-            {/* Price + CTA */}
-            <div className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--border)] p-5">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
-                  Fixed price per job
-                </p>
-                <p className="text-2xl font-bold text-[var(--foreground)]">
-                  {gbp.format(creator.price)}
-                </p>
-              </div>
-              <RequestBookingButton
+            {/* Transparent per-service booking */}
+            <div className="mt-6">
+              <ServiceBooking
                 creatorId={creator.user_id}
+                services={services}
                 available={creator.availability}
                 viewerRole={viewerRole}
               />
             </div>
+
+            {viewerRole !== "creator" && (
+              <div className="mt-3">
+                <MessageCreatorButton
+                  creatorId={creator.user_id}
+                  viewerRole={viewerRole}
+                  full
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -182,22 +224,27 @@ function AvailabilityPill({ available }: { available: boolean }) {
 }
 
 function Social({
-  label,
+  icon,
+  href,
   handle,
   followers,
 }: {
-  label: string;
+  icon: React.ReactNode;
+  href: string;
   handle: string;
   followers: string | null;
 }) {
   const clean = handle.replace(/^@/, "");
   return (
-    <span className="text-[var(--muted)]">
-      {label}:{" "}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 rounded-full border border-[var(--border-strong)] px-3 py-1.5 text-[var(--muted)] transition-colors hover:border-[var(--accent-2)]/60 hover:text-[var(--foreground)]"
+    >
+      {icon}
       <span className="font-medium text-[var(--foreground)]">@{clean}</span>
-      {followers && (
-        <span className="ml-1.5 text-[var(--muted)]">· {followers} followers</span>
-      )}
-    </span>
+      {followers && <span className="text-[var(--muted)]">· {followers}</span>}
+    </a>
   );
 }

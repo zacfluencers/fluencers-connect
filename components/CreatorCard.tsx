@@ -1,26 +1,41 @@
 import Link from "next/link";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { gbp, formatFollowers } from "@/lib/format";
+import { AutoBookButton } from "@/components/AutoBookButton";
+import { MessageCreatorButton } from "@/components/MessageCreatorButton";
+import { InstagramIcon, TikTokIcon } from "@/components/SocialIcons";
+import {
+  gbp,
+  formatFollowers,
+  instagramUrl,
+  tiktokUrl,
+} from "@/lib/format";
+import { offeredServices } from "@/lib/services";
 import type { CreatorProfile } from "@/lib/types";
 
 export function CreatorCard({
   creator,
   initialFavorited,
   canFavorite,
+  viewerRole = null,
 }: {
   creator: CreatorProfile;
   initialFavorited: boolean;
   canFavorite: boolean;
+  viewerRole?: "brand" | "creator" | null;
 }) {
-  const total = formatFollowers(
-    (creator.instagram_followers ?? 0) + (creator.tiktok_followers ?? 0),
-  );
-  const hasFollowers =
-    creator.instagram_followers != null || creator.tiktok_followers != null;
+  const services = offeredServices(creator).map((s) => ({
+    key: s.def.key,
+    label: s.def.label,
+    rate: s.rate,
+  }));
+  const href = `/creator/${creator.user_id}`;
+  const ig = formatFollowers(creator.instagram_followers);
+  const tt = formatFollowers(creator.tiktok_followers);
 
   return (
-    <Link href={`/creator/${creator.user_id}`} className="group block">
-      {/* Image */}
+    <div className="group flex flex-col">
+      {/* Image (a full-bleed link overlay navigates to the profile; the
+          favourite button sits on top of it, so neither is nested in the other) */}
       <div className="relative aspect-square overflow-hidden rounded-2xl bg-[var(--surface-2)]">
         {creator.profile_image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -34,6 +49,8 @@ export function CreatorCard({
             {creator.name.charAt(0).toUpperCase()}
           </div>
         )}
+
+        <Link href={href} className="absolute inset-0" aria-label={creator.name} />
 
         <div className="absolute right-3 top-3">
           <FavoriteButton
@@ -53,9 +70,11 @@ export function CreatorCard({
       {/* Meta */}
       <div className="pt-3">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="truncate font-semibold text-[var(--foreground)]">
-            {creator.name}
-          </h3>
+          <Link href={href} className="min-w-0">
+            <h3 className="truncate font-semibold text-[var(--foreground)] hover:underline">
+              {creator.name}
+            </h3>
+          </Link>
           {creator.availability && (
             <span className="mt-1 flex shrink-0 items-center gap-1.5 text-xs text-[var(--muted)]">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -68,15 +87,69 @@ export function CreatorCard({
           <p className="truncate text-sm text-[var(--muted)]">{creator.niche}</p>
         )}
 
-        {hasFollowers && (
-          <p className="text-sm text-[var(--muted)]">{total} followers</p>
+        {/* Socials with per-platform follower counts → external profiles */}
+        {(creator.instagram || creator.tiktok) && (
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
+            {creator.instagram && (
+              <a
+                href={instagramUrl(creator.instagram)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+              >
+                <InstagramIcon className="h-4 w-4" />
+                {ig ?? "Instagram"}
+              </a>
+            )}
+            {creator.tiktok && (
+              <a
+                href={tiktokUrl(creator.tiktok)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+              >
+                <TikTokIcon className="h-4 w-4" />
+                {tt ?? "TikTok"}
+              </a>
+            )}
+          </div>
         )}
 
-        <p className="mt-1.5 text-[var(--foreground)]">
-          <span className="font-semibold">{gbp.format(creator.price)}</span>{" "}
-          <span className="text-[var(--muted)]">/ job</span>
-        </p>
+        {/* Transparent per-service pricing */}
+        {services.length > 0 && (
+          <div className="mt-3 space-y-1 border-t border-[var(--border)] pt-3">
+            {services.map((s) => (
+              <div
+                key={s.key}
+                className="flex items-center justify-between text-sm"
+              >
+                <span className="text-[var(--muted)]">{s.label}</span>
+                <span className="font-semibold text-[var(--foreground)]">
+                  {gbp.format(s.rate)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        {viewerRole !== "creator" && (
+          <div className="mt-3 flex items-stretch gap-2">
+            <div className="flex-1">
+              <AutoBookButton
+                creatorId={creator.user_id}
+                services={services}
+                viewerRole={viewerRole}
+                available={creator.availability}
+              />
+            </div>
+            <MessageCreatorButton
+              creatorId={creator.user_id}
+              viewerRole={viewerRole}
+            />
+          </div>
+        )}
       </div>
-    </Link>
+    </div>
   );
 }

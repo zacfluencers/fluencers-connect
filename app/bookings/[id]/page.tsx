@@ -15,6 +15,7 @@ import { DisputeButton } from "@/components/DisputeButton";
 import { Conversation } from "@/components/Conversation";
 import { ContentDelivery } from "@/components/ContentDelivery";
 import { gbp } from "@/lib/format";
+import { serviceLabel } from "@/lib/services";
 
 export const dynamic = "force-dynamic";
 
@@ -121,6 +122,14 @@ export default async function DealRoomPage({
           </Card>
 
           <Card className="p-6">
+            {serviceLabel(booking.service_type) && (
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-sm text-[var(--muted)]">Service</span>
+                <span className="rounded-full bg-[var(--surface-2)] px-3 py-1 text-sm font-medium text-[var(--foreground)]">
+                  {serviceLabel(booking.service_type)}
+                </span>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-sm text-[var(--muted)]">Agreed price</span>
               <span className="text-xl font-bold text-[var(--foreground)]">

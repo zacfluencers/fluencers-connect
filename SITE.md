@@ -33,6 +33,8 @@ Migrations live in `supabase/migrations/`.
 
 **`0011_stripe_escrow.sql`** — Stripe Connect escrow: creators get a connected-account id + payout-ready flag; bookings track payment status (`unpaid`/`held`/`released`/`refunded`) and the Stripe payment/transfer/refund ids.
 
+**`0012_creator_attributes_and_rates.sql`** — richer creators + transparent per-service pricing. Replaces the single price with three rates — **UGC**, **Event Day**, **B-Roll** (any a creator doesn't offer is left blank) — and adds **gender**, **age**, and **country** for filtering. Bookings now record which **service** was booked. (The old single price was carried over into the UGC rate, and is kept in sync with the lowest set rate behind the scenes.)
+
 ## Payments & escrow (Stripe Connect)
 - A brand **pays at request time** via Stripe Checkout; the money is **held in escrow** on the platform balance and the booking is created (paid) once Stripe confirms.
 - **Approve & complete** → funds are **transferred** to the creator's connected account. **Decline** or a brand **refund/dispute** → funds are **returned** to the brand.
@@ -51,10 +53,10 @@ A high-impact homepage: hero with the statement "Book creators instantly. No neg
 People sign up as either a **brand** (books creators) or a **creator** (gets booked), using email + password (Supabase Auth). A signed-in person sees their email and role in the top navigation, with a Sign out button. Brands land on the marketplace; creators land on their dashboard.
 
 ## Pages
-- **Browse Creators** (`/marketplace`) — lists every creator from the database. Filter by niche (dropdown) and by availability (toggle). Filters live in the web address, so a filtered view can be shared or bookmarked.
-- **Creator Profile** (`/creator/[id]`) — one creator's page: photo, bio, niche, social handles, availability, fixed price, a 3-item portfolio area, and a **Request Booking** button. Signed-out visitors are prompted to sign in; brands create a real booking request; creators can't book.
+- **Browse Creators** (`/marketplace`) — lists every creator with a rich filter bar: **Industry** (multi-select of niches), **Gender**, **Country**, **Available only**, plus a "More filters" panel with sliders for **Age**, **Rate** (budget range), and **minimum Instagram / TikTok followers**. Every filter lives in the web address, so a filtered view can be shared or bookmarked. Each creator card shows their transparent per-service prices, clickable Instagram/TikTok follower counts, an **Auto book** button, and a **Chat** button.
+- **Creator Profile** (`/creator/[id]`) — one creator's page: photo, bio, niche, gender/age/country, clickable social handles with follower counts, availability, a 9:16 video portfolio, and a **transparent pricing panel** with a separate **Request & pay** button for each service they offer (UGC / Event Day / B-Roll). Brands can also start a **chat**. Signed-out visitors are prompted to sign in; creators can't book.
 - **Sign in / Join** (`/login`, `/signup`) — account creation and login. Signup includes the brand/creator choice.
-- **Creator Dashboard** (`/dashboard/creator`) — creators edit their marketplace profile (now with a **niche dropdown** and Instagram/TikTok follower counts), **upload portfolio images**, see **incoming booking requests**, and **accept or decline** them. Also lists active and past bookings.
+- **Creator Dashboard** (`/dashboard/creator`) — creators edit their marketplace profile: niche dropdown, **gender / age / country**, Instagram/TikTok handles + follower counts, and their **three service rates** (UGC, Event Day, B-Roll — set at least one). They also **upload portfolio videos**, see **incoming booking requests**, and **accept or decline** them. Also lists active and past bookings.
 - **Favourites** (`/favorites`) — creators a signed-in user has saved (via the heart on any creator card or profile) so they can come back to them.
 - **Brand Dashboard** (`/dashboard/brand`) — a brand's home: summary stats (active bookings, value in escrow, completed), and active + past bookings as cards with a mini progress bar. Brands land here after login.
 - **Booking Detail / "Deal Room"** (`/bookings/[id]`) — the centrepiece. A full status **stepper**, a participants panel (creator + brand), the agreed price, a **revision counter** (out of 3), a **content delivery** area (file preview/empty states by stage), a clean **message thread**, and the action buttons (approve, request revision, and — for brands — dispute/refund via a modal). Designed to feel like a deal room, not a chat app.
@@ -68,8 +70,13 @@ People sign up as either a **brand** (books creators) or a **creator** (gets boo
 
 ## Components
 - **Nav** — top navigation; shows who's signed in and the right links for their role.
-- **CreatorCard** — the card shown in the marketplace grid (photo, name, price, niche, availability badge).
-- **MarketplaceFilters** — the niche dropdown + availability toggle at the top of the marketplace.
+- **CreatorCard** — the marketplace card: photo, name, niche, clickable IG/TikTok follower counts, transparent per-service prices, an **Auto book** button, and a **Chat** button.
+- **MarketplaceFilters** — the full filter bar (industry multi-select, gender, country, availability + a sliders panel for age, rate, and follower minimums). Writes everything to the URL.
+- **RangeSlider** (`DualRange` / `MinSlider`) — the two-handle range and single "minimum" sliders used in the filters.
+- **AutoBookButton** — "Auto book": a fast, pre-filled booking request; the brand picks a service and pays into escrow in one step (the creator still approves).
+- **MessageCreatorButton** — starts (or reopens) a brand→creator direct chat.
+- **ServiceBooking** — the transparent pricing panel on a creator profile, one **Request & pay** button per service.
+- **SocialIcons** — the Instagram and TikTok glyphs.
 - **AuthForm** — the sign in / sign up form.
 - **CreatorProfileForm** — where a creator fills in their bookable profile.
 - **RequestBookingButton** — the "Request Booking" action on a creator's page.
@@ -87,6 +94,7 @@ The site reads creators from Supabase. To switch it on, copy `.env.local.example
 - 2026-06-17: **Full visual redesign** to a dark-first, premium SaaS look on the strict brand palette — new landing page, reusable `components/ui/` design system, Framer Motion throughout (grain + glow + animated gradient), a brand dashboard, and a "deal room" booking detail page (stepper, message thread, content delivery, revision counter, dispute modal).
 - 2026-06-17: Restyled toward a clean dark-mode-Airbnb feel (borderless photo cards, calmer buttons, more whitespace, responsive type scale, save icon).
 - 2026-06-17: **Portfolios are now 9:16 vertical videos**; **creators can no longer see/favourite other creators** (they browse the new **Brands** directory instead); added **brand profiles** with a "Looking for creators" toggle; and shipped **real persisted messaging** (powers both the brands outreach and the booking deal room).
+- 2026-06-18: **Transparent per-service pricing + richer creator profiles + powerful search.** Creators now set three rates (**UGC / Event Day / B-Roll**) and capture **gender, age, country**. Creator cards show every rate, clickable **Instagram/TikTok follower counts**, an **Auto book** button (fast pre-filled booking request), and a **Chat** button. The marketplace gained a full filter bar — **industry (multi-select), gender, country, availability**, plus sliders for **age, rate, and minimum IG/TikTok followers**. Bookings record which service was booked.
 
 ## Two-sided access (who sees what)
 - **Brands** browse the **creator** marketplace, favourite creators, and book them.

@@ -6,7 +6,13 @@ import { signIn, signUp, type AuthState } from "@/app/actions/auth";
 import { Field, Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({
+  mode,
+  defaultRole = "brand",
+}: {
+  mode: "login" | "signup";
+  defaultRole?: "brand" | "creator";
+}) {
   const action = mode === "login" ? signIn : signUp;
   const [state, formAction, pending] = useActionState<AuthState, FormData>(
     action,
@@ -33,8 +39,8 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             I&apos;m joining as a…
           </legend>
           <div className="grid grid-cols-2 gap-3">
-            <RoleOption value="brand" label="Brand" hint="Book creators" defaultChecked />
-            <RoleOption value="creator" label="Creator" hint="Get booked" />
+            <RoleOption value="brand" label="Brand" hint="Book creators" defaultChecked={defaultRole === "brand"} />
+            <RoleOption value="creator" label="Creator" hint="Get booked" defaultChecked={defaultRole === "creator"} />
           </div>
         </fieldset>
       )}

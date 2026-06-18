@@ -21,21 +21,39 @@ export async function upsertCreatorProfile(
   }
 
   const name = String(formData.get("name") ?? "").trim();
-  const priceRaw = String(formData.get("price") ?? "").trim();
-  const price = Number(priceRaw);
-
   if (!name) return { error: "Name is required." };
-  if (!Number.isFinite(price) || price < 0) {
-    return { error: "Enter a valid price." };
-  }
 
-  // Optional follower counts (manual for now). Blank → null.
+  // Optional whole-number count. Blank → null.
   const toCount = (key: string): number | null => {
     const raw = String(formData.get(key) ?? "").trim();
     if (!raw) return null;
     const n = Number(raw);
     return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null;
   };
+
+  // Optional money rate (2dp). Blank → null.
+  const toRate = (key: string): number | null => {
+    const raw = String(formData.get(key) ?? "").trim();
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  };
+
+  const ugc_rate = toRate("ugc_rate");
+  const event_rate = toRate("event_rate");
+  const broll_rate = toRate("broll_rate");
+
+  const rates = [ugc_rate, event_rate, broll_rate].filter(
+    (r): r is number => r != null,
+  );
+  if (rates.length === 0) {
+    return { error: "Set at least one rate (UGC, Event Day, or B-Roll)." };
+  }
+
+  const age = toCount("age");
+  if (age != null && (age < 13 || age > 120)) {
+    return { error: "Enter a valid age." };
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.from("creator_profiles").upsert({
@@ -49,7 +67,15 @@ export async function upsertCreatorProfile(
     availability: formData.get("availability") === "on",
     instagram_followers: toCount("instagram_followers"),
     tiktok_followers: toCount("tiktok_followers"),
-    price,
+    ugc_rate,
+    event_rate,
+    broll_rate,
+    gender: String(formData.get("gender") ?? "").trim() || null,
+    age,
+    country: String(formData.get("country") ?? "").trim() || null,
+    // Keep the legacy single price in sync with the lowest set rate so
+    // backward-compatible flows still work.
+    price: Math.min(...rates),
   });
 
   if (error) return { error: error.message };

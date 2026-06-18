@@ -52,6 +52,53 @@ export async function startDirectConversation(brandId: string) {
   redirect(`/messages/${conversationId}`);
 }
 
+/**
+ * Brand opens (or reuses) a direct conversation with a creator, then lands in it.
+ */
+export async function startCreatorConversation(creatorId: string) {
+  const me = await getCurrentUser();
+  if (!me) redirect("/login");
+  if (me.role !== "brand") {
+    return { error: "Only brands can message creators here." };
+  }
+
+  const supabase = await createClient();
+
+  const existing = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("brand_id", me.id)
+    .eq("creator_id", creatorId)
+    .is("booking_id", null)
+    .maybeSingle();
+
+  let conversationId = existing.data?.id ?? null;
+
+  if (!conversationId) {
+    const inserted = await supabase
+      .from("conversations")
+      .insert({ brand_id: me.id, creator_id: creatorId })
+      .select("id")
+      .maybeSingle();
+    conversationId = inserted.data?.id ?? null;
+
+    if (!conversationId) {
+      // Race or error — try to read it back.
+      const retry = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("brand_id", me.id)
+        .eq("creator_id", creatorId)
+        .is("booking_id", null)
+        .maybeSingle();
+      conversationId = retry.data?.id ?? null;
+    }
+  }
+
+  if (!conversationId) return { error: "Could not start the conversation." };
+  redirect(`/messages/${conversationId}`);
+}
+
 /** Post a message into a conversation. RLS enforces sender + membership. */
 export async function sendMessage(
   conversationId: string,

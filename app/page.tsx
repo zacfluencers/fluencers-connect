@@ -63,7 +63,7 @@ export default async function LandingPage() {
               <ButtonLink href="/marketplace" size="lg">
                 Browse Creators
               </ButtonLink>
-              <ButtonLink href="/signup" size="lg" variant="secondary">
+              <ButtonLink href="/signup?role=brand" size="lg" variant="secondary">
                 Become a Brand
               </ButtonLink>
             </div>
@@ -112,6 +112,7 @@ export default async function LandingPage() {
                   creator={c}
                   initialFavorited={favoriteIds.has(c.user_id)}
                   canFavorite={!!me}
+                  viewerRole={me?.role ?? null}
                 />
               </Reveal>
             ))}
@@ -161,10 +162,10 @@ export default async function LandingPage() {
             <Link href="/marketplace" className="hover:text-[var(--foreground)]">
               Browse
             </Link>
-            <Link href="/signup" className="hover:text-[var(--foreground)]">
+            <Link href="/signup?role=brand" className="hover:text-[var(--foreground)]">
               Become a Brand
             </Link>
-            <Link href="/signup" className="hover:text-[var(--foreground)]">
+            <Link href="/signup?role=creator" className="hover:text-[var(--foreground)]">
               Become a Creator
             </Link>
             <Link href="/login" className="hover:text-[var(--foreground)]">

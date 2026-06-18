@@ -23,6 +23,9 @@ export async function ensureBookingForSession(
   const brandId = meta.brand_id;
   const creatorId = meta.creator_id;
   const price = Number(meta.price);
+  const service = ["ugc", "event", "broll"].includes(meta.service)
+    ? meta.service
+    : null;
   if (!brandId || !creatorId || !Number.isFinite(price)) return null;
 
   const paymentIntentId =
@@ -34,6 +37,7 @@ export async function ensureBookingForSession(
       brand_id: brandId,
       creator_id: creatorId,
       price,
+      service_type: service,
       status: "requested",
       payment_status: "held",
       stripe_payment_intent_id: paymentIntentId,

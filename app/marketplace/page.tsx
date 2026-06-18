@@ -6,6 +6,7 @@ import { MarketplaceFilters } from "@/components/MarketplaceFilters";
 import { Reveal } from "@/components/ui/motion";
 import { CREATOR_PROFILE_COLUMNS, getFavoriteIds } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
+import { offeredServices } from "@/lib/services";
 import type { CreatorProfile } from "@/lib/types";
 
 export const metadata = {
@@ -16,34 +17,65 @@ export const metadata = {
 // Always reflect the latest filters/data.
 export const dynamic = "force-dynamic";
 
-async function getCreators(filters: {
-  niche?: string;
+interface Filters {
+  niches: string[];
+  gender?: string;
+  country?: string;
   availableOnly: boolean;
-}): Promise<CreatorProfile[]> {
+  ageMin?: number;
+  ageMax?: number;
+  rateMin?: number;
+  rateMax?: number;
+  igMin?: number;
+  ttMin?: number;
+}
+
+async function getCreators(f: Filters): Promise<CreatorProfile[]> {
   const supabase = await createClient();
 
+  // Cheap equality filters run in SQL; numeric ranges (which span nullable
+  // columns) are applied in JS below on the small result set.
   let query = supabase
     .from("creator_profiles")
     .select(CREATOR_PROFILE_COLUMNS)
     .order("name");
 
-  if (filters.niche) query = query.eq("niche", filters.niche);
-  if (filters.availableOnly) query = query.eq("availability", true);
+  if (f.niches.length) query = query.in("niche", f.niches);
+  if (f.gender) query = query.eq("gender", f.gender);
+  if (f.country) query = query.eq("country", f.country);
+  if (f.availableOnly) query = query.eq("availability", true);
 
   const { data, error } = await query;
   if (error) {
     console.error("Failed to load creators:", error.message);
     return [];
   }
-  return data ?? [];
+
+  return (data ?? []).filter((c) => {
+    if (f.ageMin != null && (c.age == null || c.age < f.ageMin)) return false;
+    if (f.ageMax != null && (c.age == null || c.age > f.ageMax)) return false;
+
+    if (f.rateMin != null || f.rateMax != null) {
+      const rates = offeredServices(c).map((s) => s.rate);
+      if (rates.length === 0) return false;
+      const lo = f.rateMin ?? 0;
+      const hi = f.rateMax ?? Infinity;
+      // Match if any offered rate falls within the budget range.
+      if (!rates.some((r) => r >= lo && r <= hi)) return false;
+    }
+
+    if (f.igMin != null && (c.instagram_followers ?? 0) < f.igMin) return false;
+    if (f.ttMin != null && (c.tiktok_followers ?? 0) < f.ttMin) return false;
+    return true;
+  });
 }
 
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ niche?: string; available?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const { niche, available } = await searchParams;
+  const params = await searchParams;
 
   // Creators don't browse other creators — send them to the brand directory.
   const me = await getCurrentUser();
@@ -61,11 +93,29 @@ export default async function MarketplacePage({
     );
   }
 
-  const availableOnly = available === "true";
+  const numParam = (key: string) => {
+    const v = Number(params[key]);
+    return params[key] != null && Number.isFinite(v) ? v : undefined;
+  };
+
+  const filters: Filters = {
+    niches: (params.niches ?? "").split(",").filter(Boolean),
+    gender: params.gender || undefined,
+    country: params.country || undefined,
+    availableOnly: params.available === "true",
+    ageMin: numParam("ageMin"),
+    ageMax: numParam("ageMax"),
+    rateMin: numParam("rateMin"),
+    rateMax: numParam("rateMax"),
+    igMin: numParam("igMin"),
+    ttMin: numParam("ttMin"),
+  };
+
   const [creators, favoriteIds] = await Promise.all([
-    getCreators({ niche, availableOnly }),
+    getCreators(filters),
     getFavoriteIds(),
   ]);
+  const viewerRole = me?.role ?? null;
 
   return (
     <Shell>
@@ -90,6 +140,7 @@ export default async function MarketplacePage({
                   creator={c}
                   initialFavorited={favoriteIds.has(c.user_id)}
                   canFavorite={!!me}
+                  viewerRole={viewerRole}
                 />
               </Reveal>
             ))}
