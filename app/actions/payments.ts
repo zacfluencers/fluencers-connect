@@ -26,10 +26,6 @@ export async function createBookingCheckout(
   const def = serviceDef(service);
   if (!def) return { error: "Unknown service." };
 
-  if (!isStripeConfigured()) {
-    return { error: "Payments aren't set up yet. Please try again soon." };
-  }
-
   const supabase = await createClient();
   const { data: creator } = await supabase
     .from("creator_profiles")
@@ -46,6 +42,40 @@ export async function createBookingCheckout(
   const rate = rateFor(creator, service);
   if (rate == null) {
     return { error: `This creator doesn't offer ${def.label}.` };
+  }
+
+  // Demo mode: with no Stripe keys configured we skip checkout entirely and
+  // create the booking directly (the brand may insert their own booking under
+  // RLS). This unblocks testing the full booking → brief → deal-room flow.
+  // When Stripe IS configured this branch never runs, so production is unchanged.
+  if (!isStripeConfigured()) {
+    const { data: created, error } = await supabase
+      .from("bookings")
+      .insert({
+        brand_id: me.id,
+        creator_id: creator.user_id,
+        price: rate,
+        service_type: service,
+        status: "requested",
+        payment_status: "unpaid",
+      })
+      .select("id")
+      .maybeSingle();
+    if (error || !created) {
+      return { error: error?.message ?? "Could not create the booking." };
+    }
+
+    const brandName =
+      (await supabase.from("brand_profiles").select("company_name").eq("user_id", me.id).maybeSingle()).data?.company_name ?? "A brand";
+    await notify(supabase, {
+      userId: creator.user_id,
+      type: "booking_request",
+      title: `New booking request from ${brandName}`,
+      body: `${def.label} · demo booking (payments off)`,
+      link: `/bookings/${created.id}`,
+    });
+
+    redirect(`/bookings/${created.id}`);
   }
 
   const base = getBaseUrl();

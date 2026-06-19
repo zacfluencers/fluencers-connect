@@ -1,9 +1,20 @@
 import { stripe, isStripeConfigured, platformFeeBps, toPence } from "@/lib/stripe/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { notify } from "@/lib/notifications";
 import { serviceLabel } from "@/lib/services";
 
 type Result = { ok: true } | { error: string };
+
+/**
+ * The escrow writes normally use the service-role client (trusted, bypasses
+ * RLS). When that key isn't configured (e.g. local/demo with no Stripe), fall
+ * back to the acting user's session — RLS still lets a booking party read and
+ * update their own booking, which is all the no-Stripe path needs.
+ */
+async function escrowDb() {
+  return isAdminConfigured() ? createAdminClient() : await createClient();
+}
 
 /**
  * Idempotently create the booking for a paid Checkout Session.
@@ -73,7 +84,7 @@ export async function ensureBookingForSession(
 
 /** Release escrow to the creator (transfer), or just complete if unpaid/no Stripe. */
 export async function releaseEscrow(bookingId: string): Promise<Result> {
-  const admin = createAdminClient();
+  const admin = await escrowDb();
   const { data: booking } = await admin
     .from("bookings")
     .select("id, creator_id, price, payment_status, stripe_payment_intent_id")
@@ -134,7 +145,7 @@ export async function refundEscrow(
   bookingId: string,
   newStatus: "declined" | "refunded",
 ): Promise<Result> {
-  const admin = createAdminClient();
+  const admin = await escrowDb();
   const { data: booking } = await admin
     .from("bookings")
     .select("id, payment_status, stripe_payment_intent_id")

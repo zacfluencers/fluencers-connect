@@ -45,6 +45,7 @@ Migrations live in `supabase/migrations/`.
 - Creators set up **payouts** (Stripe Express) from their dashboard; they must finish setup before funds can be released.
 - A Stripe **webhook** (`/api/stripe/webhook`) is the source of truth for paid bookings and payout-readiness.
 - **Setup needed** (env vars in `.env.local` + Vercel): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL` (see `.env.local.example`). Subscriptions are still not built (Stage 2).
+- **Demo mode (no Stripe keys):** until those keys are set, "Auto book" / "Request & pay" **skips checkout and creates the booking directly** (marked `unpaid`), dropping the brand straight into the deal room — so the whole booking → brief → accept → complete flow is fully testable without payments. Escrow release/refund also no-op cleanly in this mode. The moment Stripe keys are present, real Checkout takes over and this path never runs.
 
 Notes:
 - Every table has Row Level Security on. People only see their own data; creator profiles are public so brands can browse; the two parties on a booking can see each other.
@@ -128,6 +129,7 @@ The site reads creators from Supabase. To switch it on, copy `.env.local.example
 - 2026-06-18: **Auto-fill follower counts** — a button on the creator form scrapes Instagram/TikTok follower counts from the entered @handles (unofficial, best-effort, demo-only; falls back to manual entry).
 - 2026-06-19: **Fleshed-out landing page** — added new storytelling sections below the hero: a 3-step **How it works** explainer, a **"Built for both sides"** block (side-by-side For brands / For creators value cards), and a glowing **final call-to-action** panel. Reordered so the page builds from hook → proof → how → why → numbers → convert. All CTAs adapt to who's signed in. (Testimonials were considered but removed for now until real quotes are available.)
 - 2026-06-19: **Campaign briefs in the deal room** — after a brand books (still one click), they fill in a structured **brief** on the booking page: campaign details, content (platform, deliverables, creative brief, talking points, CTA), requirements (must-include, avoid, deadline), commercial (payment notes, usage rights), **reference file uploads**, and a **product toggle** — either the brand ships it (tracking number) or the creator orders it (product link + 100%-off code). The creator sees a read-only version and is notified when the brief is added. New `booking_briefs` + `booking_assets` tables and a `briefs` storage bucket (migration 0017).
+- 2026-06-19: **Demo booking mode** — with no Stripe keys configured, booking no longer shows "payments aren't set up"; it creates the booking directly and opens the deal room, so the full flow (including the new brief) is testable without Stripe. Escrow release/refund fall back to the user's session when the service-role key is also absent.
 
 ## Two-sided access (who sees what)
 - **Brands** browse the **creator** marketplace, favourite creators, and book them.

@@ -218,6 +218,8 @@ function escrowNote(status: string) {
       return "Funds released to the creator.";
     case "refunded":
       return "Funds refunded to the brand.";
+    case "unpaid":
+      return "Demo booking — payments are off, so no funds were taken.";
     default:
       return "Awaiting payment.";
   }
