@@ -33,6 +33,17 @@ export function AuthForm({
         />
       </Field>
 
+      {mode === "login" && (
+        <div className="-mt-1 text-right">
+          <Link
+            href="/forgot-password"
+            className="text-sm text-[var(--muted)] underline-offset-4 hover:text-[var(--foreground)] hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+      )}
+
       {mode === "signup" && (
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium text-[var(--foreground)]">

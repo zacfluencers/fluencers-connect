@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/lib/types";
 
@@ -66,4 +67,62 @@ export async function signOut() {
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
   redirect("/login");
+}
+
+/** Step 1: email the user a password-reset link. */
+export async function requestPasswordReset(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) return { error: "Enter your email address." };
+
+  const h = await headers();
+  const origin =
+    h.get("origin") ?? (h.get("host") ? `https://${h.get("host")}` : "");
+
+  const supabase = await createClient();
+  // The link lands on /auth/callback, which exchanges it for a session and
+  // forwards to /reset-password where they choose a new password.
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+  });
+  // Don't reveal whether an account exists — always show the same confirmation.
+  if (error && !/rate|limit/i.test(error.message)) {
+    return { error: error.message };
+  }
+
+  redirect("/forgot-password?sent=1");
+}
+
+/** Step 2: set a new password (the user arrives here with a recovery session). */
+export async function updatePassword(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  if (password.length < 8) return { error: "Use at least 8 characters." };
+  if (password !== confirm) return { error: "Those passwords don't match." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Your reset link has expired — request a new one." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: error.message };
+
+  revalidatePath("/", "layout");
+  // They're signed in via the recovery session — route them like a sign-in.
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  redirect(profile?.role === "creator" ? "/dashboard/creator" : "/marketplace");
 }
