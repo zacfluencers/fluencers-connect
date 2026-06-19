@@ -40,6 +40,9 @@ async function notifyBookingAction(
     submit: { title: `${actorName} submitted work for review`, body: "Review it and approve or request a revision." },
     approve: { title: `${actorName} approved & completed your booking`, body: "Funds have been released to you." },
     request_revision: { title: `${actorName} requested a revision` },
+    unaccept: { title: `${actorName} moved the booking back to requested` },
+    revert_to_accepted: { title: `${actorName} moved the booking back a step` },
+    withdraw: { title: `${actorName} withdrew the submission`, body: "They're making changes before resubmitting." },
   };
 
   const msg = map[action];

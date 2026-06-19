@@ -6,6 +6,7 @@ import type {
   Booking,
   BookingAsset,
   BookingBrief,
+  BookingDeliverable,
   BookingStatus,
   BrandProfile,
   CreatorProfile,
@@ -168,6 +169,19 @@ export async function getBookingAssets(
   const supabase = await createClient();
   const { data } = await supabase
     .from("booking_assets")
+    .select("id, booking_id, url, storage_path, name, size, created_at")
+    .eq("booking_id", bookingId)
+    .order("created_at", { ascending: true });
+  return data ?? [];
+}
+
+/** Content files the creator has delivered for a booking. */
+export async function getBookingDeliverables(
+  bookingId: string,
+): Promise<BookingDeliverable[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("booking_deliverables")
     .select("id, booking_id, url, storage_path, name, size, created_at")
     .eq("booking_id", bookingId)
     .order("created_at", { ascending: true });

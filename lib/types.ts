@@ -73,6 +73,17 @@ export interface BookingAsset {
   created_at: string;
 }
 
+/** A delivered content file the creator uploads for the brand to review. */
+export interface BookingDeliverable {
+  id: string;
+  booking_id: string;
+  url: string;
+  storage_path: string | null;
+  name: string | null;
+  size: number | null;
+  created_at: string;
+}
+
 /** A creator's public marketplace profile (1:1 with a `creator` user). */
 export interface CreatorProfile {
   user_id: string;

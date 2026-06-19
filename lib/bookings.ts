@@ -9,7 +9,11 @@ export type BookingAction =
   | "start"
   | "submit"
   | "approve"
-  | "request_revision";
+  | "request_revision"
+  // Backward steps (creator-initiated, never cross the money boundary).
+  | "unaccept"
+  | "revert_to_accepted"
+  | "withdraw";
 
 export interface Transition {
   action: BookingAction;
@@ -29,6 +33,11 @@ export interface Transition {
  *   requested → accepted → in_progress → in_review → completed
  *   requested → declined            (creator rejects)
  *   in_review → in_progress         (brand asks for a revision, max 3)
+ *
+ * The forward chain also has matching backward steps so either party can move
+ * between stages while a booking is live. Backward steps are creator-initiated
+ * and never cross the money boundary — Approve (releases escrow) and Decline
+ * (refunds) are final, so `completed` / `declined` / `refunded` can't be undone.
  */
 export const TRANSITIONS: Record<BookingStatus, Transition[]> = {
   requested: [
@@ -37,13 +46,16 @@ export const TRANSITIONS: Record<BookingStatus, Transition[]> = {
   ],
   accepted: [
     { action: "start", actor: "creator", to: "in_progress", label: "Start work", intent: "primary" },
+    { action: "unaccept", actor: "creator", to: "requested", label: "Back to request", intent: "default" },
   ],
   in_progress: [
     { action: "submit", actor: "creator", to: "in_review", label: "Submit for review", intent: "primary" },
+    { action: "revert_to_accepted", actor: "creator", to: "accepted", label: "Back a step", intent: "default" },
   ],
   in_review: [
     { action: "approve", actor: "brand", to: "completed", label: "Approve & complete", intent: "primary" },
     { action: "request_revision", actor: "brand", to: "in_progress", label: "Request revision", intent: "default" },
+    { action: "withdraw", actor: "creator", to: "in_progress", label: "Withdraw submission", intent: "default" },
   ],
   completed: [],
   declined: [],

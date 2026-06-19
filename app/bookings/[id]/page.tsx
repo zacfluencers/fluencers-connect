@@ -7,6 +7,7 @@ import {
   getConversation,
   getBookingBrief,
   getBookingAssets,
+  getBookingDeliverables,
 } from "@/lib/queries";
 import { availableActions, MAX_REVISIONS, STATUS_META } from "@/lib/bookings";
 import { Stepper } from "@/components/ui/Stepper";
@@ -15,7 +16,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { BookingActions } from "@/components/BookingActions";
 import { DisputeButton } from "@/components/DisputeButton";
 import { Conversation } from "@/components/Conversation";
-import { ContentDelivery } from "@/components/ContentDelivery";
+import { Deliverables } from "@/components/Deliverables";
 import { BookingBrief } from "@/components/BookingBrief";
 import { gbp } from "@/lib/format";
 import { serviceLabel } from "@/lib/services";
@@ -51,9 +52,10 @@ export default async function DealRoomPage({
     ? await getConversation(conversationId)
     : null;
 
-  const [brief, assets] = await Promise.all([
+  const [brief, assets, deliverables] = await Promise.all([
     getBookingBrief(booking.id),
     getBookingAssets(booking.id),
+    getBookingDeliverables(booking.id),
   ]);
 
   return (
@@ -103,7 +105,13 @@ export default async function DealRoomPage({
 
           <Card className="p-6">
             <h2 className="mb-4 text-lg font-semibold">Content delivery</h2>
-            <ContentDelivery status={booking.status} role={me.role} />
+            <Deliverables
+              bookingId={booking.id}
+              userId={me.id}
+              role={me.role}
+              status={booking.status}
+              deliverables={deliverables}
+            />
           </Card>
 
           <Card className="flex h-[460px] flex-col p-6">
