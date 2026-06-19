@@ -202,18 +202,18 @@ function DeliverableTile({
 }) {
   const isVideo = /\.(mp4|mov|webm|m4v)$/i.test(item.url);
   return (
-    <div className="group relative aspect-square overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-2)]">
+    <div className="group relative aspect-[9/16] overflow-hidden rounded-xl border border-[var(--border)] bg-black">
       {isVideo ? (
         <video
           src={`${item.url}#t=0.1`}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
           controls
           playsInline
           preload="metadata"
         />
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.url} alt={item.name ?? "Deliverable"} className="h-full w-full object-cover" />
+        <img src={item.url} alt={item.name ?? "Deliverable"} className="h-full w-full object-contain" />
       )}
 
       <a
