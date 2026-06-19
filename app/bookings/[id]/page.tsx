@@ -5,6 +5,8 @@ import {
   getBookingDetail,
   getOrCreateBookingConversation,
   getConversation,
+  getBookingBrief,
+  getBookingAssets,
 } from "@/lib/queries";
 import { availableActions, MAX_REVISIONS, STATUS_META } from "@/lib/bookings";
 import { Stepper } from "@/components/ui/Stepper";
@@ -14,6 +16,7 @@ import { BookingActions } from "@/components/BookingActions";
 import { DisputeButton } from "@/components/DisputeButton";
 import { Conversation } from "@/components/Conversation";
 import { ContentDelivery } from "@/components/ContentDelivery";
+import { BookingBrief } from "@/components/BookingBrief";
 import { gbp } from "@/lib/format";
 import { serviceLabel } from "@/lib/services";
 
@@ -48,6 +51,11 @@ export default async function DealRoomPage({
     ? await getConversation(conversationId)
     : null;
 
+  const [brief, assets] = await Promise.all([
+    getBookingBrief(booking.id),
+    getBookingAssets(booking.id),
+  ]);
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-14 sm:py-20">
       <Link
@@ -75,8 +83,24 @@ export default async function DealRoomPage({
       </Card>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left: delivery + messages */}
+        {/* Left: brief + delivery + messages */}
         <div className="space-y-6 lg:col-span-2">
+          <Card className="p-6">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">Campaign brief</h2>
+              {me.role === "brand" && (
+                <span className="text-xs text-[var(--muted)]">Only you can edit this</span>
+              )}
+            </div>
+            <BookingBrief
+              bookingId={booking.id}
+              userId={me.id}
+              role={me.role}
+              brief={brief}
+              assets={assets}
+            />
+          </Card>
+
           <Card className="p-6">
             <h2 className="mb-4 text-lg font-semibold">Content delivery</h2>
             <ContentDelivery status={booking.status} role={me.role} />

@@ -36,6 +36,43 @@ export interface Booking {
   service_type: ServiceType | null;
 }
 
+/** How a physical product (if any) reaches the creator for a booking. */
+export type ProductMode = "none" | "ship" | "order";
+
+/** The detailed campaign brief a brand fills in for a booking (1:1). */
+export interface BookingBrief {
+  booking_id: string;
+  campaign_name: string | null;
+  objective: string | null;
+  target_audience: string | null;
+  platform: string | null;
+  deliverables: string | null;
+  creative_brief: string | null;
+  talking_points: string | null;
+  cta: string | null;
+  must_include: string | null;
+  avoid: string | null;
+  deadline: string | null;
+  payment: string | null;
+  usage_rights: string | null;
+  product_mode: ProductMode;
+  shipping_tracking: string | null;
+  product_link: string | null;
+  discount_code: string | null;
+  updated_at: string;
+}
+
+/** A reference file attached to a booking brief. */
+export interface BookingAsset {
+  id: string;
+  booking_id: string;
+  url: string;
+  storage_path: string | null;
+  name: string | null;
+  size: number | null;
+  created_at: string;
+}
+
 /** A creator's public marketplace profile (1:1 with a `creator` user). */
 export interface CreatorProfile {
   user_id: string;

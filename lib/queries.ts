@@ -4,12 +4,17 @@ import type {
   AppUser,
   AppNotification,
   Booking,
+  BookingAsset,
+  BookingBrief,
   BookingStatus,
   BrandProfile,
   CreatorProfile,
   Message,
   PortfolioItem,
 } from "@/lib/types";
+
+const BOOKING_BRIEF_COLUMNS =
+  "booking_id, campaign_name, objective, target_audience, platform, deliverables, creative_brief, talking_points, cta, must_include, avoid, deadline, payment, usage_rights, product_mode, shipping_tracking, product_link, discount_code, updated_at";
 
 const BRAND_PROFILE_COLUMNS =
   "user_id, company_name, about, budget_min, budget_max, looking_for_creators, logo_url, website, instagram, tiktok, created_at";
@@ -141,6 +146,32 @@ export async function getBookingDetail(
   ]);
 
   return { booking, creator: creator ?? null, brand: brand ?? null };
+}
+
+/** The campaign brief for a booking (null if the brand hasn't started one). */
+export async function getBookingBrief(
+  bookingId: string,
+): Promise<BookingBrief | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("booking_briefs")
+    .select(BOOKING_BRIEF_COLUMNS)
+    .eq("booking_id", bookingId)
+    .maybeSingle();
+  return (data as BookingBrief) ?? null;
+}
+
+/** Reference files attached to a booking brief. */
+export async function getBookingAssets(
+  bookingId: string,
+): Promise<BookingAsset[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("booking_assets")
+    .select("id, booking_id, url, storage_path, name, size, created_at")
+    .eq("booking_id", bookingId)
+    .order("created_at", { ascending: true });
+  return data ?? [];
 }
 
 /** A brand's own profile (used on the brand dashboard). */
