@@ -37,7 +37,6 @@ const SECTIONS: SectionDef[] = [
     title: "Campaign details",
     fields: [
       { key: "campaign_name", label: "Campaign name", type: "input", placeholder: "Summer skincare launch" },
-      { key: "objective", label: "Objective", type: "textarea", placeholder: "What should this campaign achieve?" },
       { key: "target_audience", label: "Target audience", type: "input", placeholder: "Women 25–34, skincare-curious" },
     ],
   },
@@ -45,9 +44,7 @@ const SECTIONS: SectionDef[] = [
     title: "Content",
     fields: [
       { key: "platform", label: "Platform", type: "select" },
-      { key: "deliverables", label: "Deliverables", type: "textarea", placeholder: "e.g. 3× 30s TikToks + 5 photos" },
-      { key: "creative_brief", label: "Creative brief", type: "textarea", rows: 5, placeholder: "The story, tone and direction you have in mind…" },
-      { key: "talking_points", label: "Talking points", type: "textarea", placeholder: "Key messages to hit" },
+      { key: "creative_brief", label: "Creative brief", type: "textarea", rows: 5, placeholder: "The story, tone, deliverables and direction you have in mind…" },
       { key: "cta", label: "Call to action", type: "input", placeholder: "e.g. “Use code GLOW20 — link in bio”" },
     ],
   },
@@ -62,7 +59,6 @@ const SECTIONS: SectionDef[] = [
   {
     title: "Commercial",
     fields: [
-      { key: "payment", label: "Payment terms", type: "input", hint: "The price is already set and held in escrow — add any extra notes here.", placeholder: "e.g. bonus on 100k+ views" },
       { key: "usage_rights", label: "Usage rights", type: "textarea", placeholder: "Where and for how long can the brand use this content?" },
     ],
   },
@@ -70,17 +66,13 @@ const SECTIONS: SectionDef[] = [
 
 type BriefValues = {
   campaign_name: string;
-  objective: string;
   target_audience: string;
   platform: string;
-  deliverables: string;
   creative_brief: string;
-  talking_points: string;
   cta: string;
   must_include: string;
   avoid: string;
   deadline: string;
-  payment: string;
   usage_rights: string;
   product_mode: ProductMode;
   shipping_tracking: string;
@@ -91,17 +83,13 @@ type BriefValues = {
 function valuesFrom(brief: BookingBrief | null): BriefValues {
   return {
     campaign_name: brief?.campaign_name ?? "",
-    objective: brief?.objective ?? "",
     target_audience: brief?.target_audience ?? "",
     platform: brief?.platform ?? "",
-    deliverables: brief?.deliverables ?? "",
     creative_brief: brief?.creative_brief ?? "",
-    talking_points: brief?.talking_points ?? "",
     cta: brief?.cta ?? "",
     must_include: brief?.must_include ?? "",
     avoid: brief?.avoid ?? "",
     deadline: brief?.deadline ?? "",
-    payment: brief?.payment ?? "",
     usage_rights: brief?.usage_rights ?? "",
     product_mode: brief?.product_mode ?? "none",
     shipping_tracking: brief?.shipping_tracking ?? "",

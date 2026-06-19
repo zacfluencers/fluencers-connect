@@ -204,6 +204,28 @@ export default async function DealRoomPage({
               </div>
             )}
           </Card>
+
+          {/* Invoice / receipt — available once the booking is complete */}
+          {booking.status === "completed" && (
+            <Card className="p-6">
+              <h2 className="mb-1 text-sm font-medium uppercase tracking-widest text-[var(--muted)]">
+                Invoice
+              </h2>
+              <p className="mb-4 text-sm text-[var(--muted)]">
+                A PDF receipt for your records.
+              </p>
+              <a
+                href={`/bookings/${booking.id}/invoice`}
+                className="inline-flex items-center gap-2 rounded-xl border border-[var(--border-strong)] px-4 py-2.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-white/5"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3v12m0 0 4-4m-4 4-4-4" />
+                  <path d="M5 21h14" />
+                </svg>
+                Download receipt (PDF)
+              </a>
+            </Card>
+          )}
         </div>
       </div>
     </main>

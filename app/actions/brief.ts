@@ -59,17 +59,13 @@ export async function saveBookingBrief(
   const row = {
     booking_id: bookingId,
     campaign_name: str(form, "campaign_name"),
-    objective: str(form, "objective"),
     target_audience: str(form, "target_audience"),
     platform: str(form, "platform"),
-    deliverables: str(form, "deliverables"),
     creative_brief: str(form, "creative_brief"),
-    talking_points: str(form, "talking_points"),
     cta: str(form, "cta"),
     must_include: str(form, "must_include"),
     avoid: str(form, "avoid"),
     deadline: str(form, "deadline"),
-    payment: str(form, "payment"),
     usage_rights: str(form, "usage_rights"),
     // Only keep the fields that match the chosen product mode.
     product_mode: productMode,
