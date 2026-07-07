@@ -9,6 +9,7 @@ import {
 } from "@/lib/queries";
 import { getBrandPlanOptions } from "@/lib/stripe/billing";
 import { isSubscribed } from "@/lib/billing-plans";
+import { brandCanTransact } from "@/lib/subscription";
 import { syncBrandSubscriptionFromSession } from "@/app/actions/billing";
 import { BookingCard } from "@/components/BookingCard";
 import { BrandCard } from "@/components/BrandCard";
@@ -46,10 +47,12 @@ export default async function BrandDashboard({
     getBrandBilling(me.id),
   ]);
 
+  const subscribed = isSubscribed(billing?.status);
   // Only fetch plan prices from Stripe when we actually need to show them.
-  const planOptions = isSubscribed(billing?.status)
-    ? []
-    : await getBrandPlanOptions();
+  const planOptions = subscribed ? [] : await getBrandPlanOptions();
+  // Whether the brand may list in the creator directory (subscribers only;
+  // always allowed when billing isn't configured, e.g. local/demo).
+  const canList = await brandCanTransact(me.id);
   const active = bookings.filter(
     (b) => !["completed", "declined", "refunded"].includes(b.status),
   );
@@ -203,7 +206,7 @@ export default async function BrandDashboard({
             title="Brand profile"
             subtitle="Turn on “Looking for creators” to appear in the creator directory and get messages from creators."
           >
-            <BrandProfileForm profile={brandProfile} userId={me.id} />
+            <BrandProfileForm profile={brandProfile} userId={me.id} canList={canList} />
           </Panel>
 
           {/* History */}

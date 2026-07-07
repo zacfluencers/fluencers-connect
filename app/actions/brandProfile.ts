@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
+import { brandCanTransact } from "@/lib/subscription";
 
 export type BrandProfileState = { error: string } | { ok: true } | null;
 
@@ -29,6 +30,9 @@ export async function upsertBrandProfile(
   const clean = (key: string): string | null =>
     String(formData.get(key) ?? "").trim() || null;
 
+  // Only subscribed brands may list themselves in the creator-facing directory.
+  const canList = await brandCanTransact(me.id);
+
   const supabase = await createClient();
   const { error } = await supabase.from("brand_profiles").upsert({
     user_id: me.id,
@@ -36,7 +40,7 @@ export async function upsertBrandProfile(
     about: clean("about"),
     budget_min: toCount("budget_min"),
     budget_max: toCount("budget_max"),
-    looking_for_creators: formData.get("looking_for_creators") === "on",
+    looking_for_creators: canList && formData.get("looking_for_creators") === "on",
     logo_url: clean("logo_url"),
     website: clean("website"),
     instagram: clean("instagram"),

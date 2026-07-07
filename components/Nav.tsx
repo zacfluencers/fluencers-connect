@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
+import { brandCanTransact } from "@/lib/subscription";
 import { getMyNotifications, getUnreadNotificationCount } from "@/lib/queries";
 import { signOut } from "@/app/actions/auth";
 import { ButtonLink } from "@/components/ui/Button";
@@ -16,13 +17,19 @@ export async function Nav() {
     ? await Promise.all([getMyNotifications(), getUnreadNotificationCount()])
     : [[], 0];
 
+  // Unsubscribed brands only get to browse — the paid features (favourites,
+  // messages, bookings) are removed from the nav until they subscribe.
+  const locked = me?.role === "brand" ? !(await brandCanTransact(me.id)) : false;
+
   // Shared link set — drives both the desktop bar and the mobile menu.
   const links: { href: string; label: string }[] = [
     me?.role === "creator"
       ? { href: "/brands", label: "Brands" }
       : { href: "/marketplace", label: "Browse" },
   ];
-  if (me) {
+  if (me && locked) {
+    links.push({ href: dashboardHref, label: "Dashboard" });
+  } else if (me) {
     links.push(
       { href: "/favorites", label: "Favourites" },
       { href: "/messages", label: "Messages" },
@@ -57,6 +64,11 @@ export async function Nav() {
         <div className="ml-auto flex items-center gap-2 text-sm sm:gap-3">
           {me ? (
             <>
+              {locked && (
+                <ButtonLink href="/dashboard/brand" size="sm">
+                  Subscribe
+                </ButtonLink>
+              )}
               <NotificationBell notifications={notifications} unread={unread} />
 
               {/* Account actions — desktop only; the hamburger covers below lg */}

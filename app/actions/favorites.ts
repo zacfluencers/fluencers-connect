@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
+import { brandCanTransact } from "@/lib/subscription";
 
 /**
  * Add or remove a creator from the current user's favourites.
@@ -13,6 +14,10 @@ export async function toggleFavorite(
 ): Promise<{ favorited: boolean } | { error: string }> {
   const me = await getCurrentUser();
   if (!me) return { error: "Please sign in to save favourites." };
+  // Favouriting is a paid brand feature.
+  if (me.role === "brand" && !(await brandCanTransact(me.id))) {
+    return { error: "Subscribe to save favourites." };
+  }
 
   const supabase = await createClient();
 

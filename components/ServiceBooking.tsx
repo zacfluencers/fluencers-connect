@@ -81,6 +81,36 @@ export function ServiceBooking({
     );
   }
 
+  // Unsubscribed brand — browse only. Pricing + booking are behind the plan.
+  if (viewerRole === "brand" && locked) {
+    return (
+      <div className="rounded-2xl border border-[var(--border)] p-5">
+        <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
+          Services offered
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {services.map((s) => (
+            <span
+              key={s.key}
+              className="rounded-full bg-[var(--surface-2)] px-3 py-1 text-sm text-[var(--foreground)]"
+            >
+              {s.label}
+            </span>
+          ))}
+        </div>
+        <p className="mt-4 text-sm text-[var(--muted)]">
+          Subscribe to see pricing, book, and message creators.
+        </p>
+        <Link
+          href="/dashboard/brand"
+          className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+        >
+          Subscribe to see more
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-2xl border border-[var(--border)] p-5">
       <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
@@ -106,20 +136,14 @@ export function ServiceBooking({
                   Sign in to book
                 </Link>
               ) : viewerRole === "brand" ? (
-                locked ? (
-                  <span className="text-xs font-medium text-[var(--muted)]">
-                    Members only
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => book(s.key)}
-                    disabled={!available || pending}
-                    className="rounded-full bg-[var(--accent-2)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0] disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {busy === s.key ? "Redirecting…" : "Request & pay"}
-                  </button>
-                )
+                <button
+                  type="button"
+                  onClick={() => book(s.key)}
+                  disabled={!available || pending}
+                  className="rounded-full bg-[var(--accent-2)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {busy === s.key ? "Redirecting…" : "Request & pay"}
+                </button>
               ) : null}
             </div>
           </div>
@@ -131,23 +155,10 @@ export function ServiceBooking({
           Creators can&apos;t book other creators.
         </p>
       )}
-      {viewerRole === "brand" && !locked && (
+      {viewerRole === "brand" && (
         <p className="mt-3 text-xs text-[var(--muted)]">
           Paid into escrow — released only when you approve the work.
         </p>
-      )}
-      {viewerRole === "brand" && locked && (
-        <div className="mt-4 rounded-xl border border-[var(--accent-2)]/30 bg-[var(--accent)]/10 p-3.5">
-          <p className="text-sm text-[var(--foreground)]">
-            Subscribe to book &amp; message creators.
-          </p>
-          <Link
-            href="/dashboard/brand"
-            className="mt-2.5 inline-flex w-full items-center justify-center rounded-full bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
-          >
-            View membership plans
-          </Link>
-        </div>
       )}
       {error && <p className="mt-2 text-sm text-rose-300">{error}</p>}
     </div>

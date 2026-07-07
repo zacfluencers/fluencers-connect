@@ -16,11 +16,14 @@ export function BrandProfileForm({
   profile,
   userId,
   redirectTo,
+  canList = true,
 }: {
   profile: BrandProfile | null;
   userId: string;
   /** If set, the form navigates here after a successful save (e.g. onboarding). */
   redirectTo?: string;
+  /** Whether the brand may list in the creator directory (subscribers only). */
+  canList?: boolean;
 }) {
   const [state, formAction, pending] = useActionState<BrandProfileState, FormData>(
     upsertBrandProfile,
@@ -69,19 +72,26 @@ export function BrandProfileForm({
         </Field>
       </div>
 
-      <label className="flex items-center gap-3 rounded-xl border border-[var(--border-strong)] bg-[var(--surface-2)] px-4 py-3">
+      <label
+        className={`flex items-center gap-3 rounded-xl border border-[var(--border-strong)] bg-[var(--surface-2)] px-4 py-3 ${
+          canList ? "" : "cursor-not-allowed opacity-60"
+        }`}
+      >
         <input
           type="checkbox"
           name="looking_for_creators"
-          defaultChecked={profile?.looking_for_creators ?? false}
-          className="h-4 w-4 accent-[var(--accent-2)]"
+          defaultChecked={canList && (profile?.looking_for_creators ?? false)}
+          disabled={!canList}
+          className="h-4 w-4 accent-[var(--accent-2)] disabled:cursor-not-allowed"
         />
         <span>
           <span className="block text-sm font-medium text-[var(--foreground)]">
             Looking for creators
           </span>
           <span className="block text-xs text-[var(--muted)]">
-            Show your brand in the creator-facing directory so creators can reach out.
+            {canList
+              ? "Show your brand in the creator-facing directory so creators can reach out."
+              : "Subscribe to list your brand in the creator directory and get messages."}
           </span>
         </span>
       </label>

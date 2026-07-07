@@ -55,9 +55,9 @@ export function CreatorCard({
 
         <Link href={href} className="absolute inset-0" aria-label={creator.name} />
 
-        {/* Favouriting creators is a brand action — not shown to creators or
-            signed-out visitors. */}
-        {viewerRole === "brand" && (
+        {/* Favouriting creators is a brand action — hidden from creators,
+            signed-out visitors, and unsubscribed brands. */}
+        {viewerRole === "brand" && !locked && (
           <div className="absolute right-3 top-3">
             <FavoriteButton
               creatorId={creator.user_id}
@@ -122,8 +122,9 @@ export function CreatorCard({
           </div>
         )}
 
-        {/* Transparent per-service pricing — hidden from signed-out visitors. */}
-        {viewerRole !== null && services.length > 0 && (
+        {/* Transparent per-service pricing — hidden from signed-out visitors
+            and unsubscribed brands. */}
+        {viewerRole !== null && !locked && services.length > 0 && (
           <div className="mt-3 space-y-1 border-t border-[var(--border)] pt-3">
             {services.map((s) => (
               <div
@@ -139,8 +140,8 @@ export function CreatorCard({
           </div>
         )}
 
-        {/* Brand actions: book + chat */}
-        {viewerRole === "brand" && (
+        {/* Subscribed brand: book + chat. */}
+        {viewerRole === "brand" && !locked && (
           <div className="mt-3 flex items-stretch gap-2">
             <div className="flex-1">
               <AutoBookButton
@@ -157,6 +158,16 @@ export function CreatorCard({
               locked={locked}
             />
           </div>
+        )}
+
+        {/* Unsubscribed brand: one full-width prompt to subscribe. */}
+        {viewerRole === "brand" && locked && (
+          <Link
+            href="/dashboard/brand"
+            className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+          >
+            Subscribe to see more
+          </Link>
         )}
 
         {/* Signed-out: prompt to join (pricing + booking are gated). */}

@@ -32,15 +32,12 @@ export function AutoBookButton({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  if (viewerRole === "creator" || services.length === 0) return null;
+  // Hidden for creators and for unsubscribed brands (booking is a paid feature).
+  if (viewerRole === "creator" || services.length === 0 || locked) return null;
 
   function book(service: ServiceType) {
     if (viewerRole === null) {
       router.push("/login");
-      return;
-    }
-    if (locked) {
-      router.push("/dashboard/brand");
       return;
     }
     setError(null);
@@ -59,14 +56,10 @@ export function AutoBookButton({
     <div className="relative">
       <button
         type="button"
-        disabled={pending || (!locked && !available)}
+        disabled={!available || pending}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (locked) {
-            router.push("/dashboard/brand");
-            return;
-          }
           if (single) book(single.key);
           else setOpen((v) => !v);
         }}
@@ -75,16 +68,10 @@ export function AutoBookButton({
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
         </svg>
-        {pending
-          ? "Opening…"
-          : locked
-            ? "Subscribe to book"
-            : single
-              ? `Auto book · ${gbp.format(single.rate)}`
-              : "Auto book"}
+        {pending ? "Opening…" : single ? `Auto book · ${gbp.format(single.rate)}` : "Auto book"}
       </button>
 
-      {open && !single && !locked && (
+      {open && !single && (
         <div
           className="absolute bottom-full left-0 z-20 mb-2 w-full overflow-hidden rounded-xl border border-[var(--border-strong)] bg-[var(--surface-2)] shadow-xl"
           onClick={(e) => e.preventDefault()}

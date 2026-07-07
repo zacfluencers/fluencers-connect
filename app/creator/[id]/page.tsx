@@ -107,7 +107,7 @@ export default async function CreatorPage({
                 {creator.name}
               </h1>
               <AvailabilityPill available={creator.availability} />
-              {viewerRole !== "creator" && (
+              {viewerRole !== "creator" && !locked && (
                 <div className="ml-auto">
                   <FavoriteButton
                     creatorId={creator.user_id}
@@ -170,7 +170,7 @@ export default async function CreatorPage({
               />
             </div>
 
-            {viewerRole === "brand" && (
+            {viewerRole === "brand" && !locked && (
               <div className="mt-3">
                 <MessageCreatorButton
                   creatorId={creator.user_id}
