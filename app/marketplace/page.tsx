@@ -6,6 +6,7 @@ import { MarketplaceFilters } from "@/components/MarketplaceFilters";
 import { Reveal } from "@/components/ui/motion";
 import { CREATOR_PROFILE_COLUMNS, getFavoriteIds } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
+import { brandCanTransact } from "@/lib/subscription";
 import { offeredServices } from "@/lib/services";
 import type { CreatorProfile } from "@/lib/types";
 
@@ -116,6 +117,7 @@ export default async function MarketplacePage({
     getFavoriteIds(),
   ]);
   const viewerRole = me?.role ?? null;
+  const locked = me?.role === "brand" ? !(await brandCanTransact(me.id)) : false;
 
   return (
     <Shell>
@@ -141,6 +143,7 @@ export default async function MarketplacePage({
                   initialFavorited={favoriteIds.has(c.user_id)}
                   canFavorite={!!me}
                   viewerRole={viewerRole}
+                  locked={locked}
                 />
               </Reveal>
             ))}

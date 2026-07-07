@@ -7,6 +7,7 @@ import {
   getPortfolio,
   getFavoriteIds,
 } from "@/lib/queries";
+import { brandCanTransact } from "@/lib/subscription";
 import { ServiceBooking } from "@/components/ServiceBooking";
 import { MessageCreatorButton } from "@/components/MessageCreatorButton";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -57,6 +58,8 @@ export default async function CreatorPage({
   if (me?.role === "creator" && me.id !== id) redirect("/brands");
 
   const viewerRole = me?.role ?? null;
+  // Free (unsubscribed) brands can browse but not book/message.
+  const locked = me?.role === "brand" ? !(await brandCanTransact(me.id)) : false;
   const ig = formatFollowers(creator.instagram_followers);
   const tt = formatFollowers(creator.tiktok_followers);
   const services = offeredServices(creator).map((s) => ({
@@ -163,6 +166,7 @@ export default async function CreatorPage({
                 services={services}
                 available={creator.availability}
                 viewerRole={viewerRole}
+                locked={locked}
               />
             </div>
 
@@ -172,6 +176,7 @@ export default async function CreatorPage({
                   creatorId={creator.user_id}
                   viewerRole={viewerRole}
                   full
+                  locked={locked}
                 />
               </div>
             )}

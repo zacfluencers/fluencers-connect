@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getFavoriteCreators, getFavoriteBrands } from "@/lib/queries";
+import { brandCanTransact } from "@/lib/subscription";
 import { CreatorCard } from "@/components/CreatorCard";
 import { BrandCard } from "@/components/BrandCard";
 
@@ -13,6 +14,7 @@ export default async function FavoritesPage() {
   if (!me) redirect("/login");
 
   const isCreator = me.role === "creator";
+  const locked = isCreator ? false : !(await brandCanTransact(me.id));
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-14 sm:py-20">
@@ -25,7 +27,7 @@ export default async function FavoritesPage() {
           : "Creators you've saved to come back to."}
       </p>
 
-      {isCreator ? <CreatorFavorites /> : <BrandFavorites />}
+      {isCreator ? <CreatorFavorites /> : <BrandFavorites locked={locked} />}
     </main>
   );
 }
@@ -58,7 +60,7 @@ async function CreatorFavorites() {
   );
 }
 
-async function BrandFavorites() {
+async function BrandFavorites({ locked }: { locked: boolean }) {
   const creators = await getFavoriteCreators();
 
   if (creators.length === 0) {
@@ -80,6 +82,7 @@ async function BrandFavorites() {
           initialFavorited={true}
           canFavorite={true}
           viewerRole="brand"
+          locked={locked}
         />
       ))}
     </div>

@@ -18,11 +18,14 @@ export function ServiceBooking({
   services,
   available,
   viewerRole,
+  locked = false,
 }: {
   creatorId: string;
   services: Offered[];
   available: boolean;
   viewerRole: "brand" | "creator" | null;
+  /** Brand is signed in but not subscribed — show a Subscribe prompt. */
+  locked?: boolean;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<ServiceType | null>(null);
@@ -103,14 +106,20 @@ export function ServiceBooking({
                   Sign in to book
                 </Link>
               ) : viewerRole === "brand" ? (
-                <button
-                  type="button"
-                  onClick={() => book(s.key)}
-                  disabled={!available || pending}
-                  className="rounded-full bg-[var(--accent-2)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0] disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {busy === s.key ? "Redirecting…" : "Request & pay"}
-                </button>
+                locked ? (
+                  <span className="text-xs font-medium text-[var(--muted)]">
+                    Members only
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => book(s.key)}
+                    disabled={!available || pending}
+                    className="rounded-full bg-[var(--accent-2)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {busy === s.key ? "Redirecting…" : "Request & pay"}
+                  </button>
+                )
               ) : null}
             </div>
           </div>
@@ -122,10 +131,23 @@ export function ServiceBooking({
           Creators can&apos;t book other creators.
         </p>
       )}
-      {viewerRole === "brand" && (
+      {viewerRole === "brand" && !locked && (
         <p className="mt-3 text-xs text-[var(--muted)]">
           Paid into escrow — released only when you approve the work.
         </p>
+      )}
+      {viewerRole === "brand" && locked && (
+        <div className="mt-4 rounded-xl border border-[var(--accent-2)]/30 bg-[var(--accent)]/10 p-3.5">
+          <p className="text-sm text-[var(--foreground)]">
+            Subscribe to book &amp; message creators.
+          </p>
+          <Link
+            href="/dashboard/brand"
+            className="mt-2.5 inline-flex w-full items-center justify-center rounded-full bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+          >
+            View membership plans
+          </Link>
+        </div>
       )}
       {error && <p className="mt-2 text-sm text-rose-300">{error}</p>}
     </div>

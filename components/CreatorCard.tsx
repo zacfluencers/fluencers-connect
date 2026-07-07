@@ -17,11 +17,14 @@ export function CreatorCard({
   initialFavorited,
   canFavorite,
   viewerRole = null,
+  locked = false,
 }: {
   creator: CreatorProfile;
   initialFavorited: boolean;
   canFavorite: boolean;
   viewerRole?: "brand" | "creator" | null;
+  /** Brand is signed in but not subscribed — book/chat become Subscribe prompts. */
+  locked?: boolean;
 }) {
   const services = offeredServices(creator).map((s) => ({
     key: s.def.key,
@@ -145,11 +148,13 @@ export function CreatorCard({
                 services={services}
                 viewerRole={viewerRole}
                 available={creator.availability}
+                locked={locked}
               />
             </div>
             <MessageCreatorButton
               creatorId={creator.user_id}
               viewerRole={viewerRole}
+              locked={locked}
             />
           </div>
         )}

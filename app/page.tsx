@@ -7,6 +7,7 @@ import {
   listBrandsLookingForCreators,
 } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
+import { brandCanTransact } from "@/lib/subscription";
 import { CreatorCard } from "@/components/CreatorCard";
 import { BrandCard } from "@/components/BrandCard";
 import { ButtonLink } from "@/components/ui/Button";
@@ -112,6 +113,7 @@ export default async function LandingPage() {
     getCreatorCount(),
   ]);
   const isCreator = me?.role === "creator";
+  const locked = me?.role === "brand" ? !(await brandCanTransact(me.id)) : false;
   const creatorCountLabel = `${new Intl.NumberFormat("en-GB").format(creatorCount)}+`;
 
   // For signed-in creators, show real brands (looking for creators) on the home
@@ -257,6 +259,7 @@ export default async function LandingPage() {
                   initialFavorited={favoriteIds.has(c.user_id)}
                   canFavorite={!!me}
                   viewerRole={me?.role ?? null}
+                  locked={locked}
                 />
               </Reveal>
             ))}

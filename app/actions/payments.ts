@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/session";
 import { stripe, isStripeConfigured, getBaseUrl, toPence } from "@/lib/stripe/server";
 import { refundEscrow } from "@/lib/stripe/escrow";
 import { rateFor, serviceDef, type ServiceType } from "@/lib/services";
+import { brandCanTransact } from "@/lib/subscription";
 import { notify } from "@/lib/notifications";
 
 /**
@@ -22,6 +23,10 @@ export async function createBookingCheckout(
   const me = await getCurrentUser();
   if (!me) redirect("/login");
   if (me.role !== "brand") return { error: "Only brands can book creators." };
+  // Gate: only subscribed brands can book (free brands can browse only).
+  if (!(await brandCanTransact(me.id))) {
+    return { error: "Subscribe to book creators — see Membership on your dashboard." };
+  }
 
   const def = serviceDef(service);
   if (!def) return { error: "Unknown service." };
