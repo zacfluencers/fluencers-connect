@@ -110,9 +110,15 @@ export default async function BrandDashboard({
           <Panel title="Quick links">
             <div className="space-y-2">
               <QuickLink href="/marketplace" label="Browse creators" />
-              <QuickLink href="/favorites" label="Saved creators" />
-              <QuickLink href="/messages" label="Messages" />
-              <QuickLink href="/bookings" label="All bookings" />
+              {/* Favourites, messages and bookings are locked until the brand
+                  subscribes — only show links that actually work for them. */}
+              {canList && (
+                <>
+                  <QuickLink href="/favorites" label="Saved creators" />
+                  <QuickLink href="/messages" label="Messages" />
+                  <QuickLink href="/bookings" label="All bookings" />
+                </>
+              )}
             </div>
           </Panel>
         </aside>
