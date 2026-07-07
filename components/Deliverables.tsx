@@ -200,7 +200,10 @@ function DeliverableTile({
   onRemove: () => void;
   disabled: boolean;
 }) {
-  const isVideo = /\.(mp4|mov|webm|m4v)$/i.test(item.url);
+  // Signed URLs end in ?token=…, so detect type from the stored filename/path.
+  const isVideo = /\.(mp4|mov|webm|m4v)$/i.test(
+    item.name || item.storage_path || item.url,
+  );
   return (
     <div className="group relative aspect-[9/16] overflow-hidden rounded-xl border border-[var(--border)] bg-black">
       {isVideo ? (

@@ -162,7 +162,42 @@ export async function getBookingBrief(
   return (data as BookingBrief) ?? null;
 }
 
-/** Reference files attached to a booking brief. */
+/**
+ * Swap each row's stored path for a short-lived signed URL. The deliverables /
+ * briefs buckets are private (see migration 0020), so files are only reachable
+ * through a time-limited signed URL minted here, server-side, for a booking
+ * party. Rows without a storage_path keep whatever url they had (legacy).
+ */
+async function withSignedUrls<
+  T extends { url: string; storage_path: string | null },
+>(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  bucket: string,
+  rows: T[],
+): Promise<T[]> {
+  const paths = rows
+    .map((r) => r.storage_path)
+    .filter((p): p is string => Boolean(p));
+  if (paths.length === 0) return rows;
+
+  const { data: signed } = await supabase.storage
+    .from(bucket)
+    .createSignedUrls(paths, 60 * 60); // 1 hour
+
+  const byPath = new Map(
+    (signed ?? [])
+      .filter((s) => s.signedUrl && !s.error)
+      .map((s) => [s.path, s.signedUrl]),
+  );
+
+  return rows.map((r) =>
+    r.storage_path && byPath.has(r.storage_path)
+      ? { ...r, url: byPath.get(r.storage_path)! }
+      : r,
+  );
+}
+
+/** Reference files attached to a booking brief (as signed URLs). */
 export async function getBookingAssets(
   bookingId: string,
 ): Promise<BookingAsset[]> {
@@ -172,10 +207,10 @@ export async function getBookingAssets(
     .select("id, booking_id, url, storage_path, name, size, created_at")
     .eq("booking_id", bookingId)
     .order("created_at", { ascending: true });
-  return data ?? [];
+  return withSignedUrls(supabase, "briefs", data ?? []);
 }
 
-/** Content files the creator has delivered for a booking. */
+/** Content files the creator has delivered for a booking (as signed URLs). */
 export async function getBookingDeliverables(
   bookingId: string,
 ): Promise<BookingDeliverable[]> {
@@ -185,7 +220,7 @@ export async function getBookingDeliverables(
     .select("id, booking_id, url, storage_path, name, size, created_at")
     .eq("booking_id", bookingId)
     .order("created_at", { ascending: true });
-  return data ?? [];
+  return withSignedUrls(supabase, "deliverables", data ?? []);
 }
 
 /** A brand's own profile (used on the brand dashboard). */

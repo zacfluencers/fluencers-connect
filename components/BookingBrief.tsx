@@ -612,7 +612,10 @@ function AssetTile({
   onRemove?: () => void;
   disabled?: boolean;
 }) {
-  const isImage = /\.(png|jpe?g|gif|webp|avif)$/i.test(asset.url);
+  // Signed URLs end in ?token=…, so detect type from the stored filename/path.
+  const isImage = /\.(png|jpe?g|gif|webp|avif)$/i.test(
+    asset.name || asset.storage_path || asset.url,
+  );
   return (
     <div className="group relative flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-2.5">
       {isImage ? (
