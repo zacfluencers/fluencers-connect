@@ -9,6 +9,7 @@ import {
   CREATOR_PROFILE_COLUMNS,
 } from "@/lib/queries";
 import { availableActions } from "@/lib/bookings";
+import { refreshPayoutStatus } from "@/app/actions/payments";
 import { BookingActions } from "@/components/BookingActions";
 import { CreatorProfileForm } from "@/components/CreatorProfileForm";
 import { CreatorCard } from "@/components/CreatorCard";
@@ -35,6 +36,14 @@ export default async function CreatorDashboard() {
     .select(`${CREATOR_PROFILE_COLUMNS}, stripe_account_id, payouts_enabled`)
     .eq("user_id", me.id)
     .maybeSingle();
+
+  // If an account exists but payouts aren't enabled yet, sync the flag straight
+  // from Stripe (don't wait on the account.updated webhook, which may lag or be
+  // unsubscribed). Only runs while in the incomplete state, so it's self-limiting.
+  let payoutsEnabled = Boolean(profile?.payouts_enabled);
+  if (profile?.stripe_account_id && !payoutsEnabled) {
+    payoutsEnabled = await refreshPayoutStatus();
+  }
 
   const [portfolio, bookings, conversations] = await Promise.all([
     getPortfolio(me.id),
@@ -95,7 +104,7 @@ export default async function CreatorDashboard() {
           <Panel title="Payouts" subtitle="Get paid when bookings complete">
             <PayoutSetup
               hasAccount={Boolean(profile?.stripe_account_id)}
-              payoutsEnabled={Boolean(profile?.payouts_enabled)}
+              payoutsEnabled={payoutsEnabled}
             />
           </Panel>
         </aside>

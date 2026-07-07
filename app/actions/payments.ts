@@ -140,15 +140,13 @@ export async function startCreatorOnboarding() {
         country: "GB",
         email: me.email,
         business_type: "individual",
-        // Stripe blocks creating accounts that request `transfers` without
-        // `card_payments` (unless the platform is specifically approved for
-        // transfers-only). We only actually use transfers — the platform takes
-        // the payment and transfers to the creator — but requesting both is the
-        // standard, approval-free setup. card_payments stays unused.
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
+        // Creators only ever RECEIVE payouts, so we use Stripe's lightweight
+        // "recipient" service agreement + transfers-only capability. This is the
+        // approval-free path for transfers-without-card_payments AND it gives a
+        // much shorter onboarding (identity + bank only — no card-payments
+        // "business" questions), which reduces creator drop-off.
+        capabilities: { transfers: { requested: true } },
+        tos_acceptance: { service_agreement: "recipient" },
       });
       accountId = account.id;
       await supabase
@@ -171,6 +169,44 @@ export async function startCreatorOnboarding() {
   }
 
   redirect(linkUrl);
+}
+
+/**
+ * Pull the creator's current payout readiness straight from Stripe and sync the
+ * `payouts_enabled` flag. The webhook (`account.updated`) is the primary path,
+ * but it can be delayed or unsubscribed — calling this when the creator returns
+ * to their dashboard makes the status reliable without waiting on the webhook.
+ * Returns the up-to-date enabled flag.
+ */
+export async function refreshPayoutStatus(): Promise<boolean> {
+  const me = await getCurrentUser();
+  if (!me || me.role !== "creator") return false;
+  if (!isStripeConfigured()) return false;
+
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("creator_profiles")
+    .select("stripe_account_id, payouts_enabled")
+    .eq("user_id", me.id)
+    .maybeSingle();
+  if (!profile?.stripe_account_id) return false;
+
+  try {
+    const account = await stripe().accounts.retrieve(profile.stripe_account_id);
+    const enabled =
+      Boolean(account.payouts_enabled) &&
+      account.capabilities?.transfers === "active";
+    if (enabled !== Boolean(profile.payouts_enabled)) {
+      await supabase
+        .from("creator_profiles")
+        .update({ payouts_enabled: enabled })
+        .eq("user_id", me.id);
+    }
+    return enabled;
+  } catch (e) {
+    console.error("[payout sync] failed:", e instanceof Error ? e.message : e);
+    return Boolean(profile.payouts_enabled);
+  }
 }
 
 /** Brand cancels/disputes an active booking → refund escrow, mark refunded. */
