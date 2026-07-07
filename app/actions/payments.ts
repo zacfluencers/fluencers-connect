@@ -139,14 +139,23 @@ export async function startCreatorOnboarding() {
         type: "express",
         country: "GB",
         email: me.email,
+        // Creators onboard as individuals — they never need to be a company.
         business_type: "individual",
-        // Creators only ever RECEIVE payouts, so we use Stripe's lightweight
-        // "recipient" service agreement + transfers-only capability. This is the
-        // approval-free path for transfers-without-card_payments AND it gives a
-        // much shorter onboarding (identity + bank only — no card-payments
-        // "business" questions), which reduces creator drop-off.
-        capabilities: { transfers: { requested: true } },
-        tos_acceptance: { service_agreement: "recipient" },
+        // GB→GB payouts require Stripe's standard agreement (the lighter
+        // "recipient" agreement is cross-border only), which needs both
+        // capabilities. We only use `transfers`; `card_payments` is unused but
+        // required. To keep onboarding short, we pre-fill the "business" fields
+        // on the creator's behalf so Stripe doesn't ask them.
+        business_profile: {
+          mcc: "7311", // Advertising / creative services
+          product_description:
+            "Sponsored and user-generated content created for brands.",
+          url: `${getBaseUrl()}/creator/${me.id}`,
+        },
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
       });
       accountId = account.id;
       await supabase
