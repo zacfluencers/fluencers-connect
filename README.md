@@ -86,6 +86,8 @@ and **Preview**.
 | `STRIPE_SECRET_KEY` | **Server only (secret)** | All Stripe API calls |
 | `STRIPE_WEBHOOK_SECRET` | **Server only (secret)** | Verifies Stripe webhook signatures |
 | `PLATFORM_FEE_BPS` | Server | Optional platform fee, basis points (1000 = 10%, default 0) |
+| `STRIPE_PRICE_BRAND_WEEKLY_LOOKUP_KEY` | Server | Lookup key (or `price_…` id) of the weekly brand plan |
+| `STRIPE_PRICE_BRAND_ANNUAL_LOOKUP_KEY` | Server | Lookup key (or `price_…` id) of the annual brand plan |
 | `NEXT_PUBLIC_SITE_URL` | Browser + server | Canonical URL for Stripe redirect/return links |
 
 Rules of thumb:

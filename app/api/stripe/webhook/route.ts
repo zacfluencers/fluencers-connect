@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 import { stripe, isStripeConfigured } from "@/lib/stripe/server";
 import { ensureBookingForSession } from "@/lib/stripe/escrow";
+import { subscriptionToRow, upsertBrandBilling } from "@/lib/stripe/billing";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -39,8 +40,23 @@ export async function POST(req: Request) {
   try {
     switch (event.type) {
       case "checkout.session.completed": {
-        // Source of truth for creating the (paid) booking.
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // Subscription checkouts are recorded via the customer.subscription.*
+        // events (which carry our user_id metadata). Capture the customer id
+        // here as a fast path, then stop — this is NOT a booking.
+        if (session.mode === "subscription") {
+          const userId = session.client_reference_id || session.metadata?.user_id;
+          const customerId =
+            typeof session.customer === "string" ? session.customer : null;
+          if (userId && customerId) {
+            await upsertBrandBilling(userId, { stripe_customer_id: customerId });
+          }
+          log(event, "subscription checkout completed");
+          break;
+        }
+
+        // Otherwise it's a booking payment — the source of truth for the booking.
         if (session.payment_status !== "paid") {
           log(event, `ignored (payment_status=${session.payment_status})`);
           break;
@@ -122,9 +138,16 @@ export async function POST(req: Request) {
       case "customer.subscription.created":
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
-        // Subscriptions / Stripe Billing aren't implemented yet. Acknowledge so
-        // Stripe stops retrying, but take no action.
-        log(event, "subscription event received — no billing handler yet");
+        // Keep the brand's subscription status in sync. We mapped the brand's
+        // user_id onto the subscription metadata at checkout time.
+        const sub = event.data.object as Stripe.Subscription;
+        const userId = sub.metadata?.user_id;
+        if (userId) {
+          await upsertBrandBilling(userId, subscriptionToRow(sub));
+          log(event, `subscription ${sub.status} for ${userId}`);
+        } else {
+          log(event, "subscription event without user_id metadata — skipped");
+        }
         break;
       }
 

@@ -8,6 +8,7 @@ import type {
   BookingBrief,
   BookingDeliverable,
   BookingStatus,
+  BrandBilling,
   BrandProfile,
   CreatorProfile,
   Message,
@@ -221,6 +222,21 @@ export async function getBookingDeliverables(
     .eq("booking_id", bookingId)
     .order("created_at", { ascending: true });
   return withSignedUrls(supabase, "deliverables", data ?? []);
+}
+
+/** A brand's own subscription/billing state (read-only; RLS scopes to self). */
+export async function getBrandBilling(
+  userId: string,
+): Promise<BrandBilling | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("brand_billing")
+    .select(
+      "user_id, stripe_customer_id, status, price_id, plan, current_period_end, cancel_at_period_end, updated_at",
+    )
+    .eq("user_id", userId)
+    .maybeSingle();
+  return (data as BrandBilling) ?? null;
 }
 
 /** A brand's own profile (used on the brand dashboard). */

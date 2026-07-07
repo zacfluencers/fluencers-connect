@@ -73,6 +73,18 @@ export interface BookingAsset {
   created_at: string;
 }
 
+/** A brand's Stripe subscription state (1:1 with a `brand` user). */
+export interface BrandBilling {
+  user_id: string;
+  stripe_customer_id: string | null;
+  status: string | null;
+  price_id: string | null;
+  plan: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  updated_at: string;
+}
+
 /** A delivered content file the creator uploads for the brand to review. */
 export interface BookingDeliverable {
   id: string;

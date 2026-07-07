@@ -5,10 +5,15 @@ import {
   listMyBookings,
   getBrandProfile,
   getMyConversations,
+  getBrandBilling,
 } from "@/lib/queries";
+import { getBrandPlanOptions } from "@/lib/stripe/billing";
+import { isSubscribed } from "@/lib/billing-plans";
+import { syncBrandSubscriptionFromSession } from "@/app/actions/billing";
 import { BookingCard } from "@/components/BookingCard";
 import { BrandCard } from "@/components/BrandCard";
 import { BrandProfileForm } from "@/components/BrandProfileForm";
+import { BrandSubscription } from "@/components/BrandSubscription";
 import { Panel, Stat } from "@/components/ui/DashboardPanel";
 import { Avatar } from "@/components/Avatar";
 import { ButtonLink } from "@/components/ui/Button";
@@ -18,16 +23,33 @@ import { gbp } from "@/lib/format";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Brand Dashboard — Influencer Connect" };
 
-export default async function BrandDashboard() {
+export default async function BrandDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ subscription?: string; session_id?: string }>;
+}) {
   const me = await getCurrentUser();
   if (!me) redirect("/login");
   if (me.role !== "brand") redirect("/dashboard/creator");
 
-  const [bookings, brandProfile, conversations] = await Promise.all([
+  // Just returned from Stripe Checkout? Sync the new subscription immediately
+  // (the webhook is the source of truth, but this avoids a lag on the dashboard).
+  const sp = await searchParams;
+  if (sp.subscription === "success" && sp.session_id) {
+    await syncBrandSubscriptionFromSession(sp.session_id);
+  }
+
+  const [bookings, brandProfile, conversations, billing] = await Promise.all([
     listMyBookings(),
     getBrandProfile(me.id),
     getMyConversations(),
+    getBrandBilling(me.id),
   ]);
+
+  // Only fetch plan prices from Stripe when we actually need to show them.
+  const planOptions = isSubscribed(billing?.status)
+    ? []
+    : await getBrandPlanOptions();
   const active = bookings.filter(
     (b) => !["completed", "declined", "refunded"].includes(b.status),
   );
@@ -160,6 +182,20 @@ export default async function BrandDashboard() {
                 ))}
               </div>
             )}
+          </Panel>
+
+          {/* Subscription */}
+          <Panel
+            title="Membership"
+            subtitle="Subscribe for full access to the platform."
+          >
+            <BrandSubscription
+              plans={planOptions}
+              status={billing?.status ?? null}
+              planKey={billing?.plan ?? null}
+              currentPeriodEnd={billing?.current_period_end ?? null}
+              cancelAtPeriodEnd={billing?.cancel_at_period_end ?? false}
+            />
           </Panel>
 
           {/* Brand profile */}
