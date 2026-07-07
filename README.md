@@ -71,6 +71,32 @@ This starter follows **Human-First Design Principles**:
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [Google Fonts](https://fonts.google.com/) - Typography
 
+## Environment variables
+
+Copy `.env.example` to `.env.local` for local development, and set the **same
+keys in Vercel** (Project → Settings → Environment Variables) for **Production**
+and **Preview**.
+
+| Variable | Where it runs | Purpose |
+|----------|---------------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Browser + server | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser + server | Supabase public anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Server only (secret)** | Escrow + Stripe webhook writes (bypasses RLS) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Browser | Stripe publishable key (safe to expose) |
+| `STRIPE_SECRET_KEY` | **Server only (secret)** | All Stripe API calls |
+| `STRIPE_WEBHOOK_SECRET` | **Server only (secret)** | Verifies Stripe webhook signatures |
+| `PLATFORM_FEE_BPS` | Server | Optional platform fee, basis points (1000 = 10%, default 0) |
+| `NEXT_PUBLIC_SITE_URL` | Browser + server | Canonical URL for Stripe redirect/return links |
+
+Rules of thumb:
+
+- **Only** `NEXT_PUBLIC_*` variables reach the browser. `STRIPE_SECRET_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`, and `STRIPE_WEBHOOK_SECRET` must **never** be
+  prefixed with `NEXT_PUBLIC_`.
+- Real values live only in `.env.local` (git-ignored) and in Vercel — never in
+  the repo. `.env.example` holds placeholders only.
+- After changing env vars in Vercel, **redeploy** for them to take effect.
+
 ## Deploy
 
 Deploy to Vercel with one click:
