@@ -106,7 +106,8 @@ export async function createBookingCheckout(
       cancel_url: `${base}/creator/${creator.user_id}?canceled=1`,
     });
     checkoutUrl = session.url;
-  } catch {
+  } catch (e) {
+    console.error("[stripe checkout] failed:", e instanceof Error ? e.message : e);
     return { error: "We couldn't reach the payment provider. Please try again in a moment." };
   }
 
@@ -156,7 +157,8 @@ export async function startCreatorOnboarding() {
       type: "account_onboarding",
     });
     linkUrl = link.url;
-  } catch {
+  } catch (e) {
+    console.error("[stripe onboarding] failed:", e instanceof Error ? e.message : e);
     return { error: "We couldn't reach the payment provider. Please try again in a moment." };
   }
 
