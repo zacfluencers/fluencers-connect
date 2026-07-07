@@ -140,7 +140,15 @@ export async function startCreatorOnboarding() {
         country: "GB",
         email: me.email,
         business_type: "individual",
-        capabilities: { transfers: { requested: true } },
+        // Stripe blocks creating accounts that request `transfers` without
+        // `card_payments` (unless the platform is specifically approved for
+        // transfers-only). We only actually use transfers — the platform takes
+        // the payment and transfers to the creator — but requesting both is the
+        // standard, approval-free setup. card_payments stays unused.
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
       });
       accountId = account.id;
       await supabase
