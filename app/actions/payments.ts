@@ -79,33 +79,39 @@ export async function createBookingCheckout(
   }
 
   const base = getBaseUrl();
-  const session = await stripe().checkout.sessions.create({
-    mode: "payment",
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "gbp",
-          unit_amount: toPence(rate),
-          product_data: { name: `${def.label} — ${creator.name}` },
+  let checkoutUrl: string | null = null;
+  try {
+    const session = await stripe().checkout.sessions.create({
+      mode: "payment",
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "gbp",
+            unit_amount: toPence(rate),
+            product_data: { name: `${def.label} — ${creator.name}` },
+          },
         },
+      ],
+      payment_intent_data: {
+        metadata: { brand_id: me.id, creator_id: creator.user_id, service },
       },
-    ],
-    payment_intent_data: {
-      metadata: { brand_id: me.id, creator_id: creator.user_id, service },
-    },
-    metadata: {
-      brand_id: me.id,
-      creator_id: creator.user_id,
-      price: String(rate),
-      service,
-    },
-    success_url: `${base}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${base}/creator/${creator.user_id}?canceled=1`,
-  });
+      metadata: {
+        brand_id: me.id,
+        creator_id: creator.user_id,
+        price: String(rate),
+        service,
+      },
+      success_url: `${base}/booking/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${base}/creator/${creator.user_id}?canceled=1`,
+    });
+    checkoutUrl = session.url;
+  } catch {
+    return { error: "We couldn't reach the payment provider. Please try again in a moment." };
+  }
 
-  if (!session.url) return { error: "Could not start checkout." };
-  redirect(session.url);
+  if (!checkoutUrl) return { error: "Could not start checkout." };
+  redirect(checkoutUrl);
 }
 
 /**
@@ -125,31 +131,36 @@ export async function startCreatorOnboarding() {
     .maybeSingle();
 
   let accountId = profile?.stripe_account_id ?? null;
+  let linkUrl: string;
+  try {
+    if (!accountId) {
+      const account = await stripe().accounts.create({
+        type: "express",
+        country: "GB",
+        email: me.email,
+        business_type: "individual",
+        capabilities: { transfers: { requested: true } },
+      });
+      accountId = account.id;
+      await supabase
+        .from("creator_profiles")
+        .update({ stripe_account_id: accountId })
+        .eq("user_id", me.id);
+    }
 
-  if (!accountId) {
-    const account = await stripe().accounts.create({
-      type: "express",
-      country: "GB",
-      email: me.email,
-      business_type: "individual",
-      capabilities: { transfers: { requested: true } },
+    const base = getBaseUrl();
+    const link = await stripe().accountLinks.create({
+      account: accountId,
+      refresh_url: `${base}/dashboard/creator?payouts=refresh`,
+      return_url: `${base}/dashboard/creator?payouts=done`,
+      type: "account_onboarding",
     });
-    accountId = account.id;
-    await supabase
-      .from("creator_profiles")
-      .update({ stripe_account_id: accountId })
-      .eq("user_id", me.id);
+    linkUrl = link.url;
+  } catch {
+    return { error: "We couldn't reach the payment provider. Please try again in a moment." };
   }
 
-  const base = getBaseUrl();
-  const link = await stripe().accountLinks.create({
-    account: accountId,
-    refresh_url: `${base}/dashboard/creator?payouts=refresh`,
-    return_url: `${base}/dashboard/creator?payouts=done`,
-    type: "account_onboarding",
-  });
-
-  redirect(link.url);
+  redirect(linkUrl);
 }
 
 /** Brand cancels/disputes an active booking → refund escrow, mark refunded. */

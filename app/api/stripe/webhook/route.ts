@@ -30,11 +30,21 @@ export async function POST(req: Request) {
       // Source of truth for creating the (paid) booking.
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.payment_status === "paid") {
-        await ensureBookingForSession({
-          id: session.id,
-          payment_intent: session.payment_intent,
-          metadata: session.metadata,
-        });
+        try {
+          const bookingId = await ensureBookingForSession({
+            id: session.id,
+            payment_intent: session.payment_intent,
+            metadata: session.metadata,
+          });
+          // The customer has paid — if we couldn't record the booking, fail the
+          // webhook so Stripe retries rather than losing the paid booking.
+          if (!bookingId) {
+            return new Response("Could not record booking", { status: 500 });
+          }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "error";
+          return new Response(`Could not record booking: ${msg}`, { status: 500 });
+        }
       }
       break;
     }
