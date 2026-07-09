@@ -105,11 +105,13 @@ The app runs in **test mode** today (test Stripe keys, no real money). Work top 
 bottom before inviting real users — each group says **what**, **why**, and **where**.
 After any Vercel env-var change, **redeploy** so it takes effect.
 
-### 1. Email — connect a real provider ⚠️ (do this, it's easy to forget)
+### 1. Email — connect a real provider ✅ DONE (2026-07-09)
 
-- [ ] In **Supabase → Authentication → SMTP**, connect an email provider (Resend, SendGrid, Postmark…).
-- **Why:** Supabase's built-in mailer only sends a few emails per hour. Without your own
-  provider, sign-up confirmations and password-reset emails **silently fail** once a
+- [x] Connected **Resend** in **Supabase → Authentication → SMTP**, sending from
+      `no-reply@fluencersgroup.com` (domain verified via DNS; delivers to inbox, not spam).
+      Supabase email rate limit raised to 100/hour.
+- **Why it mattered:** Supabase's built-in mailer only sends a few emails per hour. Without
+  a real provider, sign-up confirmations and password-reset emails **silently fail** once a
   handful of people use the site in the same hour.
 
 ### 2. Stripe — switch from test to live
