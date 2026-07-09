@@ -8,6 +8,8 @@ import {
   formatFollowers,
   instagramUrl,
   tiktokUrl,
+  creatorAvatar,
+  formatEngagement,
 } from "@/lib/format";
 import { offeredServices } from "@/lib/services";
 import type { CreatorProfile } from "@/lib/types";
@@ -34,16 +36,19 @@ export function CreatorCard({
   const href = `/creator/${creator.user_id}`;
   const ig = formatFollowers(creator.instagram_followers);
   const tt = formatFollowers(creator.tiktok_followers);
+  // Uploaded photo wins; imported IG/TikTok avatars are only a fallback.
+  const avatar = creatorAvatar(creator);
+  const engagement = formatEngagement(creator.engagement_rate);
 
   return (
     <div className="group flex flex-col">
       {/* Image (a full-bleed link overlay navigates to the profile; the
           favourite button sits on top of it, so neither is nested in the other) */}
       <div className="relative aspect-square overflow-hidden rounded-2xl bg-[var(--surface-2)]">
-        {creator.profile_image ? (
+        {avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={creator.profile_image}
+            src={avatar}
             alt={creator.name}
             className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
           />
@@ -120,6 +125,14 @@ export function CreatorCard({
               </a>
             )}
           </div>
+        )}
+
+        {/* Subtle engagement signal — only when we have a meaningful figure. */}
+        {engagement && (
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-[var(--muted)]">
+            <span className="h-1 w-1 rounded-full bg-[var(--accent-2)]" />
+            {engagement} avg. engagement
+          </p>
         )}
 
         {/* Transparent per-service pricing — hidden from signed-out visitors

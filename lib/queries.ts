@@ -23,7 +23,7 @@ const BRAND_PROFILE_COLUMNS =
 
 /** Every column on creator_profiles — shared so selects stay in sync. */
 export const CREATOR_PROFILE_COLUMNS =
-  "user_id, name, bio, niche, instagram, tiktok, availability, price, ugc_rate, event_rate, broll_rate, gender, age, country, profile_image, instagram_followers, tiktok_followers, followers_synced_at";
+  "user_id, name, bio, niche, instagram, tiktok, availability, price, ugc_rate, event_rate, broll_rate, gender, age, country, profile_image, instagram_followers, tiktok_followers, followers_synced_at, instagram_avatar, tiktok_avatar, engagement_rate";
 
 const PROFILE_COLS = CREATOR_PROFILE_COLUMNS;
 

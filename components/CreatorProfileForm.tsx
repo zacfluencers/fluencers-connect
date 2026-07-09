@@ -55,6 +55,7 @@ export function CreatorProfileForm({
       </div>
 
       <SocialFields
+        creatorId={userId}
         defaultInstagram={profile?.instagram}
         defaultTiktok={profile?.tiktok}
         defaultIgFollowers={profile?.instagram_followers}

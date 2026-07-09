@@ -118,6 +118,36 @@ export interface CreatorProfile {
   instagram_followers: number | null;
   tiktok_followers: number | null;
   followers_synced_at: string | null;
+  /** Imported social avatars (fallback when no custom profile_image). */
+  instagram_avatar: string | null;
+  tiktok_avatar: string | null;
+  /** Best available engagement rate (%), from social enrichment. */
+  engagement_rate: number | null;
+}
+
+/**
+ * Imported public data for one of a creator's social accounts (1 row per
+ * creator+platform). Source of truth for enrichment; the card-facing fields are
+ * mirrored onto CreatorProfile. See supabase/migrations/0022.
+ */
+export interface CreatorSocialAccount {
+  id: string;
+  creator_id: string;
+  platform: "instagram" | "tiktok";
+  handle: string;
+  profile_url: string | null;
+  display_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  follower_count: number | null;
+  following_count: number | null;
+  post_count: number | null;
+  average_likes: number | null;
+  average_views: number | null;
+  engagement_rate: number | null;
+  last_synced_at: string;
+  created_at: string;
+  updated_at: string;
 }
 
 /** One uploaded portfolio item (a 9:16 vertical video) for a creator. */

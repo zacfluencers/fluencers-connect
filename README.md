@@ -88,6 +88,8 @@ and **Preview**.
 | `PLATFORM_FEE_BPS` | Server | Optional platform fee, basis points (1000 = 10%, default 0) |
 | `STRIPE_PRICE_BRAND_WEEKLY_LOOKUP_KEY` | Server | Lookup key (or `price_…` id) of the weekly brand plan |
 | `STRIPE_PRICE_BRAND_ANNUAL_LOOKUP_KEY` | Server | Lookup key (or `price_…` id) of the annual brand plan |
+| `SCRAPECREATORS_API_KEY` | **Server only (secret)** | Creator social enrichment (followers, avatar, engagement) |
+| `CRON_SECRET` | **Server only (secret)** | Guards the scheduled social-refresh route; needed before wiring Vercel Cron |
 | `NEXT_PUBLIC_SITE_URL` | Browser + server | Canonical URL for Stripe redirect/return links |
 
 Rules of thumb:

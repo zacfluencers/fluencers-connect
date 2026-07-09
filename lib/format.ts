@@ -17,6 +17,26 @@ function trim(v: number): string {
   return v.toFixed(1).replace(/\.0$/, "");
 }
 
+/**
+ * Best avatar for a creator, honouring the priority:
+ * uploaded photo → Instagram avatar → TikTok avatar → null (placeholder).
+ * A manually uploaded image is never overwritten — the imported ones are only
+ * a fallback.
+ */
+export function creatorAvatar(c: {
+  profile_image?: string | null;
+  instagram_avatar?: string | null;
+  tiktok_avatar?: string | null;
+}): string | null {
+  return c.profile_image || c.instagram_avatar || c.tiktok_avatar || null;
+}
+
+/** "3.4%" engagement label, or null when there's nothing meaningful to show. */
+export function formatEngagement(rate: number | null | undefined): string | null {
+  if (rate == null || !Number.isFinite(rate) || rate <= 0) return null;
+  return `${Math.min(rate, 100).toFixed(1)}%`;
+}
+
 /** Strip a leading @ from a handle. */
 export function cleanHandle(handle: string): string {
   return handle.replace(/^@+/, "").trim();
