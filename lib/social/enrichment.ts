@@ -20,21 +20,75 @@ import {
 } from "@/lib/social/scrapecreators";
 
 export type EnrichResult =
-  | { ok: true; profile: NormalizedSocialProfile }
+  | { ok: true; profile: NormalizedSocialProfile; cached?: boolean }
   | { ok: false; error: string };
+
+/**
+ * How long to reuse a just-fetched result for the SAME handle instead of
+ * calling the paid provider again. Guards against rapid re-clicks / abuse
+ * without affecting normal use (the weekly cron always fetches fresh).
+ */
+const MANUAL_COOLDOWN_MS = 60_000;
+
+/** Rebuild the normalised shape from a stored creator_social_accounts row. */
+function rowToNormalized(
+  platform: SocialPlatform,
+  row: Record<string, unknown>,
+): NormalizedSocialProfile {
+  const n = (v: unknown) => (v == null ? undefined : Number(v));
+  return {
+    platform,
+    handle: String(row.handle ?? ""),
+    profileUrl: (row.profile_url as string) ?? undefined,
+    displayName: (row.display_name as string) ?? undefined,
+    bio: (row.bio as string) ?? undefined,
+    avatarUrl: (row.avatar_url as string) ?? undefined,
+    followerCount: n(row.follower_count),
+    followingCount: n(row.following_count),
+    postCount: n(row.post_count),
+    averageLikes: n(row.average_likes),
+    averageViews: n(row.average_views),
+    engagementRate: n(row.engagement_rate),
+    lastSyncedAt: String(row.last_synced_at ?? new Date().toISOString()),
+  };
+}
 
 /**
  * Enrich ONE platform for a creator: fetch public data, save it, refresh the
  * denormalised card fields. Never throws — returns `{ ok:false }` on failure so
  * the profile page keeps working.
+ *
+ * `force` (used by the scheduled cron) bypasses the manual cooldown so a
+ * scheduled refresh always fetches fresh data.
  */
 export async function enrichCreatorSocial(
   creatorId: string,
   platform: SocialPlatform,
   handleInput: string,
+  opts: { force?: boolean } = {},
 ): Promise<EnrichResult> {
   const handle = cleanHandle(handleInput);
   if (!handle) return { ok: false, error: "No handle provided." };
+
+  const admin = createAdminClient();
+  const { data: existing } = await admin
+    .from("creator_social_accounts")
+    .select("*")
+    .eq("creator_id", creatorId)
+    .eq("platform", platform)
+    .maybeSingle();
+
+  // Cooldown: if the SAME handle was just synced, reuse it instead of paying
+  // for another provider call. A changed handle always re-fetches.
+  if (
+    !opts.force &&
+    existing &&
+    cleanHandle(String(existing.handle ?? "")) === handle &&
+    existing.last_synced_at &&
+    Date.now() - new Date(existing.last_synced_at as string).getTime() < MANUAL_COOLDOWN_MS
+  ) {
+    return { ok: true, profile: rowToNormalized(platform, existing), cached: true };
+  }
 
   const result = await fetchSocialProfile(platform, handle);
   if (!result.ok) {
@@ -43,7 +97,6 @@ export async function enrichCreatorSocial(
   }
 
   const { normalized, raw } = result;
-  const admin = createAdminClient();
   const now = new Date().toISOString();
 
   // Source of truth: one row per creator+platform (upsert, never duplicate).
@@ -116,9 +169,12 @@ export async function refreshCreatorSocialData(creatorId: string): Promise<numbe
     .maybeSingle();
   if (!profile) return 0;
 
+  // Scheduled/bulk refresh always fetches fresh (bypasses the manual cooldown).
   const jobs: Array<Promise<EnrichResult>> = [];
-  if (profile.instagram) jobs.push(enrichCreatorSocial(creatorId, "instagram", profile.instagram));
-  if (profile.tiktok) jobs.push(enrichCreatorSocial(creatorId, "tiktok", profile.tiktok));
+  if (profile.instagram)
+    jobs.push(enrichCreatorSocial(creatorId, "instagram", profile.instagram, { force: true }));
+  if (profile.tiktok)
+    jobs.push(enrichCreatorSocial(creatorId, "tiktok", profile.tiktok, { force: true }));
 
   const results = await Promise.all(jobs);
   return results.filter((r) => r.ok).length;
