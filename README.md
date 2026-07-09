@@ -130,12 +130,12 @@ After any Vercel env-var change, **redeploy** so it takes effect.
       signing secret in `STRIPE_WEBHOOK_SECRET`.
 - [ ] Confirm `PLATFORM_FEE_BPS` is your intended cut (e.g. `1000` = 10%; default `0`).
 
-### 3. Supabase — auth settings
+### 3. Supabase — auth settings ✅ DONE (2026-07-09)
 
-- [ ] Set **Site URL** and **Redirect URLs** (Authentication → URL Configuration) to your
-      live domain, or password-reset / confirmation links will point at the wrong place.
-- [ ] Turn on **leaked-password protection** (Authentication → Policies) — the one open
-      security advisory.
+- [x] Site URL + Redirect URLs set (Authentication → URL Configuration): Site URL
+      `https://fluencers-connect.vercel.app`, redirects `…vercel.app/**` + `localhost:3000/**`.
+      **Revisit the Site URL when the custom domain lands (step 4).**
+- [x] **Leaked-password protection** enabled — security advisor now clean (0 warnings).
 
 ### 4. Domain + canonical URL
 
