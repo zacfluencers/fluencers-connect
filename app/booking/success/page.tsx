@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { stripe, isStripeConfigured } from "@/lib/stripe/server";
 import { ensureBookingForSession } from "@/lib/stripe/escrow";
+import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -11,12 +12,15 @@ export default async function BookingSuccessPage({
   searchParams: Promise<{ session_id?: string }>;
 }) {
   const { session_id } = await searchParams;
+  const me = await getCurrentUser();
 
   let bookingId: string | null = null;
-  if (session_id && isStripeConfigured()) {
+  if (session_id && isStripeConfigured() && me) {
     try {
       const session = await stripe().checkout.sessions.retrieve(session_id);
-      if (session.payment_status === "paid") {
+      // Only the brand who actually paid may resolve/redirect into the booking
+      // here. (The webhook is the source of truth and creates it regardless.)
+      if (session.payment_status === "paid" && session.metadata?.brand_id === me.id) {
         bookingId = await ensureBookingForSession({
           id: session.id,
           payment_intent: session.payment_intent,
