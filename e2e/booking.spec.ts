@@ -26,8 +26,11 @@ test.describe("booking", () => {
     await firstCreator.click();
     await expect(page).toHaveURL(/\/creator\//);
 
-    // Trigger a booking (Auto book / book a service).
-    const bookButton = page.getByRole("button", { name: /auto book|book/i }).first();
+    // Trigger a booking. On the profile the per-service button reads
+    // "Request & pay"; the marketplace card uses "Auto book" / "Book".
+    const bookButton = page
+      .getByRole("button", { name: /request.*pay|auto book|book/i })
+      .first();
     await expect(bookButton).toBeVisible();
     await bookButton.click();
 
