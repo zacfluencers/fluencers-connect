@@ -9,6 +9,7 @@ import {
 import { getCurrentUser } from "@/lib/session";
 import { brandCanTransact } from "@/lib/subscription";
 import { getHomepageContent } from "@/lib/sanity/homepage";
+import { urlForImage } from "@/lib/sanity/image";
 import { CreatorCard } from "@/components/CreatorCard";
 import { BrandCard } from "@/components/BrandCard";
 import { ButtonLink } from "@/components/ui/Button";
@@ -123,6 +124,10 @@ export default async function LandingPage() {
   const steps = content?.steps?.length ? content.steps : STEPS;
   const brandValues = content?.brandValues?.length ? content.brandValues : BRAND_VALUES;
   const creatorValues = content?.creatorValues?.length ? content.creatorValues : CREATOR_VALUES;
+  // Logo slider: uploaded logos from the CMS, else the placeholder names.
+  const logoItems = content?.trustedByLogos?.length
+    ? content.trustedByLogos
+    : BRANDS.map((name) => ({ name, image: null }));
 
   // For signed-in creators, show real brands (looking for creators) on the home
   // page instead of the creator grid.
@@ -206,14 +211,25 @@ export default async function LandingPage() {
               </p>
               <div className="marquee-mask mt-6 overflow-hidden">
                 <div className="marquee-track">
-                  {[...BRANDS, ...BRANDS].map((b, i) => (
-                    <span
-                      key={`${b}-${i}`}
-                      className="whitespace-nowrap pr-12 text-lg font-semibold tracking-tight text-[var(--foreground)]/45"
-                    >
-                      {b}
-                    </span>
-                  ))}
+                  {[...logoItems, ...logoItems].map((logo, i) => {
+                    const img = urlForImage(logo.image);
+                    return (
+                      <span key={i} className="flex items-center whitespace-nowrap pr-12">
+                        {img ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={img.height(56).fit("max").url()}
+                            alt={logo.name ?? ""}
+                            className="h-7 w-auto opacity-50"
+                          />
+                        ) : (
+                          <span className="text-lg font-semibold tracking-tight text-[var(--foreground)]/45">
+                            {logo.name}
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             </div>

@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { draftMode } from "next/headers";
+import { VisualEditing } from "next-sanity/visual-editing";
 import { AgentationProvider } from "@/components/AgentationProvider";
 import { Nav } from "@/components/Nav";
 import { SiteChrome } from "@/components/SiteChrome";
+import { SanityLive } from "@/lib/sanity/live";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -17,15 +20,19 @@ export const metadata: Metadata = {
     "A high-end marketplace where brands book creators. No negotiation. No friction.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const { isEnabled: isDraft } = await draftMode();
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen font-[family-name:var(--font-sans)] antialiased">
         <SiteChrome nav={<Nav />} extras={<AgentationProvider />}>
           {children}
         </SiteChrome>
+        {/* Live content + click-to-edit overlays (overlays only in preview). */}
+        <SanityLive />
+        {isDraft && <VisualEditing />}
       </body>
     </html>
   );

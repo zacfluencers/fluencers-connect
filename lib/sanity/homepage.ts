@@ -1,9 +1,17 @@
-import { sanityClient } from "@/lib/sanity/client";
+import type { SanityImageSource } from "@sanity/image-url";
+import { isSanityConfigured } from "@/lib/sanity/client";
+import { sanityFetch } from "@/lib/sanity/live";
 
 /** A title/body pair used by the steps + value bullets. */
 export interface TitleBody {
   title?: string | null;
   body?: string | null;
+}
+
+/** One "trusted by" logo (image optional — falls back to the name). */
+export interface BrandLogo {
+  name?: string | null;
+  image?: SanityImageSource | null;
 }
 
 /** The editable homepage content (all fields optional — the page has fallbacks). */
@@ -15,6 +23,7 @@ export interface HomepageContent {
   heroPrimaryCtaLabel?: string | null;
   heroSecondaryCtaLabel?: string | null;
   trustedByLabel?: string | null;
+  trustedByLogos?: BrandLogo[] | null;
   howEyebrow?: string | null;
   howHeading?: string | null;
   howSubheading?: string | null;
@@ -32,6 +41,7 @@ export interface HomepageContent {
 const HOMEPAGE_QUERY = `*[_type == "homepage"][0]{
   heroEyebrow, heroHeadline, heroHeadlineAccent, heroSubheadline,
   heroPrimaryCtaLabel, heroSecondaryCtaLabel, trustedByLabel,
+  trustedByLogos[]{name, image},
   howEyebrow, howHeading, howSubheading,
   steps[]{title, body},
   bothEyebrow, bothHeading,
@@ -45,13 +55,10 @@ const HOMEPAGE_QUERY = `*[_type == "homepage"][0]{
  * Sanity isn't configured or the fetch fails — the landing page never breaks.
  */
 export async function getHomepageContent(): Promise<HomepageContent | null> {
-  if (!sanityClient) return null;
+  if (!isSanityConfigured) return null;
   try {
-    return await sanityClient.fetch<HomepageContent | null>(
-      HOMEPAGE_QUERY,
-      {},
-      { next: { revalidate: 60 } },
-    );
+    const { data } = await sanityFetch({ query: HOMEPAGE_QUERY });
+    return (data as HomepageContent) ?? null;
   } catch (err) {
     console.error("[sanity] homepage fetch failed:", err);
     return null;

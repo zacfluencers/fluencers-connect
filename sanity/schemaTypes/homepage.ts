@@ -24,6 +24,17 @@ export const homepage = defineType({
     defineField({ name: "heroPrimaryCtaLabel", title: "Hero — primary button text", type: "string", group: "hero" }),
     defineField({ name: "heroSecondaryCtaLabel", title: "Hero — secondary button text", type: "string", group: "hero" }),
     defineField({ name: "trustedByLabel", title: "“Trusted by” label", type: "string", group: "hero" }),
+    defineField({
+      name: "trustedByLogos",
+      title: "“Trusted by” logos",
+      description: "Upload brand logos for the scrolling row. If empty, placeholder names show. Wide/transparent PNGs look best.",
+      type: "array",
+      group: "hero",
+      of: [defineArrayMember({ type: "object", fields: [
+        defineField({ name: "name", title: "Brand name (used as alt text / fallback)", type: "string" }),
+        defineField({ name: "image", title: "Logo image", type: "image", options: { hotspot: true } }),
+      ], preview: { select: { title: "name", media: "image" } } })],
+    }),
 
     // --- How it works -------------------------------------------------------
     defineField({ name: "howEyebrow", title: "Small label", type: "string", group: "how" }),

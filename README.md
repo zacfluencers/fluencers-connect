@@ -94,6 +94,7 @@ and **Preview**.
 | `NEXT_PUBLIC_SANITY_PROJECT_ID` | Browser + server | Sanity CMS project id (public) — powers editable homepage copy at `/studio` |
 | `NEXT_PUBLIC_SANITY_DATASET` | Browser + server | Sanity dataset (usually `production`) |
 | `NEXT_PUBLIC_SANITY_API_VERSION` | Browser + server | Sanity API date, e.g. `2024-10-01` |
+| `SANITY_API_READ_TOKEN` | **Server only (secret)** | Read-only Viewer token for the visual/click-to-edit preview (drafts) |
 
 Rules of thumb:
 
