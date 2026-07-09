@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AgentationProvider } from "@/components/AgentationProvider";
 import { Nav } from "@/components/Nav";
+import { SiteChrome } from "@/components/SiteChrome";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,12 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen font-[family-name:var(--font-sans)] antialiased">
-        <div className="grain" aria-hidden />
-        <div className="relative z-[2]">
-          <Nav />
+        <SiteChrome nav={<Nav />} extras={<AgentationProvider />}>
           {children}
-        </div>
-        <AgentationProvider />
+        </SiteChrome>
       </body>
     </html>
   );

@@ -8,6 +8,7 @@ import {
 } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
 import { brandCanTransact } from "@/lib/subscription";
+import { getHomepageContent } from "@/lib/sanity/homepage";
 import { CreatorCard } from "@/components/CreatorCard";
 import { BrandCard } from "@/components/BrandCard";
 import { ButtonLink } from "@/components/ui/Button";
@@ -106,15 +107,22 @@ async function getCreatorCount(): Promise<number> {
 }
 
 export default async function LandingPage() {
-  const [creators, favoriteIds, me, creatorCount] = await Promise.all([
+  const [creators, favoriteIds, me, creatorCount, content] = await Promise.all([
     getPreviewCreators(),
     getFavoriteIds(),
     getCurrentUser(),
     getCreatorCount(),
+    getHomepageContent(),
   ]);
   const isCreator = me?.role === "creator";
   const locked = me?.role === "brand" ? !(await brandCanTransact(me.id)) : false;
   const creatorCountLabel = `${new Intl.NumberFormat("en-GB").format(creatorCount)}+`;
+
+  // Editable copy from Sanity, falling back to the built-in wording so the page
+  // never looks empty. (These drive the default, brand-facing landing view.)
+  const steps = content?.steps?.length ? content.steps : STEPS;
+  const brandValues = content?.brandValues?.length ? content.brandValues : BRAND_VALUES;
+  const creatorValues = content?.creatorValues?.length ? content.creatorValues : CREATOR_VALUES;
 
   // For signed-in creators, show real brands (looking for creators) on the home
   // page instead of the creator grid.
@@ -131,7 +139,7 @@ export default async function LandingPage() {
           <Reveal>
             <span className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-[var(--border-strong)] bg-white/5 px-3 py-1.5 text-[clamp(0.56rem,2.7vw,0.78rem)] font-medium uppercase tracking-[0.14em] text-[var(--muted)] sm:px-4 sm:tracking-[0.2em]">
               <span className="pulse-dot h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent-2)]" />
-              The influencer marketplace, reimagined
+              {content?.heroEyebrow ?? "The influencer marketplace, reimagined"}
             </span>
           </Reveal>
 
@@ -146,9 +154,11 @@ export default async function LandingPage() {
                 </>
               ) : (
                 <>
-                  <span className="block whitespace-nowrap">Book creators instantly.</span>
+                  <span className="block whitespace-nowrap">
+                    {content?.heroHeadline ?? "Book creators instantly."}
+                  </span>
                   <span className="block whitespace-nowrap text-gradient pb-[0.12em]">
-                    No negotiation. No friction.
+                    {content?.heroHeadlineAccent ?? "No negotiation. No friction."}
                   </span>
                 </>
               )}
@@ -159,7 +169,8 @@ export default async function LandingPage() {
             <p className="text-lead mx-auto mt-8 max-w-2xl text-[var(--muted)]">
               {isCreator
                 ? "Set your rates, show your work, and let brands book you at fixed prices — paid safely through escrow, no chasing invoices."
-                : "A high-end marketplace where brands book vetted creators at fixed prices. Browse, request, and pay through escrow — content delivered, no chasing."}
+                : content?.heroSubheadline ??
+                  "A high-end marketplace where brands book vetted creators at fixed prices. Browse, request, and pay through escrow — content delivered, no chasing."}
             </p>
           </Reveal>
 
@@ -177,10 +188,10 @@ export default async function LandingPage() {
               ) : (
                 <>
                   <ButtonLink href="/marketplace" size="lg">
-                    Browse Creators
+                    {content?.heroPrimaryCtaLabel ?? "Browse Creators"}
                   </ButtonLink>
                   <ButtonLink href="/signup?role=brand" size="lg" variant="secondary">
-                    Become a Brand
+                    {content?.heroSecondaryCtaLabel ?? "Become a Brand"}
                   </ButtonLink>
                 </>
               )}
@@ -191,7 +202,7 @@ export default async function LandingPage() {
           <Reveal index={4}>
             <div className="mt-14 sm:mt-20">
               <p className="text-xs uppercase tracking-widest text-[var(--muted)]">
-                Trusted by modern brands
+                {content?.trustedByLabel ?? "Trusted by modern brands"}
               </p>
               <div className="marquee-mask mt-6 overflow-hidden">
                 <div className="marquee-track">
@@ -274,19 +285,21 @@ export default async function LandingPage() {
       {/* ----------------------------------------------------- How it works */}
       <section className="mx-auto max-w-7xl px-6 pb-28 sm:pb-36">
         <RevealOnView className="mx-auto max-w-2xl text-center">
-          <p className="text-eyebrow text-[var(--accent-2)]">How it works</p>
+          <p className="text-eyebrow text-[var(--accent-2)]">
+            {content?.howEyebrow ?? "How it works"}
+          </p>
           <h2 className="text-h2 h-display mt-3 font-semibold">
-            From discovery to delivery in three steps
+            {content?.howHeading ?? "From discovery to delivery in three steps"}
           </h2>
           <p className="text-lead mt-3 text-[var(--muted)]">
-            No briefs lost in inboxes, no negotiating rates over DMs. Just a clear
-            path from browsing to booked.
+            {content?.howSubheading ??
+              "No briefs lost in inboxes, no negotiating rates over DMs. Just a clear path from browsing to booked."}
           </p>
         </RevealOnView>
 
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {STEPS.map((step, i) => (
-            <Reveal key={step.title} index={i}>
+          {steps.map((step, i) => (
+            <Reveal key={i} index={i}>
               <div className="relative h-full rounded-2xl border border-[var(--border)] bg-[var(--surface)]/40 p-7">
                 <span className="text-h3 h-display font-bold text-[var(--accent-2)]/40">
                   0{i + 1}
@@ -303,9 +316,11 @@ export default async function LandingPage() {
       <section className="border-y border-[var(--border)] bg-[var(--surface)]/30">
         <div className="mx-auto max-w-7xl px-6 py-20 sm:py-28">
           <RevealOnView className="mx-auto max-w-2xl text-center">
-            <p className="text-eyebrow text-[var(--accent-2)]">Built for both sides</p>
+            <p className="text-eyebrow text-[var(--accent-2)]">
+              {content?.bothEyebrow ?? "Built for both sides"}
+            </p>
             <h2 className="text-h2 h-display mt-3 font-semibold">
-              One marketplace. Two reasons to love it.
+              {content?.bothHeading ?? "One marketplace. Two reasons to love it."}
             </h2>
           </RevealOnView>
 
@@ -317,11 +332,11 @@ export default async function LandingPage() {
                   For brands
                 </span>
                 <h3 className="text-h3 h-display mt-5 font-semibold">
-                  Book content like you book anything else
+                  {content?.brandCardTitle ?? "Book content like you book anything else"}
                 </h3>
                 <ul className="mt-6 space-y-5">
-                  {BRAND_VALUES.map((v) => (
-                    <ValueItem key={v.title} title={v.title} body={v.body} />
+                  {brandValues.map((v, i) => (
+                    <ValueItem key={i} title={v.title ?? ""} body={v.body ?? ""} />
                   ))}
                 </ul>
                 {!isCreator && (
@@ -339,11 +354,11 @@ export default async function LandingPage() {
                   For creators
                 </span>
                 <h3 className="text-h3 h-display mt-5 font-semibold">
-                  Get booked on your terms, paid on time
+                  {content?.creatorCardTitle ?? "Get booked on your terms, paid on time"}
                 </h3>
                 <ul className="mt-6 space-y-5">
-                  {CREATOR_VALUES.map((v) => (
-                    <ValueItem key={v.title} title={v.title} body={v.body} />
+                  {creatorValues.map((v, i) => (
+                    <ValueItem key={i} title={v.title ?? ""} body={v.body ?? ""} />
                   ))}
                 </ul>
                 <ButtonLink
@@ -390,11 +405,11 @@ export default async function LandingPage() {
             <div className="aurora" aria-hidden />
             <div className="relative mx-auto max-w-2xl">
               <h2 className="text-h1 h-display font-bold">
-                One marketplace, zero friction
+                {content?.finalHeading ?? "One marketplace, zero friction"}
               </h2>
               <p className="text-lead mx-auto mt-5 max-w-xl text-[var(--muted)]">
-                Whether you’re hiring creators or getting booked, it starts the same
-                way — a profile, a price, and a click.
+                {content?.finalSubheading ??
+                  "Whether you’re hiring creators or getting booked, it starts the same way — a profile, a price, and a click."}
               </p>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                 {me ? (
