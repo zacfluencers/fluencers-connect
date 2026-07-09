@@ -23,7 +23,7 @@ export async function markAllNotificationsRead(): Promise<
   return { ok: true };
 }
 
-/** Mark a single notification as read (RLS scopes it to the owner). */
+/** Mark a single notification as read. Scoped to the owner (RLS + explicit filter). */
 export async function markNotificationRead(
   id: string,
 ): Promise<{ ok: true } | { error: string }> {
@@ -31,10 +31,13 @@ export async function markNotificationRead(
   if (!me) return { error: "Please sign in." };
 
   const supabase = await createClient();
+  // Explicit owner filter in addition to RLS — a mismatched id is a harmless
+  // no-op (marking read is idempotent), so we don't surface an error for it.
   const { error } = await supabase
     .from("notifications")
     .update({ read: true })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", me.id);
   if (error) return { error: error.message };
 
   revalidatePath("/", "layout");

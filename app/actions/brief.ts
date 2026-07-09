@@ -128,7 +128,7 @@ export async function recordBriefAsset(input: {
   return { ok: true };
 }
 
-/** Remove a reference file (DB row + stored object). */
+/** Remove a reference file (DB row + stored object). Brand-only. */
 export async function deleteBriefAsset(
   assetId: string,
 ): Promise<{ ok: true } | { error: string }> {
@@ -143,14 +143,30 @@ export async function deleteBriefAsset(
     .maybeSingle();
   if (!asset) return { error: "File not found." };
 
-  const { error } = await supabase
+  // Belt-and-braces on top of RLS: confirm the caller is the brand on this
+  // booking before deleting, so a wrong party gets an honest error rather than
+  // a silent no-op reported as success.
+  const ctx = await brandBooking(asset.booking_id);
+  if (!ctx.ok) return { error: ctx.error };
+
+  const { data: deleted, error } = await supabase
     .from("booking_assets")
     .delete()
-    .eq("id", assetId);
+    .eq("id", assetId)
+    .select("id");
   if (error) return { error: error.message };
+  if (!deleted || deleted.length === 0) {
+    // RLS blocked it (not the owner) — never report a delete that didn't happen.
+    return { error: "You can't delete this file." };
+  }
 
   if (asset.storage_path) {
-    await supabase.storage.from("briefs").remove([asset.storage_path]);
+    const { error: rmError } = await supabase.storage
+      .from("briefs")
+      .remove([asset.storage_path]);
+    // The row is gone; a failed object removal just leaves an orphan — log it
+    // for cleanup rather than failing the whole action.
+    if (rmError) console.error("brief asset object remove failed:", rmError.message);
   }
 
   revalidatePath(`/bookings/${asset.booking_id}`);

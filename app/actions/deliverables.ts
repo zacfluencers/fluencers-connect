@@ -67,7 +67,7 @@ export async function recordDeliverable(input: {
   return { ok: true };
 }
 
-/** Remove a delivered file (DB row + stored object). */
+/** Remove a delivered file (DB row + stored object). Creator-only. */
 export async function deleteDeliverable(
   deliverableId: string,
 ): Promise<{ ok: true } | { error: string }> {
@@ -82,14 +82,30 @@ export async function deleteDeliverable(
     .maybeSingle();
   if (!item) return { error: "File not found." };
 
-  const { error } = await supabase
+  // Belt-and-braces on top of RLS: confirm the caller is the creator on this
+  // booking before touching anything, so a wrong party gets an honest error
+  // rather than a silent no-op reported as success.
+  const ctx = await creatorBooking(item.booking_id);
+  if (!ctx.ok) return { error: ctx.error };
+
+  const { data: deleted, error } = await supabase
     .from("booking_deliverables")
     .delete()
-    .eq("id", deliverableId);
+    .eq("id", deliverableId)
+    .select("id");
   if (error) return { error: error.message };
+  if (!deleted || deleted.length === 0) {
+    // RLS blocked it (not the owner) — never report a delete that didn't happen.
+    return { error: "You can't delete this file." };
+  }
 
   if (item.storage_path) {
-    await supabase.storage.from("deliverables").remove([item.storage_path]);
+    const { error: rmError } = await supabase.storage
+      .from("deliverables")
+      .remove([item.storage_path]);
+    // The row is gone; a failed object removal just leaves an orphan — log it
+    // for cleanup rather than failing the whole action.
+    if (rmError) console.error("deliverable object remove failed:", rmError.message);
   }
 
   revalidatePath(`/bookings/${item.booking_id}`);
