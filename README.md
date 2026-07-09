@@ -99,6 +99,63 @@ Rules of thumb:
   the repo. `.env.example` holds placeholders only.
 - After changing env vars in Vercel, **redeploy** for them to take effect.
 
+## Going live (production checklist)
+
+The app runs in **test mode** today (test Stripe keys, no real money). Work top to
+bottom before inviting real users — each group says **what**, **why**, and **where**.
+After any Vercel env-var change, **redeploy** so it takes effect.
+
+### 1. Email — connect a real provider ⚠️ (do this, it's easy to forget)
+
+- [ ] In **Supabase → Authentication → SMTP**, connect an email provider (Resend, SendGrid, Postmark…).
+- **Why:** Supabase's built-in mailer only sends a few emails per hour. Without your own
+  provider, sign-up confirmations and password-reset emails **silently fail** once a
+  handful of people use the site in the same hour.
+
+### 2. Stripe — switch from test to live
+
+- [ ] **Activate** your Stripe account (business + bank details) so live mode and payouts work.
+- [ ] **Enable Stripe Connect** in live mode (Connect → Settings) — creator payouts need it.
+- [ ] Swap to **live** API keys in Vercel: `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
+- [ ] Recreate the two subscription prices **in live mode**, then point
+      `STRIPE_PRICE_BRAND_WEEKLY_LOOKUP_KEY` and `STRIPE_PRICE_BRAND_ANNUAL_LOOKUP_KEY`
+      at them (lookup key or `price_…` id). *(Test-mode prices don't exist in live mode.)*
+- [ ] Create a **live webhook** at `https://<your-domain>/api/stripe/webhook`, subscribe to:
+      `checkout.session.completed`, `account.updated`, `payment_intent.payment_failed`,
+      `charge.refunded`, `customer.subscription.created/updated/deleted` — then put its
+      signing secret in `STRIPE_WEBHOOK_SECRET`.
+- [ ] Confirm `PLATFORM_FEE_BPS` is your intended cut (e.g. `1000` = 10%; default `0`).
+
+### 3. Supabase — auth settings
+
+- [ ] Set **Site URL** and **Redirect URLs** (Authentication → URL Configuration) to your
+      live domain, or password-reset / confirmation links will point at the wrong place.
+- [ ] Turn on **leaked-password protection** (Authentication → Policies) — the one open
+      security advisory.
+
+### 4. Domain + canonical URL
+
+- [ ] Add your **custom domain** in Vercel (Project → Domains).
+- [ ] Set `NEXT_PUBLIC_SITE_URL` to your real `https://` domain — Stripe redirect/return
+      links use it, so a wrong value sends paying users to the wrong place.
+
+### 5. Env-var sanity check (Vercel → Settings → Environment Variables)
+
+- [ ] Every variable is set for **Production** (not just Preview).
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` is set — the escrow + webhook writes need it.
+- [ ] **No secret** is prefixed with `NEXT_PUBLIC_` (only the Supabase URL/anon key and the
+      Stripe *publishable* key are browser-safe).
+
+### 6. Final smoke test on the live site
+
+- [ ] Run the automated flows against production (see `e2e/README.md`):
+      gating + booking should pass.
+- [ ] By hand, with a **real card and a small amount**: sign up → subscribe → book a
+      creator → deliver → approve → confirm the payout, then **refund** it. This exercises
+      the whole money path (escrow in, escrow out, refund) in live mode once.
+
+---
+
 ## Deploy
 
 Deploy to Vercel with one click:
