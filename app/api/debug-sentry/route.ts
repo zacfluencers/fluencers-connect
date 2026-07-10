@@ -1,28 +1,22 @@
-// TEMPORARY diagnostic — verifies Sentry init + which project the DSN targets.
-// DSNs are not secret (they ship in the client bundle), but we still only expose
-// the host + project id + a short key tail. Delete after confirming.
+// TEMPORARY diagnostic — inspects the raw DSN env value for corruption and shows
+// which project it targets. DSNs are not secret. Delete after confirming.
 import * as Sentry from "@sentry/nextjs";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const client = Sentry.getClient();
-  const dsn =
-    (client?.getOptions().dsn as string | undefined) ||
-    process.env.NEXT_PUBLIC_SENTRY_DSN ||
-    process.env.SENTRY_DSN ||
-    "";
+  const raw = process.env.NEXT_PUBLIC_SENTRY_DSN ?? process.env.SENTRY_DSN ?? "";
+  // Strip surrounding quotes/whitespace the way a correct value wouldn't need.
+  const cleaned = raw.trim().replace(/^["']|["']$/g, "").trim();
 
   let host: string | null = null;
   let projectId: string | null = null;
-  let keyTail: string | null = null;
   try {
-    const u = new URL(dsn);
+    const u = new URL(cleaned);
     host = u.host;
     projectId = u.pathname.replace(/^\//, "");
-    keyTail = u.username ? `…${u.username.slice(-4)}` : null;
   } catch {
-    /* dsn unparseable */
+    /* still unparseable even after cleaning */
   }
 
   const eventId = Sentry.captureException(
@@ -31,11 +25,13 @@ export async function GET() {
   const flushed = await Sentry.flush(3000);
 
   return Response.json({
-    dsnPresent: Boolean(dsn),
-    clientLive: Boolean(client),
-    target: { host, projectId, keyTail },
+    rawLength: raw.length,
+    startsWith: raw.slice(0, 9),
+    endsWith: raw.slice(-6),
+    hadQuotesOrWhitespace: raw !== cleaned,
+    parsedAfterClean: { host, projectId },
     eventId,
     flushed,
-    note: "Compare `target.projectId` with the project you're viewing in Sentry (Settings → Client Keys shows each project's DSN — the trailing number is its project id).",
+    note: "host null after cleaning = the DSN value itself is wrong/truncated. host present but events still missing = wrong project.",
   });
 }
