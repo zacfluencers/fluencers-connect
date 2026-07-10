@@ -92,6 +92,8 @@ and **Preview**.
 | `CRON_SECRET` | **Server only (secret)** | Guards the scheduled social-refresh route; needed before wiring Vercel Cron |
 | `RESEND_API_KEY` | **Server only (secret)** | Sends notification emails (new booking, message, booking updates) via Resend. Unset = no emails (app still works) |
 | `EMAIL_FROM` | Server (optional) | Override the notification sender address (must be on your verified Resend domain) |
+| `NEXT_PUBLIC_SENTRY_DSN` | Browser + server | Sentry error tracking. Safe to expose (send-only). Unset = no error reporting |
+| `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | Build only (optional) | Uploads source maps for readable stack traces. All three needed |
 | `NEXT_PUBLIC_SITE_URL` | Browser + server | Canonical URL for Stripe redirect/return links |
 | `NEXT_PUBLIC_SANITY_PROJECT_ID` | Browser + server | Sanity CMS project id (public) — powers editable homepage copy at `/studio` |
 | `NEXT_PUBLIC_SANITY_DATASET` | Browser + server | Sanity dataset (usually `production`) |

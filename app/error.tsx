@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import * as Sentry from "@sentry/nextjs";
 
 /**
  * App-wide error boundary. Catches any unhandled error thrown while rendering a
@@ -17,7 +18,8 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Surface it in logs for debugging; the user sees the friendly card below.
+    // Report to Sentry + surface in logs; the user sees the friendly card below.
+    Sentry.captureException(error);
     console.error(error);
   }, [error]);
 

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 /**
  * Baseline production security headers, applied to every route.
@@ -27,4 +28,14 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * Wrap with Sentry for production error tracking. Source maps only upload when
+ * SENTRY_AUTH_TOKEN (+ SENTRY_ORG / SENTRY_PROJECT) are set at build time;
+ * without them the build still succeeds and errors still report (just with
+ * minified stack traces). Reads org/project from env automatically.
+ */
+export default withSentryConfig(nextConfig, {
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  disableLogger: true,
+});
