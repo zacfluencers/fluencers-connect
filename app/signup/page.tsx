@@ -21,6 +21,23 @@ export default async function SignupPage({
           Join as a brand to book creators, or as a creator to get booked.
         </p>
         <AuthForm mode="signup" defaultRole={defaultRole} />
+        <p className="mt-5 text-center text-xs leading-relaxed text-[var(--muted)]">
+          By creating an account you agree to our{" "}
+          <Link
+            href="/terms"
+            className="text-[var(--accent-2)] underline-offset-4 hover:underline"
+          >
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link
+            href="/privacy"
+            className="text-[var(--accent-2)] underline-offset-4 hover:underline"
+          >
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );

@@ -467,6 +467,12 @@ export default async function LandingPage() {
             <Link href="/login" className="hover:text-[var(--foreground)]">
               Sign in
             </Link>
+            <Link href="/terms" className="hover:text-[var(--foreground)]">
+              Terms
+            </Link>
+            <Link href="/privacy" className="hover:text-[var(--foreground)]">
+              Privacy
+            </Link>
           </div>
         </div>
       </footer>
