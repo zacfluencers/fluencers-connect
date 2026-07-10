@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalLayout, Section } from "@/components/LegalLayout";
 
-export const metadata = { title: "Terms of Service — Influencer Connect" };
+export const metadata = { title: "Terms of Service — Fluencers Connect" };
 
 export default function TermsPage() {
   return (
@@ -14,9 +14,9 @@ export default function TermsPage() {
         to these Terms. If you do not agree, please do not use the Service.
       </p>
 
-      <Section n={1} title="What Influencer Connect is">
+      <Section n={1} title="What Fluencers Connect is">
         <p>
-          Influencer Connect is a two-sided marketplace that connects
+          Fluencers Connect is a two-sided marketplace that connects
           &ldquo;Brands&rdquo; (businesses looking to book content) with
           &ldquo;Creators&rdquo; (individuals who produce content such as UGC,
           event coverage and B-roll). We provide the platform, booking tools and

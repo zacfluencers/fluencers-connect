@@ -5,7 +5,7 @@ import { getBrandProfile } from "@/lib/queries";
 import { BrandProfileForm } from "@/components/BrandProfileForm";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Welcome — Influencer Connect" };
+export const metadata = { title: "Welcome — Fluencers Connect" };
 
 export default async function WelcomePage() {
   const me = await getCurrentUser();

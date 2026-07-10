@@ -4,7 +4,7 @@ import { BrandCard } from "@/components/BrandCard";
 import { Reveal } from "@/components/ui/motion";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Brands hiring — Influencer Connect" };
+export const metadata = { title: "Brands hiring — Fluencers Connect" };
 
 export default async function BrandsPage() {
   const [brands, me, favoriteBrandIds] = await Promise.all([

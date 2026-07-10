@@ -214,13 +214,16 @@ export default async function LandingPage() {
                   {[...logoItems, ...logoItems].map((logo, i) => {
                     const img = urlForImage(logo.image);
                     return (
-                      <span key={i} className="flex items-center whitespace-nowrap pr-12">
+                      <span
+                        key={i}
+                        className="flex h-14 w-40 shrink-0 items-center justify-center px-4 sm:w-48 sm:px-6"
+                      >
                         {img ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={img.height(56).fit("max").url()}
+                            src={img.height(96).fit("max").url()}
                             alt={logo.name ?? ""}
-                            className="h-7 w-auto opacity-50"
+                            className="max-h-8 w-auto max-w-full object-contain opacity-60"
                           />
                         ) : (
                           <span className="text-lg font-semibold tracking-tight text-[var(--foreground)]/45">
@@ -452,7 +455,7 @@ export default async function LandingPage() {
       <footer className="mx-auto max-w-7xl px-6 py-12 sm:py-16">
         <div className="flex flex-col items-center justify-between gap-5 sm:flex-row">
           <span className="text-sm text-[var(--muted)]">
-            © {new Date().getFullYear()} Influencer Connect
+            © {new Date().getFullYear()} Fluencers Connect
           </span>
           <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-sm text-[var(--muted)]">
             <Link href="/marketplace" className="hover:text-[var(--foreground)]">

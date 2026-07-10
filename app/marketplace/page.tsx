@@ -11,7 +11,7 @@ import { offeredServices } from "@/lib/services";
 import type { CreatorProfile } from "@/lib/types";
 
 export const metadata = {
-  title: "Browse Creators — Influencer Connect",
+  title: "Browse Creators — Fluencers Connect",
   description: "Find and book influencers for your brand.",
 };
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AuthForm } from "@/components/AuthForm";
 
-export const metadata = { title: "Join — Influencer Connect" };
+export const metadata = { title: "Join — Fluencers Connect" };
 
 export default async function SignupPage({
   searchParams,

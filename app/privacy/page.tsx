@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalLayout, Section } from "@/components/LegalLayout";
 
-export const metadata = { title: "Privacy Policy — Influencer Connect" };
+export const metadata = { title: "Privacy Policy — Fluencers Connect" };
 
 export default function PrivacyPage() {
   return (
@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <p>
         This Privacy Policy explains how Fluencers Group (&ldquo;we&rdquo;,
         &ldquo;us&rdquo;, &ldquo;our&rdquo;) collects and uses your personal data
-        when you use Influencer Connect (the &ldquo;Service&rdquo;). We are the
+        when you use Fluencers Connect (the &ldquo;Service&rdquo;). We are the
         data controller. We are based in the United Kingdom and handle your data in
         line with UK GDPR and the Data Protection Act 2018.
       </p>

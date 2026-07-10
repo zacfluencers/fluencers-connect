@@ -22,7 +22,7 @@ import { Reveal } from "@/components/ui/motion";
 import { gbp } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Brand Dashboard — Influencer Connect" };
+export const metadata = { title: "Brand Dashboard — Fluencers Connect" };
 
 export default async function BrandDashboard({
   searchParams,

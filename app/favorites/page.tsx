@@ -7,7 +7,7 @@ import { CreatorCard } from "@/components/CreatorCard";
 import { BrandCard } from "@/components/BrandCard";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Favourites — Influencer Connect" };
+export const metadata = { title: "Favourites — Fluencers Connect" };
 
 export default async function FavoritesPage() {
   const me = await getCurrentUser();

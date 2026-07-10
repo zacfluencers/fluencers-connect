@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ResetPasswordForm } from "@/components/ResetPasswordForm";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Choose a new password — Influencer Connect" };
+export const metadata = { title: "Choose a new password — Fluencers Connect" };
 
 export default async function ResetPasswordPage() {
   // The auth callback set a short-lived recovery session before forwarding here.

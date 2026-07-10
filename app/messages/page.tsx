@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Avatar } from "@/components/Avatar";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Messages — Influencer Connect" };
+export const metadata = { title: "Messages — Fluencers Connect" };
 
 export default async function MessagesPage() {
   const me = await getCurrentUser();

@@ -41,7 +41,7 @@ export async function GET(
   return new Response(Buffer.from(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="Influencer-Connect-Receipt-${booking.id.slice(0, 8)}.pdf"`,
+      "Content-Disposition": `attachment; filename="Fluencers-Connect-Receipt-${booking.id.slice(0, 8)}.pdf"`,
       "Cache-Control": "private, no-store",
     },
   });
@@ -118,7 +118,7 @@ async function buildInvoice(d: {
   let y = height - M;
 
   // ---- Header
-  text("Influencer Connect", M, y, 18, bold, INK);
+  text("Fluencers Connect", M, y, 18, bold, INK);
   textRight("RECEIPT", y + 2, 16, bold, ACCENT);
   y -= 18;
   text("The influencer marketplace", M, y, 9, font, MUTED);
@@ -208,7 +208,7 @@ async function buildInvoice(d: {
 
   // ---- Footer
   text(
-    "This receipt was generated automatically by Influencer Connect for your records.",
+    "This receipt was generated automatically by Fluencers Connect for your records.",
     M,
     M + 24,
     8.5,

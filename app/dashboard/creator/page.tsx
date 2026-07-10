@@ -23,7 +23,7 @@ import { gbp } from "@/lib/format";
 import type { CreatorProfile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Creator Dashboard — Influencer Connect" };
+export const metadata = { title: "Creator Dashboard — Fluencers Connect" };
 
 export default async function CreatorDashboard() {
   const me = await getCurrentUser();

@@ -41,7 +41,7 @@ export async function Nav() {
   return (
     <nav className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 py-3.5 sm:px-6">
-        <Link href="/" className="flex items-center" aria-label="Influencer Connect — home">
+        <Link href="/" className="flex items-center" aria-label="Fluencers Connect — home">
           <Logo className="h-5 w-auto text-[var(--foreground)]" />
         </Link>
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ForgotPasswordForm } from "@/components/ForgotPasswordForm";
 
-export const metadata = { title: "Reset password — Influencer Connect" };
+export const metadata = { title: "Reset password — Fluencers Connect" };
 
 export default async function ForgotPasswordPage({
   searchParams,
