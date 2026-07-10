@@ -114,6 +114,7 @@ Both brands and creators get notifications (a **bell** in the top nav with an un
 The site reads creators from Supabase. To switch it on, copy `.env.local.example` to `.env.local` and paste in your Supabase URL and anon key (from the Supabase dashboard → Project Settings → API). Until then, the marketplace shows a friendly "connect your database" message instead of erroring.
 
 ## Recent Changes
+- 2026-07-10: **Email notifications.** The site now emails people (via Resend) when something happens they'd want to know about — a new booking request, a new message, a booking accepted/delivered/approved, a cancellation/refund. Every existing in-app bell alert now also arrives by email. Emails are sent after the page responds, so nothing feels slower. Requires the `RESEND_API_KEY` setting; without it the site works exactly as before (just no emails).
 - 2026-07-10: **Went live.** Custom domain `connect.fluencersgroup.com`, Stripe switched from test to live mode (real payments + creator payouts, 10% platform fee), live webhook wired, all production env vars verified. Also enabled **promo codes** on the subscription checkout so launch discounts / coupons work.
 - 2026-06-17: Created the initial database schema (users, creator_profiles, bookings).
 - 2026-06-17: Built the creator marketplace — `/marketplace` listing with niche + availability filters, and `/creator/[id]` profile pages. Reads live from Supabase. No booking or payment logic yet.

@@ -90,6 +90,8 @@ and **Preview**.
 | `STRIPE_PRICE_BRAND_ANNUAL_LOOKUP_KEY` | Server | Lookup key (or `price_…` id) of the annual brand plan |
 | `SCRAPECREATORS_API_KEY` | **Server only (secret)** | Creator social enrichment (followers, avatar, engagement) |
 | `CRON_SECRET` | **Server only (secret)** | Guards the scheduled social-refresh route; needed before wiring Vercel Cron |
+| `RESEND_API_KEY` | **Server only (secret)** | Sends notification emails (new booking, message, booking updates) via Resend. Unset = no emails (app still works) |
+| `EMAIL_FROM` | Server (optional) | Override the notification sender address (must be on your verified Resend domain) |
 | `NEXT_PUBLIC_SITE_URL` | Browser + server | Canonical URL for Stripe redirect/return links |
 | `NEXT_PUBLIC_SANITY_PROJECT_ID` | Browser + server | Sanity CMS project id (public) — powers editable homepage copy at `/studio` |
 | `NEXT_PUBLIC_SANITY_DATASET` | Browser + server | Sanity dataset (usually `production`) |
