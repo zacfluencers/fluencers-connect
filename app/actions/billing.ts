@@ -47,6 +47,8 @@ export async function createBrandSubscriptionCheckout(
     const session = await stripe().checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: price.id, quantity: 1 }],
+      // Show Stripe's "Add promotion code" field so launch discounts / coupons work.
+      allow_promotion_codes: true,
       ...(billing?.stripe_customer_id
         ? { customer: billing.stripe_customer_id }
         : { customer_email: me.email }),

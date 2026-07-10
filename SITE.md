@@ -114,6 +114,7 @@ Both brands and creators get notifications (a **bell** in the top nav with an un
 The site reads creators from Supabase. To switch it on, copy `.env.local.example` to `.env.local` and paste in your Supabase URL and anon key (from the Supabase dashboard → Project Settings → API). Until then, the marketplace shows a friendly "connect your database" message instead of erroring.
 
 ## Recent Changes
+- 2026-07-10: **Went live.** Custom domain `connect.fluencersgroup.com`, Stripe switched from test to live mode (real payments + creator payouts, 10% platform fee), live webhook wired, all production env vars verified. Also enabled **promo codes** on the subscription checkout so launch discounts / coupons work.
 - 2026-06-17: Created the initial database schema (users, creator_profiles, bookings).
 - 2026-06-17: Built the creator marketplace — `/marketplace` listing with niche + availability filters, and `/creator/[id]` profile pages. Reads live from Supabase. No booking or payment logic yet.
 - 2026-06-17: Added email/password accounts (Supabase Auth) with brand/creator roles, and the full booking flow — request, accept/decline, the requested→accepted→in_progress→in_review→completed status journey, revision requests (max 3), a creator dashboard, and booking pages. Still no payments or subscriptions.
