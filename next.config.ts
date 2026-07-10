@@ -35,7 +35,12 @@ const nextConfig: NextConfig = {
  * minified stack traces). Reads org/project from env automatically.
  */
 export default withSentryConfig(nextConfig, {
-  silent: !process.env.CI,
+  org: "fluencers-group",
+  project: "javascript-nextjs",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Upload more client bundles so stack traces are readable.
   widenClientFileUpload: true,
-  disableLogger: true,
+  // Route browser events through our own domain to dodge ad-blockers.
+  tunnelRoute: "/monitoring",
+  silent: !process.env.CI,
 });
