@@ -105,7 +105,7 @@ export function CreatorCard({
         )}
 
         {/* Socials with per-platform follower counts → external profiles */}
-        <div className="mt-2.5 flex flex-wrap items-center gap-x-7 gap-y-1.5 text-sm">
+        <div className="mt-3 flex flex-wrap items-center gap-x-7 gap-y-1.5 text-sm">
           {creator.instagram && (
             <a
               href={instagramUrl(creator.instagram)}
@@ -132,7 +132,7 @@ export function CreatorCard({
 
         {/* Subtle engagement signal — only when we have a meaningful figure. */}
         {engagement && (
-          <p className="mt-2 flex items-center gap-1.5 text-xs text-[var(--muted)]">
+          <p className="mt-3 flex items-center gap-1.5 text-xs text-[var(--muted)]">
             <span className="h-1 w-1 rounded-full bg-[var(--accent-2)]" />
             {engagement} avg. engagement
           </p>
@@ -141,7 +141,7 @@ export function CreatorCard({
         {/* Transparent per-service pricing — hidden from signed-out visitors
             and unsubscribed brands. */}
         {viewerRole !== null && !locked && services.length > 0 && (
-          <div className="mt-3 space-y-1 border-t border-[var(--border)] pt-3">
+          <div className="mt-5 space-y-1.5 border-t border-[var(--border)] pt-4">
             {services.map((s) => (
               <div
                 key={s.key}
@@ -159,7 +159,7 @@ export function CreatorCard({
         {/* Subscribed brand: book + chat. `mt-auto` pins the actions to the
             bottom, so buttons line up across a row however tall each card is. */}
         {viewerRole === "brand" && !locked && (
-          <div className="mt-auto flex items-stretch gap-2 pt-3">
+          <div className="mt-auto flex items-stretch gap-2 pt-6">
             <div className="flex-1">
               <AutoBookButton
                 creatorId={creator.user_id}
@@ -177,24 +177,30 @@ export function CreatorCard({
           </div>
         )}
 
-        {/* Unsubscribed brand: one full-width prompt to subscribe. */}
+        {/* Unsubscribed brand: one full-width prompt to subscribe. The wrapper
+            carries mt-auto + pt so the button never sits flush against the text
+            above it, however full the card is. */}
         {viewerRole === "brand" && locked && (
-          <Link
-            href="/dashboard/brand"
-            className="mt-auto inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
-          >
-            Subscribe to see more
-          </Link>
+          <div className="mt-auto pt-6">
+            <Link
+              href="/dashboard/brand"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+            >
+              Subscribe to see more
+            </Link>
+          </div>
         )}
 
         {/* Signed-out: prompt to join (pricing + booking are gated). */}
         {viewerRole === null && (
-          <Link
-            href="/signup"
-            className="mt-auto inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
-          >
-            Sign up to see pricing &amp; book
-          </Link>
+          <div className="mt-auto pt-6">
+            <Link
+              href="/signup"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+            >
+              Sign up to see pricing &amp; book
+            </Link>
+          </div>
         )}
       </div>
     </div>
