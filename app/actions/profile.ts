@@ -30,6 +30,11 @@ export async function upsertCreatorProfile(
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "Name is required." };
 
+  // Required: brands filter the marketplace by niche, so a creator without one
+  // is effectively unlisted (and leaves a gap on their card).
+  const niche = String(formData.get("niche") ?? "").trim();
+  if (!niche) return { error: "Pick a niche so brands can find you." };
+
   // Optional whole-number count. Blank → null.
   const toCount = (key: string): number | null => {
     const raw = String(formData.get(key) ?? "").trim();
@@ -79,7 +84,7 @@ export async function upsertCreatorProfile(
     user_id: me.id,
     name,
     bio: String(formData.get("bio") ?? "").trim() || null,
-    niche: String(formData.get("niche") ?? "").trim() || null,
+    niche,
     instagram,
     tiktok,
     profile_image: String(formData.get("profile_image") ?? "").trim() || null,

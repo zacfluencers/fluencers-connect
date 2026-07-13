@@ -116,6 +116,7 @@ function Niche({ defaultValue }: { defaultValue: string }) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         className={FIELD}
+        required
       >
         <option value="">Select a niche…</option>
         {!isKnown && value && <option value={value}>{value}</option>}
@@ -125,6 +126,9 @@ function Niche({ defaultValue }: { defaultValue: string }) {
           </option>
         ))}
       </select>
+      <span className="mt-1 block text-xs text-[var(--muted)]">
+        Brands filter by niche — without one you won&apos;t show up in their search.
+      </span>
     </label>
   );
 }
