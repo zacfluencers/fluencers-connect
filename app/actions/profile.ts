@@ -1,8 +1,15 @@
 "use server";
 
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
+import {
+  refreshCreatorSocialData,
+  syncProfileFromSocialAccounts,
+} from "@/lib/social/enrichment";
+import { isScrapeCreatorsConfigured, cleanHandle } from "@/lib/social/scrapecreators";
+import { isAdminConfigured } from "@/lib/supabase/admin";
 
 export type ProfileState = { error: string } | { ok: true } | null;
 
@@ -55,14 +62,26 @@ export async function upsertCreatorProfile(
     return { error: "Enter a valid age." };
   }
 
+  const instagram = String(formData.get("instagram") ?? "").trim() || null;
+  const tiktok = String(formData.get("tiktok") ?? "").trim() || null;
+
   const supabase = await createClient();
+
+  // What did we have before this save? Used to decide whether the social stats
+  // need (re-)fetching, so a routine profile edit doesn't cost a provider call.
+  const { data: before } = await supabase
+    .from("creator_profiles")
+    .select("instagram, tiktok, followers_synced_at")
+    .eq("user_id", me.id)
+    .maybeSingle();
+
   const { error } = await supabase.from("creator_profiles").upsert({
     user_id: me.id,
     name,
     bio: String(formData.get("bio") ?? "").trim() || null,
     niche: String(formData.get("niche") ?? "").trim() || null,
-    instagram: String(formData.get("instagram") ?? "").trim() || null,
-    tiktok: String(formData.get("tiktok") ?? "").trim() || null,
+    instagram,
+    tiktok,
     profile_image: String(formData.get("profile_image") ?? "").trim() || null,
     availability: formData.get("availability") === "on",
     // Follower counts are entered manually (or filled via the "Auto-fill" button
@@ -82,7 +101,43 @@ export async function upsertCreatorProfile(
 
   if (error) return { error: error.message };
 
+  if (isAdminConfigured()) {
+    // 1. Free + instant: fold in any stats already imported. This is what rescues
+    //    a creator who pressed "Auto-fill" BEFORE their first save — at that
+    //    point they had no profile row for the import to write to.
+    try {
+      await syncProfileFromSocialAccounts(me.id);
+    } catch (e) {
+      console.error("[profile] social mirror failed:", e);
+    }
+
+    // 2. Paid + slow: actually fetch from the provider, but only when there's
+    //    something new to fetch — a handle was added/changed, or we've never
+    //    synced this creator. Runs after the response so saving stays instant.
+    const changed = (a: string | null, b: string | null) =>
+      cleanHandle(a ?? "").toLowerCase() !== cleanHandle(b ?? "").toLowerCase();
+    const needsFetch =
+      (instagram || tiktok) &&
+      (!before?.followers_synced_at ||
+        changed(before.instagram, instagram) ||
+        changed(before.tiktok, tiktok));
+
+    if (needsFetch && isScrapeCreatorsConfigured()) {
+      after(async () => {
+        try {
+          await refreshCreatorSocialData(me.id);
+          revalidatePath("/dashboard/creator");
+          revalidatePath("/marketplace");
+          revalidatePath(`/creator/${me.id}`);
+        } catch (e) {
+          console.error("[profile] social enrichment failed:", e);
+        }
+      });
+    }
+  }
+
   revalidatePath("/dashboard/creator");
   revalidatePath("/marketplace");
+  revalidatePath(`/creator/${me.id}`);
   return { ok: true };
 }

@@ -88,6 +88,56 @@ function pick(obj: unknown, paths: string[]): unknown {
   return undefined;
 }
 
+/**
+ * Average likes/comments/views across the recent posts Instagram returns inline
+ * (`edge_owner_to_timeline_media.edges`, typically the last 12).
+ *
+ * Accounts with "hide like counts" turned on report 0 likes on every post; we
+ * treat that as "no data" rather than "zero engagement" so we don't publish a
+ * misleading 0%.
+ */
+function instagramRecentPostStats(raw: unknown): {
+  averageLikes?: number;
+  averageComments?: number;
+  averageViews?: number;
+} {
+  const edges = pick(raw, [
+    "data.user.edge_owner_to_timeline_media.edges",
+    "user.edge_owner_to_timeline_media.edges",
+  ]);
+  if (!Array.isArray(edges) || edges.length === 0) return {};
+
+  const likes: number[] = [];
+  const comments: number[] = [];
+  const views: number[] = [];
+  for (const edge of edges) {
+    const node = get(edge, "node");
+    if (!node) continue;
+    const l = num(get(node, "edge_liked_by.count"));
+    const c = num(get(node, "edge_media_to_comment.count"));
+    const v = num(get(node, "video_view_count"));
+    if (l != null) likes.push(l);
+    if (c != null) comments.push(c);
+    if (v != null) views.push(v);
+  }
+
+  const mean = (xs: number[]) =>
+    xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : undefined;
+
+  const hidesLikes = pick(raw, [
+    "data.user.hide_like_and_view_counts",
+    "user.hide_like_and_view_counts",
+  ]) === true;
+
+  const averageLikes = hidesLikes ? undefined : mean(likes);
+  return {
+    // A hidden-likes account still shows comments, so keep those.
+    averageLikes: averageLikes === 0 ? undefined : averageLikes,
+    averageComments: mean(comments),
+    averageViews: mean(views),
+  };
+}
+
 function normalizeInstagram(handle: string, raw: unknown): NormalizedSocialProfile {
   // ScrapeCreators wraps Instagram's web_profile_info, so most fields live under
   // data.user / user. We probe both plus a couple of flatter fallbacks.
@@ -108,6 +158,19 @@ function normalizeInstagram(handle: string, raw: unknown): NormalizedSocialProfi
     "user.edge_owner_to_timeline_media.count",
     "media_count",
   ]));
+
+  // Engagement from the recent posts in the payload — the standard Instagram
+  // measure: (average likes + average comments) ÷ followers.
+  const { averageLikes, averageComments, averageViews } = instagramRecentPostStats(raw);
+  const interactions =
+    averageLikes != null || averageComments != null
+      ? (averageLikes ?? 0) + (averageComments ?? 0)
+      : undefined;
+  const engagementRate =
+    interactions && followerCount
+      ? Number(((interactions / followerCount) * 100).toFixed(3))
+      : undefined;
+
   return dropUndefined({
     platform: "instagram",
     handle,
@@ -124,6 +187,9 @@ function normalizeInstagram(handle: string, raw: unknown): NormalizedSocialProfi
     followerCount,
     followingCount,
     postCount,
+    averageLikes,
+    averageViews,
+    engagementRate,
     lastSyncedAt: nowIso(),
   });
 }

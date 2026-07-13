@@ -128,32 +128,82 @@ export async function enrichCreatorSocial(
     return { ok: false, error: "Couldn't save the imported profile." };
   }
 
-  // Mirror display fields onto creator_profiles (best-effort: a no-op if the
-  // creator hasn't saved their profile row yet). Non-destructive to
-  // profile_image — the imported avatar is stored separately and only used as a
-  // fallback when the creator hasn't uploaded their own.
-  const denorm: Record<string, unknown> = { followers_synced_at: now };
-  if (normalized.followerCount != null) {
-    denorm[platform === "instagram" ? "instagram_followers" : "tiktok_followers"] =
-      normalized.followerCount;
-  }
-  if (normalized.avatarUrl) {
-    denorm[platform === "instagram" ? "instagram_avatar" : "tiktok_avatar"] =
-      normalized.avatarUrl;
-  }
-  if (normalized.engagementRate != null) {
-    denorm.engagement_rate = normalized.engagementRate;
-  }
-  const { error: profileError } = await admin
-    .from("creator_profiles")
-    .update(denorm)
-    .eq("user_id", creatorId);
-  if (profileError) {
-    // Don't fail the whole enrichment just because the mirror didn't stick.
-    console.error("[social] mirror to creator_profiles failed:", profileError.message);
-  }
+  // Mirror the display fields onto creator_profiles. This is a no-op when the
+  // creator hasn't saved their profile row yet (a brand-new creator who imports
+  // before their first save) — which is exactly why saving the profile calls
+  // syncProfileFromSocialAccounts() again. Nothing is lost either way:
+  // creator_social_accounts above is the source of truth.
+  await syncProfileFromSocialAccounts(creatorId);
 
   return { ok: true, profile: normalized };
+}
+
+/**
+ * Copy the stored social stats onto `creator_profiles` so the marketplace cards
+ * can render them without a join. Reads creator_social_accounts (the source of
+ * truth) and writes the denormalised columns.
+ *
+ * Safe and free to call any time — it's a pure database operation and never hits
+ * the paid provider. Call it after ANY write to creator_profiles that might have
+ * raced the import, and after every enrichment.
+ *
+ * Returns true when a profile row was actually updated (false when the creator
+ * has no profile row yet, or has no imported stats).
+ *
+ * Non-destructive to `profile_image`: an imported avatar is stored separately in
+ * instagram_avatar/tiktok_avatar and only used as a fallback when the creator
+ * hasn't uploaded their own photo.
+ */
+export async function syncProfileFromSocialAccounts(creatorId: string): Promise<boolean> {
+  const admin = createAdminClient();
+  const { data: accounts } = await admin
+    .from("creator_social_accounts")
+    .select("platform, follower_count, engagement_rate, avatar_url, last_synced_at")
+    .eq("creator_id", creatorId);
+
+  if (!accounts || accounts.length === 0) return false;
+
+  const denorm: Record<string, unknown> = {};
+  let latestSync: string | null = null;
+
+  for (const acct of accounts) {
+    const isIg = acct.platform === "instagram";
+    if (acct.follower_count != null) {
+      denorm[isIg ? "instagram_followers" : "tiktok_followers"] = acct.follower_count;
+    }
+    if (acct.avatar_url) {
+      denorm[isIg ? "instagram_avatar" : "tiktok_avatar"] = acct.avatar_url;
+    }
+    const synced = acct.last_synced_at as string | null;
+    if (synced && (!latestSync || synced > latestSync)) latestSync = synced;
+  }
+
+  // One card shows one engagement figure, so pick the creator's biggest platform
+  // that actually has a rate — that's the audience a brand is really buying.
+  const withRate = accounts.filter((a) => a.engagement_rate != null);
+  if (withRate.length > 0) {
+    const primary = withRate.reduce((best, a) =>
+      Number(a.follower_count ?? 0) > Number(best.follower_count ?? 0) ? a : best,
+    );
+    denorm.engagement_rate = primary.engagement_rate;
+  }
+
+  if (latestSync) denorm.followers_synced_at = latestSync;
+  if (Object.keys(denorm).length === 0) return false;
+
+  const { data: updated, error } = await admin
+    .from("creator_profiles")
+    .update(denorm)
+    .eq("user_id", creatorId)
+    .select("user_id");
+
+  if (error) {
+    console.error("[social] mirror to creator_profiles failed:", error.message);
+    return false;
+  }
+  // No rows matched → the creator hasn't saved a profile yet. Not an error: the
+  // stats are safely stored and the next profile save will pick them up.
+  return (updated?.length ?? 0) > 0;
 }
 
 /**

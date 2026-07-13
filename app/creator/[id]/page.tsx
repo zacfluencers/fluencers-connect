@@ -13,6 +13,7 @@ import { MessageCreatorButton } from "@/components/MessageCreatorButton";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { InstagramIcon, TikTokIcon } from "@/components/SocialIcons";
 import {
+  formatEngagement,
   formatFollowers,
   instagramUrl,
   tiktokUrl,
@@ -62,6 +63,7 @@ export default async function CreatorPage({
   const locked = me?.role === "brand" ? !(await brandCanTransact(me.id)) : false;
   const ig = formatFollowers(creator.instagram_followers);
   const tt = formatFollowers(creator.tiktok_followers);
+  const engagement = formatEngagement(creator.engagement_rate);
   const services = offeredServices(creator).map((s) => ({
     key: s.def.key,
     label: s.def.label,
@@ -156,6 +158,14 @@ export default async function CreatorPage({
                   handle={creator.tiktok}
                   followers={tt}
                 />
+              )}
+              {engagement && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-2)]/30 bg-[var(--accent-2)]/10 px-3 py-1.5">
+                  <span className="font-medium text-[var(--foreground)]">
+                    {engagement}
+                  </span>
+                  <span className="text-[var(--muted)]">avg. engagement</span>
+                </span>
               )}
             </div>
 
