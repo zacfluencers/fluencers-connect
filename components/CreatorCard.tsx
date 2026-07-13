@@ -41,10 +41,15 @@ export function CreatorCard({
   const engagement = formatEngagement(creator.engagement_rate);
 
   return (
-    <div className="group flex flex-col">
+    // h-full + the flex column below keep a row of cards aligned: the grid
+    // stretches every card to the tallest, the details stay packed under the
+    // name, and the CTA is pinned to the bottom. A creator missing a niche or an
+    // engagement figure just gets more slack above their button, rather than a
+    // shorter card.
+    <div className="group flex h-full flex-col">
       {/* Image (a full-bleed link overlay navigates to the profile; the
           favourite button sits on top of it, so neither is nested in the other) */}
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-[var(--surface-2)]">
+      <div className="relative aspect-square shrink-0 overflow-hidden rounded-2xl bg-[var(--surface-2)]">
         {avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -80,7 +85,7 @@ export function CreatorCard({
       </div>
 
       {/* Meta */}
-      <div className="pt-3">
+      <div className="flex flex-1 flex-col pt-3">
         <div className="flex items-start justify-between gap-3">
           <Link href={href} className="min-w-0">
             <h3 className="truncate font-semibold text-[var(--foreground)] hover:underline">
@@ -100,32 +105,30 @@ export function CreatorCard({
         )}
 
         {/* Socials with per-platform follower counts → external profiles */}
-        {(creator.instagram || creator.tiktok) && (
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-7 gap-y-1.5 text-sm">
-            {creator.instagram && (
-              <a
-                href={instagramUrl(creator.instagram)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
-              >
-                <InstagramIcon className="h-4 w-4" />
-                {ig ?? "Instagram"}
-              </a>
-            )}
-            {creator.tiktok && (
-              <a
-                href={tiktokUrl(creator.tiktok)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
-              >
-                <TikTokIcon className="h-4 w-4" />
-                {tt ?? "TikTok"}
-              </a>
-            )}
-          </div>
-        )}
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-7 gap-y-1.5 text-sm">
+          {creator.instagram && (
+            <a
+              href={instagramUrl(creator.instagram)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+            >
+              <InstagramIcon className="h-4 w-4" />
+              {ig ?? "Instagram"}
+            </a>
+          )}
+          {creator.tiktok && (
+            <a
+              href={tiktokUrl(creator.tiktok)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+            >
+              <TikTokIcon className="h-4 w-4" />
+              {tt ?? "TikTok"}
+            </a>
+          )}
+        </div>
 
         {/* Subtle engagement signal — only when we have a meaningful figure. */}
         {engagement && (
@@ -153,9 +156,10 @@ export function CreatorCard({
           </div>
         )}
 
-        {/* Subscribed brand: book + chat. */}
+        {/* Subscribed brand: book + chat. `mt-auto` pins the actions to the
+            bottom, so buttons line up across a row however tall each card is. */}
         {viewerRole === "brand" && !locked && (
-          <div className="mt-3 flex items-stretch gap-2">
+          <div className="mt-auto flex items-stretch gap-2 pt-3">
             <div className="flex-1">
               <AutoBookButton
                 creatorId={creator.user_id}
@@ -177,7 +181,7 @@ export function CreatorCard({
         {viewerRole === "brand" && locked && (
           <Link
             href="/dashboard/brand"
-            className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+            className="mt-auto inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
           >
             Subscribe to see more
           </Link>
@@ -187,7 +191,7 @@ export function CreatorCard({
         {viewerRole === null && (
           <Link
             href="/signup"
-            className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+            className="mt-auto inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
           >
             Sign up to see pricing &amp; book
           </Link>

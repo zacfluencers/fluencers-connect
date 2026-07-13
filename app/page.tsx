@@ -283,7 +283,7 @@ export default async function LandingPage() {
         ) : creators.length > 0 ? (
           <div className="grid grid-cols-1 gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
             {creators.map((c, i) => (
-              <Reveal key={c.user_id} index={i}>
+              <Reveal key={c.user_id} index={i} className="h-full">
                 <CreatorCard
                   creator={c}
                   initialFavorited={favoriteIds.has(c.user_id)}
