@@ -278,6 +278,28 @@ export async function refreshFeaturedCreatorsSocialData(): Promise<number> {
   return 0;
 }
 
+/**
+ * Creators who have a handle but have NEVER been synced — cadence: daily.
+ *
+ * The safety net. A creator who fills in their handles but never triggers an
+ * import (e.g. they typed follower counts in by hand, or signed up before the
+ * profile-save auto-fetch existed) would otherwise sit with no real stats
+ * indefinitely: the weekly `active` cohort would eventually catch them, but a
+ * blank/typed-in engagement rate is exactly what a browsing brand sees first.
+ *
+ * Cheap by construction — a creator only ever qualifies once, because a
+ * successful sync sets followers_synced_at.
+ */
+export async function refreshUnsyncedCreatorsSocialData(): Promise<number> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("creator_profiles")
+    .select("user_id")
+    .is("followers_synced_at", null)
+    .or("instagram.not.is.null,tiktok.not.is.null");
+  return refreshCohort((data ?? []).map((r) => r.user_id));
+}
+
 /** Inactive creators (not available) — intended cadence: monthly. */
 export async function refreshInactiveCreatorsSocialData(): Promise<number> {
   const admin = createAdminClient();

@@ -3,17 +3,16 @@ import {
   refreshActiveCreatorsSocialData,
   refreshFeaturedCreatorsSocialData,
   refreshInactiveCreatorsSocialData,
+  refreshUnsyncedCreatorsSocialData,
 } from "@/lib/social/enrichment";
 
 /**
- * Scheduled social refresh entry point (NOT wired to a schedule yet).
- *
- * To turn this on, add a Vercel Cron job (Project → Settings → Cron Jobs, or a
- * `crons` entry in vercel config) hitting this route on the cadence you want,
- * and set a `CRON_SECRET` env var. Suggested schedule:
- *   • ?cohort=featured  → daily      (once a "featured" flag exists)
- *   • ?cohort=active    → weekly
- *   • ?cohort=inactive  → monthly
+ * Scheduled social refresh entry point. Schedules live in `vercel.json`:
+ *   • ?cohort=unsynced  → daily   (SCHEDULED) safety net: creators with a handle
+ *                         but no stats yet. Each creator qualifies at most once.
+ *   • ?cohort=active    → weekly  (SCHEDULED) keep available creators current.
+ *   • ?cohort=featured  → daily   (not scheduled — needs a "featured" flag first)
+ *   • ?cohort=inactive  → monthly (not scheduled)
  *
  * Auth: Vercel Cron sends `Authorization: Bearer <CRON_SECRET>`. We also accept
  * `?secret=` for manual/admin triggers. Without CRON_SECRET set, the route is
@@ -42,6 +41,9 @@ export async function GET(req: Request) {
   const cohort = new URL(req.url).searchParams.get("cohort") ?? "active";
   let refreshed = 0;
   switch (cohort) {
+    case "unsynced":
+      refreshed = await refreshUnsyncedCreatorsSocialData();
+      break;
     case "featured":
       refreshed = await refreshFeaturedCreatorsSocialData();
       break;
