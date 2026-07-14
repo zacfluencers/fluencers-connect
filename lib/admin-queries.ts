@@ -18,18 +18,28 @@ export interface AdminStats {
   /** Money paid out to creators. */
   releasedPence: number;
   refundedPence: number;
+  /** How many accounts were left out of the counts above because they're staff. */
+  excludedAdmins: number;
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
   const admin = createAdminClient();
 
-  const [users, billing, bookings] = await Promise.all([
-    admin.from("users").select("role"),
-    admin.from("brand_billing").select("status"),
+  const [users, billing, bookings, admins] = await Promise.all([
+    admin.from("users").select("id, role"),
+    admin.from("brand_billing").select("user_id, status"),
     admin.from("bookings").select("price, payment_status"),
+    admin.from("admin_users").select("user_id"),
   ]);
 
-  const roles = users.data ?? [];
+  // Don't count yourself as your own customer. Every account has to be a brand
+  // or a creator — there is no third role — so your own admin login would
+  // otherwise show up as a brand, and its hand-granted subscription would show
+  // up as a paying one. That quietly inflates every number you'd use to judge
+  // how the business is doing.
+  const staff = new Set((admins.data ?? []).map((a) => a.user_id));
+
+  const roles = (users.data ?? []).filter((u) => !staff.has(u.id));
   const rows = bookings.data ?? [];
 
   // Sum in pence to dodge floating-point drift on money.
@@ -43,13 +53,14 @@ export async function getAdminStats(): Promise<AdminStats> {
   return {
     creators: roles.filter((u) => u.role === "creator").length,
     brands: roles.filter((u) => u.role === "brand").length,
-    subscribedBrands: (billing.data ?? []).filter((b) =>
-      ACTIVE.includes(String(b.status)),
+    subscribedBrands: (billing.data ?? []).filter(
+      (b) => !staff.has(b.user_id) && ACTIVE.includes(String(b.status)),
     ).length,
     bookings: rows.length,
     heldPence: sumBy("held"),
     releasedPence: sumBy("released"),
     refundedPence: sumBy("refunded"),
+    excludedAdmins: staff.size,
   };
 }
 

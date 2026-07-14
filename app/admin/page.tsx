@@ -49,6 +49,14 @@ export default async function AdminOverviewPage() {
         </div>
       </section>
 
+      {s.excludedAdmins > 0 && (
+        <p className="text-sm text-[var(--muted)]">
+          Your own admin {s.excludedAdmins === 1 ? "account is" : "accounts are"}{" "}
+          left out of the counts above — otherwise you&apos;d show up as one of
+          your own paying brands.
+        </p>
+      )}
+
       <p className="text-sm text-[var(--muted)]">
         Held money is what you owe: a brand has paid, and the creator hasn&apos;t
         been paid out yet.{" "}
