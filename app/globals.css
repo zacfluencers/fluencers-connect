@@ -232,6 +232,30 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+   Page transition. Replays on every navigation because the App Router template
+   remounts. In CSS for the same reason as `.reveal` below: driven from
+   JavaScript, it held the whole page at opacity 0 until React hydrated.
+--------------------------------------------------------------------------- */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.page-enter {
+  animation: page-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-enter {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Reveal: the fade + slide-up used on page load. Kept in CSS rather than
    JavaScript so it starts on the very first paint — a JS-driven version leaves
    the content invisible until React hydrates, which wrecks the hero's load

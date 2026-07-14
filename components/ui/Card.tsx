@@ -1,11 +1,12 @@
-"use client";
-
-import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 /**
- * Surface card. With `interactive`, it lifts and gains a luminous glow border
- * on hover — used for creator cards and clickable panels.
+ * Surface card. With `interactive`, it lifts and gains a soft shadow on hover —
+ * used for creator cards and clickable panels.
+ *
+ * The lift is CSS. As a Framer Motion `whileHover` it made every card on the
+ * marketplace a JavaScript component, for an effect the browser can run on its
+ * own compositor with no script at all.
  */
 export function Card({
   children,
@@ -16,17 +17,15 @@ export function Card({
   className?: string;
   interactive?: boolean;
 }) {
+  const lift = interactive
+    ? "transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-[3px] hover:shadow-[0_16px_40px_-16px_rgba(0,0,0,0.7)]"
+    : "";
+
   return (
-    <motion.div
-      whileHover={
-        interactive
-          ? { y: -3, boxShadow: "0 16px 40px -16px rgba(0,0,0,0.7)" }
-          : undefined
-      }
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className={`rounded-2xl border border-[var(--border)] bg-[var(--surface)] ${className}`}
+    <div
+      className={`rounded-2xl border border-[var(--border)] bg-[var(--surface)] ${lift} ${className}`}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

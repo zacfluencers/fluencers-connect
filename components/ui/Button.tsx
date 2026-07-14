@@ -1,14 +1,15 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 type Variant = "primary" | "secondary" | "ghost";
 type Size = "sm" | "md" | "lg";
 
+// `active:scale-[0.97]` is the press effect. It used to be a Framer Motion
+// `whileTap`, which made every button on the site a JavaScript component — and
+// the hero's call to action is the largest thing on the landing page, so it
+// could not paint until Framer had loaded. CSS does the same job for free.
 const BASE =
-  "relative inline-flex items-center justify-center gap-2 rounded-xl font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-2)]/60";
+  "relative inline-flex items-center justify-center gap-2 rounded-xl font-medium whitespace-nowrap transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-2)]/60";
 
 const SIZES: Record<Size, string> = {
   sm: "h-9 px-4 text-sm",
@@ -18,8 +19,7 @@ const SIZES: Record<Size, string> = {
 
 const VARIANTS: Record<Variant, string> = {
   // Primary: clean solid accent, subtle hover — no heavy glow.
-  primary:
-    "text-white bg-[var(--accent-2)] shadow-sm hover:bg-[#9079f0]",
+  primary: "text-white bg-[var(--accent-2)] shadow-sm hover:bg-[#9079f0]",
   secondary:
     "text-[var(--foreground)] bg-transparent border border-[var(--border-strong)] hover:bg-white/5",
   ghost: "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-white/5",
@@ -43,14 +43,12 @@ export function Button({
   ...props
 }: ButtonProps) {
   return (
-    <motion.button
-      whileTap={{ scale: 0.97 }}
-      transition={{ duration: 0.15 }}
+    <button
       className={`${BASE} ${SIZES[size]} ${VARIANTS[variant]} ${className}`}
-      {...(props as React.ComponentProps<typeof motion.button>)}
+      {...props}
     >
       {children}
-    </motion.button>
+    </button>
   );
 }
 
@@ -64,13 +62,9 @@ export function ButtonLink({
 }: CommonProps & { href: string }) {
   return (
     <Link href={href} className="inline-block">
-      <motion.span
-        whileTap={{ scale: 0.97 }}
-        transition={{ duration: 0.15 }}
-        className={`${BASE} ${SIZES[size]} ${VARIANTS[variant]} ${className}`}
-      >
+      <span className={`${BASE} ${SIZES[size]} ${VARIANTS[variant]} ${className}`}>
         {children}
-      </motion.span>
+      </span>
     </Link>
   );
 }
