@@ -42,6 +42,13 @@ export function creatorAvatar(c: {
  * `width` is the CSS width of the slot; we request 2× for retina screens.
  * Anything not in Supabase storage (Instagram/TikTok avatars, which are already
  * thumbnail-sized) passes straight through.
+ *
+ * `resize=contain` is essential, not a nicety. Supabase defaults to `cover`,
+ * which — given a width and no height — narrows the image to that width but
+ * keeps every pixel of the original height, so a 4284x5712 portrait comes back
+ * as 720x5712. Our `object-cover` then crops that sliver to a square and the
+ * photo looks wildly zoomed in. `contain` scales it down whole, and the CSS
+ * frames it exactly as it always did.
  */
 export function sizedImage(
   url: string | null | undefined,
@@ -54,7 +61,7 @@ export function sizedImage(
     "/storage/v1/object/public/",
     "/storage/v1/render/image/public/",
   );
-  return `${render}?width=${width * 2}&quality=75`;
+  return `${render}?width=${width * 2}&quality=75&resize=contain`;
 }
 
 /** "3.4%" engagement label, or null when there's nothing meaningful to show. */
