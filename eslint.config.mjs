@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Ship Studio's own bundled plugin code — not ours, not something we can
+    // fix, and it fails the lint rules. Without this, `npm run lint` exits 1
+    // on a clean checkout and CI is red before we've written a line.
+    ".shipstudio/**",
   ]),
 ]);
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
+import { isAdmin } from "@/lib/admin";
 import { brandCanTransact } from "@/lib/subscription";
 import { getMyNotifications, getUnreadNotificationCount } from "@/lib/queries";
 import { signOut } from "@/app/actions/auth";
@@ -21,6 +22,10 @@ export async function Nav() {
   // messages, bookings) are removed from the nav until they subscribe.
   const locked = me?.role === "brand" ? !(await brandCanTransact(me.id)) : false;
 
+  // Admin is an extra permission on top of the normal role, so an admin still
+  // sees their usual nav — plus one link nobody else does.
+  const admin = me ? await isAdmin(me.id) : false;
+
   // Shared link set — drives both the desktop bar and the mobile menu.
   const links: { href: string; label: string }[] = [
     me?.role === "creator"
@@ -37,6 +42,7 @@ export async function Nav() {
       { href: dashboardHref, label: "Dashboard" },
     );
   }
+  if (admin) links.push({ href: "/admin", label: "Admin" });
 
   return (
     <nav className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/70 backdrop-blur-xl">
