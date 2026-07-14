@@ -10,6 +10,7 @@ import {
   tiktokUrl,
   creatorAvatar,
   formatEngagement,
+  sizedImage,
 } from "@/lib/format";
 import { offeredServices } from "@/lib/services";
 import type { CreatorProfile } from "@/lib/types";
@@ -36,8 +37,9 @@ export function CreatorCard({
   const href = `/creator/${creator.user_id}`;
   const ig = formatFollowers(creator.instagram_followers);
   const tt = formatFollowers(creator.tiktok_followers);
-  // Uploaded photo wins; imported IG/TikTok avatars are only a fallback.
-  const avatar = creatorAvatar(creator);
+  // Uploaded photo wins; imported IG/TikTok avatars are only a fallback. The
+  // card slot is ~360px at its widest, so that's all we ask Supabase for.
+  const avatar = sizedImage(creatorAvatar(creator), 360);
   const engagement = formatEngagement(creator.engagement_rate);
 
   return (
@@ -55,6 +57,8 @@ export function CreatorCard({
           <img
             src={avatar}
             alt={creator.name}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
           />
         ) : (

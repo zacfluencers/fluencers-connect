@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/Badge";
 import { MessageBrandButton } from "@/components/MessageBrandButton";
 import { BrandFavoriteButton } from "@/components/BrandFavoriteButton";
 import { InstagramIcon, TikTokIcon } from "@/components/SocialIcons";
-import { gbp, instagramUrl, tiktokUrl } from "@/lib/format";
+import { gbp, instagramUrl, tiktokUrl, sizedImage } from "@/lib/format";
 import type { BrandProfile } from "@/lib/types";
 
 export function BrandCard({
@@ -41,8 +41,10 @@ export function BrandCard({
           {brand.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={brand.logo_url}
+              src={sizedImage(brand.logo_url, 44) ?? brand.logo_url}
               alt={brand.company_name}
+              loading="lazy"
+              decoding="async"
               className="h-11 w-11 shrink-0 rounded-xl object-cover"
             />
           ) : (

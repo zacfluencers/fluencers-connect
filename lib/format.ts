@@ -31,6 +31,32 @@ export function creatorAvatar(c: {
   return c.profile_image || c.instagram_avatar || c.tiktok_avatar || null;
 }
 
+/**
+ * Ask Supabase for an image at the size we actually display it.
+ *
+ * Uploads are stored untouched, so a creator's phone photo can be a 4MB PNG
+ * that we then render in a 290px box. Swapping the storage URL for the render
+ * endpoint hands back a resized WebP instead (1.3MB → 27KB), which is the
+ * difference between a fast page and a slow one.
+ *
+ * `width` is the CSS width of the slot; we request 2× for retina screens.
+ * Anything not in Supabase storage (Instagram/TikTok avatars, which are already
+ * thumbnail-sized) passes straight through.
+ */
+export function sizedImage(
+  url: string | null | undefined,
+  width: number,
+): string | null {
+  if (!url) return null;
+  const [base] = url.split("?");
+  if (!base.includes("/storage/v1/object/public/")) return url;
+  const render = base.replace(
+    "/storage/v1/object/public/",
+    "/storage/v1/render/image/public/",
+  );
+  return `${render}?width=${width * 2}&quality=75`;
+}
+
 /** "3.4%" engagement label, or null when there's nothing meaningful to show. */
 export function formatEngagement(rate: number | null | undefined): string | null {
   if (rate == null || !Number.isFinite(rate) || rate <= 0) return null;

@@ -2,8 +2,51 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sizedImage } from "@/lib/format";
 
 const MAX_MB = 10;
+
+/** Longest edge we keep. Well above any slot we render, with room for retina. */
+const MAX_EDGE = 1200;
+
+/**
+ * Shrink a photo in the browser before it ever leaves the device.
+ *
+ * Phone cameras produce 4MB+ images, and we were storing them untouched — then
+ * paying for that on every page load. This caps the longest edge and re-encodes
+ * as WebP, which typically turns 4MB into well under 200KB with no visible
+ * difference at the sizes we display.
+ *
+ * If anything about this fails (an exotic format, a browser without WebP), we
+ * hand back the original file rather than block the upload.
+ */
+async function compress(file: File): Promise<File> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/webp", 0.85),
+    );
+    // Only take the re-encode if it actually saved something.
+    if (!blob || blob.size >= file.size) return file;
+
+    const name = file.name.replace(/\.[^.]+$/, "") + ".webp";
+    return new File([blob], name, { type: "image/webp" });
+  } catch {
+    return file;
+  }
+}
 
 /**
  * Upload a single image to the public `avatars` bucket and expose its URL via a
@@ -43,11 +86,18 @@ export function ImageUpload({
 
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "png";
+      const image = await compress(file);
+      const ext = image.name.split(".").pop() || "png";
       const path = `${userId}/${crypto.randomUUID()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("avatars")
-        .upload(path, file, { cacheControl: "3600", upsert: false });
+        .upload(path, image, {
+          contentType: image.type,
+          // A year: the filename is a fresh UUID on every upload, so a stored
+          // image is never replaced in place and can be cached indefinitely.
+          cacheControl: "31536000",
+          upsert: false,
+        });
       if (upErr) {
         setError(upErr.message);
         return;
@@ -68,7 +118,11 @@ export function ImageUpload({
         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-[var(--border-strong)] bg-[var(--surface-2)]">
           {url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={url} alt="" className="h-full w-full object-cover" />
+            <img
+              src={sizedImage(url, 64) ?? url}
+              alt=""
+              className="h-full w-full object-cover"
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-[var(--muted)]">
               <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

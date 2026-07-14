@@ -16,6 +16,7 @@ import {
   formatEngagement,
   formatFollowers,
   instagramUrl,
+  sizedImage,
   tiktokUrl,
 } from "@/lib/format";
 import { offeredServices } from "@/lib/services";
@@ -92,8 +93,9 @@ export default async function CreatorPage({
             {creator.profile_image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={creator.profile_image}
+                src={sizedImage(creator.profile_image, 360) ?? creator.profile_image}
                 alt={creator.name}
+                decoding="async"
                 className="h-full w-full object-cover"
               />
             ) : (

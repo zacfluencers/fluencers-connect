@@ -1,13 +1,16 @@
-"use client";
+import type { CSSProperties, ReactNode } from "react";
 
-import { motion } from "framer-motion";
-import type { ReactNode } from "react";
-
-const EASE = [0.22, 1, 0.36, 1] as const;
+export { RevealOnView } from "./motion-client";
 
 /**
- * Fade + slide-up on mount. Pass `index` to stagger a list (each item waits
+ * Fade + slide-up on load. Pass `index` to stagger a list (each item waits
  * index * 0.06s). Calm, intentional — not bouncy.
+ *
+ * Deliberately pure CSS. The Framer Motion version sent the hero to the browser
+ * with `opacity: 0` and only faded it in once React had hydrated — so the
+ * headline, which is the page's largest element, stayed invisible until the
+ * JavaScript arrived. On a mobile connection that measured 8.6s. A CSS
+ * animation runs from the first paint and needs no JavaScript at all.
  */
 export function Reveal({
   children,
@@ -21,34 +24,16 @@ export function Reveal({
   y?: number;
 }) {
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: EASE, delay: index * 0.06 }}
+    <div
+      className={className ? `reveal ${className}` : "reveal"}
+      style={
+        {
+          "--reveal-delay": `${(index * 0.06).toFixed(2)}s`,
+          "--reveal-y": `${y}px`,
+        } as CSSProperties
+      }
     >
       {children}
-    </motion.div>
-  );
-}
-
-/** Reveals children when scrolled into view (used for lower-page sections). */
-export function RevealOnView({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, ease: EASE }}
-    >
-      {children}
-    </motion.div>
+    </div>
   );
 }

@@ -6,7 +6,7 @@ import { MessageBrandButton } from "@/components/MessageBrandButton";
 import { BrandFavoriteButton } from "@/components/BrandFavoriteButton";
 import { InstagramIcon, TikTokIcon } from "@/components/SocialIcons";
 import { Badge } from "@/components/ui/Badge";
-import { gbp, instagramUrl, tiktokUrl } from "@/lib/format";
+import { gbp, instagramUrl, tiktokUrl, sizedImage } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -51,8 +51,9 @@ export default async function BrandPage({
         {brand.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={brand.logo_url}
+            src={sizedImage(brand.logo_url, 80) ?? brand.logo_url}
             alt={brand.company_name}
+            decoding="async"
             className="h-20 w-20 shrink-0 rounded-2xl object-cover"
           />
         ) : (
