@@ -70,9 +70,15 @@ export function formatEngagement(rate: number | null | undefined): string | null
   return `${Math.min(rate, 100).toFixed(1)}%`;
 }
 
-/** Strip a leading @ from a handle. */
+/**
+ * Strip a leading @ from a handle.
+ *
+ * Trim first, then strip. The other way round, a handle pasted with a leading
+ * space (" @zac" — which is exactly how it arrives off a copy-paste) keeps its
+ * @, and we end up linking to instagram.com/@zac, which is a dead page.
+ */
 export function cleanHandle(handle: string): string {
-  return handle.replace(/^@+/, "").trim();
+  return handle.trim().replace(/^@+/, "").trim();
 }
 
 /** Public profile URL for a handle (accepts a full URL too). */

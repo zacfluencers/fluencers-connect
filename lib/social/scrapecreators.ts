@@ -46,7 +46,9 @@ export function isScrapeCreatorsConfigured(): boolean {
 
 /** Strip leading @/spaces from a handle. */
 export function cleanHandle(handle: string): string {
-  return handle.replace(/^@+/, "").trim();
+  // Trim BEFORE stripping the @. Reversed, a pasted " @zac" keeps its @ and we
+  // spend a paid API call looking up a handle that cannot exist.
+  return handle.trim().replace(/^@+/, "").trim();
 }
 
 type Json = Record<string, unknown>;

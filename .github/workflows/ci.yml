@@ -1,0 +1,54 @@
+name: CI
+
+# Runs on every push and every pull request. This is the gate that was missing:
+# before it, the only thing between a bad commit and the live site was Vercel's
+# build — which happily ships code that compiles but is broken.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push to the same branch cancels the previous run — no point finishing a
+# check on code that's already been replaced.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, types, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      # No secrets here on purpose. The app is built to run without any env vars
+      # (it falls back to demo mode), so CI can prove the build is sound without
+      # ever being handed a live key.
+      - name: Build
+        run: npm run build
+
+# NOTE: the Playwright suite in e2e/ is deliberately NOT run here. Those tests
+# drive a real browser against a real Supabase — the signup spec creates actual
+# user accounts, and the gating specs only mean anything when pointed at
+# production, where Stripe is configured. Running them on every push would fill
+# the live database with junk users and trip Supabase's email rate limit.
+# Run them by hand before a risky release; see e2e/README.md.
