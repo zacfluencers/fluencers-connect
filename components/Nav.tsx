@@ -79,13 +79,18 @@ export async function Nav() {
 
               {/* Account actions — desktop only; the hamburger covers below lg */}
               <div className="hidden items-center gap-3 lg:flex">
-                <span className="flex items-center gap-2 text-[var(--muted)]">
+                {/* The only way into Settings — it used to be dead text. */}
+                <Link
+                  href="/settings"
+                  title="Account settings"
+                  className="flex items-center gap-2 rounded-xl px-2 py-1 text-[var(--muted)] transition-colors hover:bg-white/5 hover:text-[var(--foreground)]"
+                >
                   {/* Email is the longest item — only show it when there's room. */}
                   <span className="hidden max-w-[160px] truncate xl:block">{me.email}</span>
                   <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-xs capitalize text-[var(--foreground)]">
                     {me.role}
                   </span>
-                </span>
+                </Link>
                 <form action={signOut}>
                   <button
                     type="submit"

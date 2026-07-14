@@ -146,10 +146,17 @@ export function MobileNav({
                 >
                   {me ? (
                     <div className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/50 p-4">
-                      <span className="min-w-0">
+                      {/* Tapping yourself opens Settings. */}
+                      <Link
+                        href="/settings"
+                        onClick={() => setOpen(false)}
+                        className="min-w-0 rounded-xl transition-opacity hover:opacity-80"
+                      >
                         <span className="block truncate text-sm text-[var(--foreground)]">{me.email}</span>
-                        <span className="text-xs capitalize text-[var(--muted)]">{me.role}</span>
-                      </span>
+                        <span className="text-xs text-[var(--muted)]">
+                          <span className="capitalize">{me.role}</span> · Settings
+                        </span>
+                      </Link>
                       <form action={signOut}>
                         <button
                           type="submit"

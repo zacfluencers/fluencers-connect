@@ -40,16 +40,27 @@ export async function notify(
     try {
       after(async () => {
         try {
-          // Look up the recipient's email with the service-role client so this
-          // works regardless of the acting user's RLS visibility.
+          // Look up the recipient with the service-role client so this works
+          // regardless of the acting user's RLS visibility.
           const admin = createAdminClient();
           const { data: recipient } = await admin
             .from("users")
-            .select("email")
+            .select("email, email_messages, email_bookings, deleted_at")
             .eq("id", userId)
             .maybeSingle();
           const to = recipient?.email;
           if (!to) return;
+
+          // Never email a closed account.
+          if (recipient.deleted_at) return;
+
+          // Respect what they asked for. The in-app notification is still there
+          // either way — this only decides whether we also land in their inbox.
+          const wanted =
+            type === "message"
+              ? recipient.email_messages
+              : recipient.email_bookings;
+          if (!wanted) return;
 
           const url = link ? `${getBaseUrl()}${link}` : getBaseUrl();
           const { html, text } = renderNotificationEmail({ title, body, url });
