@@ -9,8 +9,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
  */
 
 export interface AdminStats {
+  /** Creators who are actually live on the site (finished a profile). */
   creators: number;
+  /** Signed up as a creator but never saved a profile — invisible on the site. */
+  creatorsPending: number;
+  /** Brands live on the site (finished a profile). */
   brands: number;
+  /** Signed up as a brand but never saved a profile. */
+  brandsPending: number;
   subscribedBrands: number;
   bookings: number;
   /** Money currently sitting in escrow, i.e. paid but not yet released. */
@@ -25,12 +31,15 @@ export interface AdminStats {
 export async function getAdminStats(): Promise<AdminStats> {
   const admin = createAdminClient();
 
-  const [users, billing, bookings, admins] = await Promise.all([
-    admin.from("users").select("id, role"),
-    admin.from("brand_billing").select("user_id, status"),
-    admin.from("bookings").select("price, payment_status"),
-    admin.from("admin_users").select("user_id"),
-  ]);
+  const [users, creatorProfiles, brandProfiles, billing, bookings, admins] =
+    await Promise.all([
+      admin.from("users").select("id, role"),
+      admin.from("creator_profiles").select("user_id"),
+      admin.from("brand_profiles").select("user_id"),
+      admin.from("brand_billing").select("user_id, status"),
+      admin.from("bookings").select("price, payment_status"),
+      admin.from("admin_users").select("user_id"),
+    ]);
 
   // Don't count yourself as your own customer. Every account has to be a brand
   // or a creator — there is no third role — so your own admin login would
@@ -42,6 +51,18 @@ export async function getAdminStats(): Promise<AdminStats> {
   const roles = (users.data ?? []).filter((u) => !staff.has(u.id));
   const rows = bookings.data ?? [];
 
+  // "Creators"/"Brands" mean people actually live on the site — a signup only
+  // counts once they've saved a profile, because until then they're invisible
+  // to everyone browsing. The ones who stalled show separately as pending.
+  const liveCreators = (creatorProfiles.data ?? []).filter(
+    (p) => !staff.has(p.user_id),
+  ).length;
+  const liveBrands = (brandProfiles.data ?? []).filter(
+    (p) => !staff.has(p.user_id),
+  ).length;
+  const creatorSignups = roles.filter((u) => u.role === "creator").length;
+  const brandSignups = roles.filter((u) => u.role === "brand").length;
+
   // Sum in pence to dodge floating-point drift on money.
   const sumBy = (status: string) =>
     rows
@@ -51,8 +72,10 @@ export async function getAdminStats(): Promise<AdminStats> {
   const ACTIVE = ["active", "trialing", "past_due"];
 
   return {
-    creators: roles.filter((u) => u.role === "creator").length,
-    brands: roles.filter((u) => u.role === "brand").length,
+    creators: liveCreators,
+    creatorsPending: Math.max(0, creatorSignups - liveCreators),
+    brands: liveBrands,
+    brandsPending: Math.max(0, brandSignups - liveBrands),
     subscribedBrands: (billing.data ?? []).filter(
       (b) => !staff.has(b.user_id) && ACTIVE.includes(String(b.status)),
     ).length,

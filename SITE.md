@@ -114,6 +114,9 @@ Both brands and creators get notifications (a **bell** in the top nav with an un
 The site reads creators from Supabase. To switch it on, copy `.env.local.example` to `.env.local` and paste in your Supabase URL and anon key (from the Supabase dashboard → Project Settings → API). Until then, the marketplace shows a friendly "connect your database" message instead of erroring.
 
 ## Recent Changes
+- 2026-07-16: **Admin "Creators" count now means creators actually live on the site.** It was counting everyone who signed up as a creator (18), including people who never finished their profile and so are invisible to brands. Now it shows live profiles (e.g. 11) with a note like "+7 signed up, profile not finished" so you can see the drop-off too.
+- 2026-07-16: **No more empty message threads.** Tapping "Message" used to create the conversation immediately — before anything was typed — so people who changed their mind left ghost threads in the other person's inbox (this is why unknown users appeared in the admin brand's Messages). Now tapping Message opens a compose screen, and the conversation only comes into existence when the first message is actually sent. The two existing empty threads were cleaned up.
+- 2026-07-15: **Removed the placeholder test creator (`zac@gymfluencers.agency`).** It was a stand-in used during launch testing, now cleared out as real users come on. Fully deleted — the login, the profile, its one £1 launch-day test booking (with your own Fluencers Group brand), and 3 test messages — so it leaves no trace in your admin stats.
 - 2026-07-14: **Closed a security hole: users could change their own role.** Found while building the settings page. Anyone signed in could change themselves from a creator to a brand, or the reverse, by talking to the database directly. The worst version: a brand who hadn't paid could switch to "creator" and message people for free, because the paywall only ever checks brands. Now the only things you can change about your own account are your two email preferences — your role and email address are no longer writable from the browser at all. Verified by trying the attack before and after.
 - 2026-07-14: **Settings page** (`/settings`, reachable by clicking your email in the nav). Four things, none of which existed before: choose which emails you get, change your password (it asks for your current one first), change your email address (a confirmation link goes to the new address, so a typo can't lock you out), and close your account.
   - **Emails were previously unstoppable** — every single message and booking event emailed you with no way to opt out. Now there are separate switches for messages and booking updates. You still see everything in the app either way.
@@ -241,3 +244,10 @@ Follower counts are entered **manually**, with an optional **"Auto-fill from han
 
 ## How to Customize
 - **To add to the database**: create a new numbered file in `supabase/migrations/` (e.g. `0002_messaging.sql`). Never edit an already-applied migration.
+
+## When to Revisit (Scaling)
+Checked on 2026-07-15 — the site is comfortable for the low thousands of users with no changes. Nothing here needs doing now; these are the growth milestones where an upgrade earns its keep, roughly in the order they'll matter:
+- **~400 creators → add pagination to the Browse Creators page.** Today it loads every creator on one page, which is fast while numbers are small but gets slow past a few hundred. This is the *first* real limit, and it's driven by number of creators, not total users.
+- **Tens of thousands of rows (users/bookings/messages) → add database indexes.** The performance scan flags a few foreign-key columns without indexes. Harmless at small scale; worth adding once tables get large.
+- **Tens of thousands of users → the admin overview page will slow down.** It loads whole tables into memory to add things up; fine now, would want reworking then.
+- **Database size** is 13 MB against an 8 GB paid limit — not a concern for years.

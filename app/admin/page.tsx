@@ -15,8 +15,24 @@ export default async function AdminOverviewPage() {
           People
         </h2>
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--border)] sm:grid-cols-3">
-          <Stat label="Creators" value={String(s.creators)} />
-          <Stat label="Brands" value={String(s.brands)} />
+          <Stat
+            label="Creators live"
+            value={String(s.creators)}
+            hint={
+              s.creatorsPending > 0
+                ? `+${s.creatorsPending} signed up, profile not finished`
+                : undefined
+            }
+          />
+          <Stat
+            label="Brands live"
+            value={String(s.brands)}
+            hint={
+              s.brandsPending > 0
+                ? `+${s.brandsPending} signed up, profile not finished`
+                : undefined
+            }
+          />
           <Stat
             label="Paying brands"
             value={String(s.subscribedBrands)}
