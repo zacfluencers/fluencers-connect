@@ -75,7 +75,7 @@ export default async function BrandPage({
               {brand.looking_for_creators && (
                 <Badge tone="info">Looking for creators</Badge>
               )}
-              {isOfficial && <Badge tone="active">Official admin</Badge>}
+              {isOfficial && <Badge tone="active">Official account</Badge>}
             </div>
           )}
         </div>

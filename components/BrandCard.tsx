@@ -18,7 +18,7 @@ export function BrandCard({
   canMessage: boolean;
   canFavorite?: boolean;
   initialFavorited?: boolean;
-  /** Platform's own account - marks the card with an "Official admin" badge. */
+  /** Platform's own account - marks the card with an "Official account" badge. */
   official?: boolean;
 }) {
   const budget =
@@ -74,7 +74,7 @@ export function BrandCard({
           and wrapping so a narrow card stacks them instead of overflowing. */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Badge tone="info">Looking for creators</Badge>
-        {official && <Badge tone="active">Official admin</Badge>}
+        {official && <Badge tone="active">Official account</Badge>}
       </div>
 
       {brand.about && (

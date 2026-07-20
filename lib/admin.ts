@@ -49,7 +49,7 @@ export async function requireAdmin(): Promise<AppUser> {
 }
 
 /**
- * The user IDs that carry the public "Official admin" badge on their brand card.
+ * The user IDs that carry the public "Official account" badge on their brand card.
  *
  * Note what this deliberately does: `admin_users` is otherwise invisible to the
  * browser precisely so nobody can enumerate the admins, and this publishes that
