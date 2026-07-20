@@ -64,10 +64,41 @@ export function sizedImage(
   return `${render}?width=${width * 2}&quality=75&resize=contain`;
 }
 
+/**
+ * The band an engagement rate has to fall in before we'll show it publicly.
+ *
+ * Engagement is likes + comments over followers, which quietly assumes the
+ * audience IS the followers. Two things break that:
+ *
+ *   • Reach-driven video. A creator whose Reels average 30x their follower
+ *     count can compute over 100% - the likes are real, they're just mostly
+ *     from non-followers. We used to clamp that to exactly 100.0%, which read
+ *     as broken rather than impressive.
+ *   • Hidden like counts. Instagram lets a creator hide likes; we then have
+ *     only comments, and publish a near-zero rate. One real creator with 152k
+ *     followers was showing 0.003%, which is worse than showing nothing - a
+ *     brand skips them on sight.
+ *
+ * So anything outside this band means "we couldn't measure this properly",
+ * not "this creator has bad engagement", and we say nothing at all.
+ */
+export const ENGAGEMENT_MIN_PCT = 0.1;
+export const ENGAGEMENT_MAX_PCT = 35;
+
+/** Is this a figure we're willing to stand behind on a public card? */
+export function isPlausibleEngagement(rate: number | null | undefined): boolean {
+  return (
+    rate != null &&
+    Number.isFinite(rate) &&
+    rate >= ENGAGEMENT_MIN_PCT &&
+    rate <= ENGAGEMENT_MAX_PCT
+  );
+}
+
 /** "3.4%" engagement label, or null when there's nothing meaningful to show. */
 export function formatEngagement(rate: number | null | undefined): string | null {
-  if (rate == null || !Number.isFinite(rate) || rate <= 0) return null;
-  return `${Math.min(rate, 100).toFixed(1)}%`;
+  if (!isPlausibleEngagement(rate)) return null;
+  return `${rate!.toFixed(1)}%`;
 }
 
 /**

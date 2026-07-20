@@ -164,9 +164,15 @@ function normalizeInstagram(handle: string, raw: unknown): NormalizedSocialProfi
   // Engagement from the recent posts in the payload — the standard Instagram
   // measure: (average likes + average comments) ÷ followers.
   const { averageLikes, averageComments, averageViews } = instagramRecentPostStats(raw);
+
+  // Likes are required, not optional. A creator with "hide like counts" turned
+  // on leaves us with comments alone, and comments-only produces a fraction of
+  // the real figure - one 152k-follower account was publishing 0.003%, which
+  // reads to a brand as "nobody engages with this person". No number is better
+  // than a number that costs someone work.
   const interactions =
-    averageLikes != null || averageComments != null
-      ? (averageLikes ?? 0) + (averageComments ?? 0)
+    averageLikes != null && averageLikes > 0
+      ? averageLikes + (averageComments ?? 0)
       : undefined;
   const engagementRate =
     interactions && followerCount

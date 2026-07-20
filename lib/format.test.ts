@@ -84,8 +84,27 @@ describe("formatEngagement", () => {
     expect(formatEngagement(NaN)).toBeNull();
   });
 
-  it("caps at 100% so a bad import can't print 4000%", () => {
-    expect(formatEngagement(4000)).toBe("100.0%");
+  // Regression for what reached production on 2026-07-20: a creator whose
+  // Reels averaged 30x his follower count computed to 113.96%, and the old
+  // Math.min clamp printed it as a flat "100.0%" - which reads as a broken
+  // page, not as a strong creator. Out-of-band now means "we couldn't measure
+  // this", and we say nothing.
+  it("hides a rate too high to have been measured properly", () => {
+    expect(formatEngagement(113.956)).toBeNull();
+    expect(formatEngagement(4000)).toBeNull();
+  });
+
+  // The other direction, and the more damaging one: Instagram's "hide like
+  // counts" left us with comments only, so a real 152k-follower creator was
+  // publishing 0.003% engagement. A brand skips that person on sight.
+  it("hides a rate too low to have been measured properly", () => {
+    expect(formatEngagement(0.003)).toBeNull();
+    expect(formatEngagement(0.044)).toBeNull();
+  });
+
+  it("keeps figures at the edges of the believable band", () => {
+    expect(formatEngagement(0.1)).toBe("0.1%");
+    expect(formatEngagement(35)).toBe("35.0%");
   });
 });
 

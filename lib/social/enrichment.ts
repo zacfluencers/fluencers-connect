@@ -13,6 +13,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isMirroredAvatar, mirrorSocialAvatar } from "@/lib/social/avatar-mirror";
+import { isPlausibleEngagement } from "@/lib/format";
 import {
   fetchSocialProfile,
   cleanHandle,
@@ -188,14 +189,21 @@ export async function syncProfileFromSocialAccounts(creatorId: string): Promise<
   }
 
   // One card shows one engagement figure, so pick the creator's biggest platform
-  // that actually has a rate — that's the audience a brand is really buying.
-  const withRate = accounts.filter((a) => a.engagement_rate != null);
-  if (withRate.length > 0) {
-    const primary = withRate.reduce((best, a) =>
-      Number(a.follower_count ?? 0) > Number(best.follower_count ?? 0) ? a : best,
-    );
-    denorm.engagement_rate = primary.engagement_rate;
-  }
+  // that actually has a rate - that's the audience a brand is really buying.
+  //
+  // Only consider rates we'd actually display. Otherwise a creator whose main
+  // platform can't be measured (hidden likes, or reach far beyond their
+  // following) shows nothing at all, even when their other platform has a
+  // perfectly good figure we could have used instead.
+  const withRate = accounts.filter((a) =>
+    isPlausibleEngagement(Number(a.engagement_rate)),
+  );
+  denorm.engagement_rate =
+    withRate.length > 0
+      ? withRate.reduce((best, a) =>
+          Number(a.follower_count ?? 0) > Number(best.follower_count ?? 0) ? a : best,
+        ).engagement_rate
+      : null;
 
   if (latestSync) denorm.followers_synced_at = latestSync;
   if (Object.keys(denorm).length === 0) return false;
