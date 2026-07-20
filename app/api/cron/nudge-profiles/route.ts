@@ -4,11 +4,9 @@ import { sendProfileNudges } from "@/lib/profile-nudge";
 /**
  * "Finish your profile" nudge job.
  *
- * NOT SCHEDULED YET — deliberately absent from `vercel.json` until the email
- * copy has been signed off, because this one writes to real people's inboxes
- * rather than to the database. To turn it on, add:
- *
- *   { "path": "/api/cron/nudge-profiles", "schedule": "0 10 * * *" }
+ * Scheduled daily at 10:00 UTC (see `vercel.json`), enabled once the copy was
+ * signed off — this is the one job that writes to real people's inboxes rather
+ * than to the database, so it was held back until then.
  *
  * Daily is right even though almost every run finds nobody: the SQL side owns
  * the age, cap and spacing rules, so running often just means people are nudged
