@@ -180,7 +180,7 @@ export default async function LandingPage() {
               {isCreator
                 ? "Set your rates, show your work, and let brands book you at fixed prices - paid safely through escrow, no chasing invoices."
                 : content?.heroSubheadline ??
-                  "A high-end marketplace where brands book vetted creators at fixed prices. Browse, request, and pay through escrow - content delivered, no chasing."}
+                  "A premium marketplace where brands book vetted creators at fixed prices. Browse, request, and pay through escrow - content delivered, no chasing."}
             </p>
           </Reveal>
 
