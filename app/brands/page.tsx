@@ -1,4 +1,5 @@
 import { listBrandsLookingForCreators, getFavoriteBrandIds } from "@/lib/queries";
+import { getOfficialBrandIds } from "@/lib/admin";
 import { getCurrentUser } from "@/lib/session";
 import { BrandCard } from "@/components/BrandCard";
 import { Reveal } from "@/components/ui/motion";
@@ -7,10 +8,11 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Brands hiring - Fluencers Connect" };
 
 export default async function BrandsPage() {
-  const [brands, me, favoriteBrandIds] = await Promise.all([
+  const [brands, me, favoriteBrandIds, officialIds] = await Promise.all([
     listBrandsLookingForCreators(),
     getCurrentUser(),
     getFavoriteBrandIds(),
+    getOfficialBrandIds(),
   ]);
   const isCreator = me?.role === "creator";
 
@@ -37,6 +39,7 @@ export default async function BrandsPage() {
                 canMessage={isCreator}
                 canFavorite={isCreator}
                 initialFavorited={favoriteBrandIds.has(b.user_id)}
+                official={officialIds.has(b.user_id)}
               />
             </Reveal>
           ))}

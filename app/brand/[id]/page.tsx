@@ -6,6 +6,7 @@ import { MessageBrandButton } from "@/components/MessageBrandButton";
 import { BrandFavoriteButton } from "@/components/BrandFavoriteButton";
 import { InstagramIcon, TikTokIcon } from "@/components/SocialIcons";
 import { Badge } from "@/components/ui/Badge";
+import { getOfficialBrandIds } from "@/lib/admin";
 import { gbp, instagramUrl, tiktokUrl, sizedImage } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -16,12 +17,15 @@ export default async function BrandPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [brand, me, favoriteBrandIds] = await Promise.all([
+  const [brand, me, favoriteBrandIds, officialIds] = await Promise.all([
     getBrandProfile(id),
     getCurrentUser(),
     getFavoriteBrandIds(),
+    getOfficialBrandIds(),
   ]);
   if (!brand) notFound();
+
+  const isOfficial = officialIds.has(brand.user_id);
 
   const budget =
     brand.budget_min != null && brand.budget_max != null
@@ -66,9 +70,12 @@ export default async function BrandPage({
           <h1 className="text-h1 h-display font-bold text-[var(--foreground)]">
             {brand.company_name}
           </h1>
-          {brand.looking_for_creators && (
-            <div className="mt-2">
-              <Badge tone="info">Looking for creators</Badge>
+          {(brand.looking_for_creators || isOfficial) && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {brand.looking_for_creators && (
+                <Badge tone="info">Looking for creators</Badge>
+              )}
+              {isOfficial && <Badge tone="active">Official admin</Badge>}
             </div>
           )}
         </div>

@@ -12,11 +12,14 @@ export function BrandCard({
   canMessage,
   canFavorite = false,
   initialFavorited = false,
+  official = false,
 }: {
   brand: BrandProfile;
   canMessage: boolean;
   canFavorite?: boolean;
   initialFavorited?: boolean;
+  /** Platform's own account - marks the card with an "Official admin" badge. */
+  official?: boolean;
 }) {
   const budget =
     brand.budget_min != null && brand.budget_max != null
@@ -67,9 +70,11 @@ export function BrandCard({
         )}
       </div>
 
-      {/* Status badge on its own row so long names never collide with it */}
-      <div className="mt-3">
+      {/* Status badges on their own row so long names never collide with them,
+          and wrapping so a narrow card stacks them instead of overflowing. */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         <Badge tone="info">Looking for creators</Badge>
+        {official && <Badge tone="active">Official admin</Badge>}
       </div>
 
       {brand.about && (

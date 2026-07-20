@@ -12,6 +12,7 @@ import { getHomepageContent } from "@/lib/sanity/homepage";
 import { urlForImage } from "@/lib/sanity/image";
 import { CreatorCard } from "@/components/CreatorCard";
 import { BrandCard } from "@/components/BrandCard";
+import { getOfficialBrandIds } from "@/lib/admin";
 import { ButtonLink } from "@/components/ui/Button";
 import { Reveal, RevealOnView } from "@/components/ui/motion";
 import type { CreatorProfile } from "@/lib/types";
@@ -131,9 +132,13 @@ export default async function LandingPage() {
 
   // For signed-in creators, show real brands (looking for creators) on the home
   // page instead of the creator grid.
-  const [brands, favoriteBrandIds] = isCreator
-    ? await Promise.all([listBrandsLookingForCreators(), getFavoriteBrandIds()])
-    : [[], new Set<string>()];
+  const [brands, favoriteBrandIds, officialBrandIds] = isCreator
+    ? await Promise.all([
+        listBrandsLookingForCreators(),
+        getFavoriteBrandIds(),
+        getOfficialBrandIds(),
+      ])
+    : [[], new Set<string>(), new Set<string>()];
 
   return (
     <main>
@@ -271,6 +276,7 @@ export default async function LandingPage() {
                     canMessage
                     canFavorite
                     initialFavorited={favoriteBrandIds.has(b.user_id)}
+                    official={officialBrandIds.has(b.user_id)}
                   />
                 </Reveal>
               ))}

@@ -47,3 +47,29 @@ export async function requireAdmin(): Promise<AppUser> {
   if (!(await isAdmin(me.id))) notFound();
   return me;
 }
+
+/**
+ * The user IDs that carry the public "Official admin" badge on their brand card.
+ *
+ * Note what this deliberately does: `admin_users` is otherwise invisible to the
+ * browser precisely so nobody can enumerate the admins, and this publishes that
+ * one fact for every visitor. That's the point of the badge - creators should be
+ * able to tell the platform's own account from any other brand - but it does
+ * mean the admin account is publicly identifiable, so treat its password and
+ * inbox accordingly.
+ *
+ * Returns an empty set rather than throwing if anything goes wrong: a missing
+ * badge is a cosmetic loss, and no page should fail over it.
+ */
+export async function getOfficialBrandIds(): Promise<Set<string>> {
+  if (!isAdminConfigured()) return new Set();
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.from("admin_users").select("user_id");
+
+  if (error) {
+    console.error("[admin] couldn't load official brands:", error.message);
+    return new Set();
+  }
+  return new Set((data ?? []).map((r) => r.user_id as string));
+}

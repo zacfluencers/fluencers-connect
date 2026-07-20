@@ -5,6 +5,7 @@ import { getFavoriteCreators, getFavoriteBrands } from "@/lib/queries";
 import { brandCanTransact } from "@/lib/subscription";
 import { CreatorCard } from "@/components/CreatorCard";
 import { BrandCard } from "@/components/BrandCard";
+import { getOfficialBrandIds } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Favourites - Fluencers Connect" };
@@ -33,7 +34,10 @@ export default async function FavoritesPage() {
 }
 
 async function CreatorFavorites() {
-  const brands = await getFavoriteBrands();
+  const [brands, officialIds] = await Promise.all([
+    getFavoriteBrands(),
+    getOfficialBrandIds(),
+  ]);
 
   if (brands.length === 0) {
     return (
@@ -54,6 +58,7 @@ async function CreatorFavorites() {
           canMessage
           canFavorite
           initialFavorited
+          official={officialIds.has(b.user_id)}
         />
       ))}
     </div>

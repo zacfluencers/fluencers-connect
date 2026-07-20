@@ -13,6 +13,7 @@ import { brandCanTransact } from "@/lib/subscription";
 import { syncBrandSubscriptionFromSession } from "@/app/actions/billing";
 import { BookingCard } from "@/components/BookingCard";
 import { BrandCard } from "@/components/BrandCard";
+import { getOfficialBrandIds } from "@/lib/admin";
 import { BrandProfileForm } from "@/components/BrandProfileForm";
 import { BrandSubscription } from "@/components/BrandSubscription";
 import { Panel, Stat } from "@/components/ui/DashboardPanel";
@@ -40,12 +41,14 @@ export default async function BrandDashboard({
     await syncBrandSubscriptionFromSession(sp.session_id);
   }
 
-  const [bookings, brandProfile, conversations, billing] = await Promise.all([
-    listMyBookings(),
-    getBrandProfile(me.id),
-    getMyConversations(),
-    getBrandBilling(me.id),
-  ]);
+  const [bookings, brandProfile, conversations, billing, officialIds] =
+    await Promise.all([
+      listMyBookings(),
+      getBrandProfile(me.id),
+      getMyConversations(),
+      getBrandBilling(me.id),
+      getOfficialBrandIds(),
+    ]);
 
   const subscribed = isSubscribed(billing?.status);
   // Only fetch plan prices from Stripe when we actually need to show them.
@@ -86,7 +89,11 @@ export default async function BrandDashboard({
           >
             {brandProfile ? (
               <>
-                <BrandCard brand={brandProfile} canMessage={false} />
+                <BrandCard
+                  brand={brandProfile}
+                  canMessage={false}
+                  official={officialIds.has(me.id)}
+                />
                 <p className="mt-4 text-sm">
                   {brandProfile.looking_for_creators ? (
                     <span className="text-emerald-300">
