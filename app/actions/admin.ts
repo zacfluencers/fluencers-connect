@@ -7,6 +7,7 @@ import { refundEscrow } from "@/lib/stripe/escrow";
 import { notify } from "@/lib/notifications";
 import { isEmailConfigured } from "@/lib/email";
 import { sendProfileNudgePreview } from "@/lib/profile-nudge";
+import { mirrorPendingSocialAvatars } from "@/lib/social/enrichment";
 
 export type AdminActionState = { error: string } | { ok: string } | null;
 
@@ -100,4 +101,29 @@ export async function adminPreviewProfileNudge(): Promise<AdminActionState> {
   return ok
     ? { ok: `Sent both sample emails to ${me.email}.` }
     : { error: "The email provider rejected the send. Nothing went out." };
+}
+
+/**
+ * Run the imported-photo repair now, instead of waiting for the daily job.
+ *
+ * Creators who never uploaded a photo fall back to their Instagram or TikTok
+ * picture, and those links expire within days. The nightly job copies them into
+ * our own storage; this is the same pass on demand, for when you'd rather not
+ * wait until morning. Safe to run any time: already-copied photos are skipped
+ * and it makes no paid API calls.
+ */
+export async function adminMirrorAvatars(): Promise<AdminActionState> {
+  await requireAdmin();
+
+  const fixed = await mirrorPendingSocialAvatars();
+
+  revalidatePath("/marketplace");
+  revalidatePath("/admin");
+
+  return {
+    ok:
+      fixed === 0
+        ? "Nothing to fix - every imported photo is already stored safely."
+        : `Fixed ${fixed} imported ${fixed === 1 ? "photo" : "photos"}.`,
+  };
 }

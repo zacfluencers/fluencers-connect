@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getAdminStats } from "@/lib/admin-queries";
 import { AdminNudgePreviewButton } from "@/components/AdminNudgePreviewButton";
+import { AdminMaintenanceButton } from "@/components/AdminMaintenanceButton";
+import { adminMirrorAvatars } from "@/app/actions/admin";
 import { gbp } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -66,9 +68,18 @@ export default async function AdminOverviewPage() {
         </div>
       </section>
 
-      <AdminNudgePreviewButton
-        pending={s.creatorsPending + s.brandsPending}
-      />
+      <section className="grid gap-4 sm:grid-cols-2">
+        <AdminNudgePreviewButton
+          pending={s.creatorsPending + s.brandsPending}
+        />
+        <AdminMaintenanceButton
+          title="Imported profile photos"
+          description="Creators who didn't upload a photo borrow their Instagram or TikTok one, and those links expire. This copies them into our own storage. Runs nightly anyway - use this if you don't want to wait."
+          label="Fix photos now"
+          pendingLabel="Fixing…"
+          action={adminMirrorAvatars}
+        />
+      </section>
 
       {s.excludedAdmins > 0 && (
         <p className="text-sm text-[var(--muted)]">
