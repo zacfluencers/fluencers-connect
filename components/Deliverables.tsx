@@ -172,7 +172,7 @@ export function Deliverables({
               <>
                 <span className="text-2xl">＋</span>
                 <span>Upload deliverables</span>
-                <span className="text-xs">Video or images — up to {MAX_MB}MB each.</span>
+                <span className="text-xs">Video or images - up to {MAX_MB}MB each.</span>
               </>
             )}
           </label>

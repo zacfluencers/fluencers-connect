@@ -10,7 +10,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
  */
 function log(event: Stripe.Event, note?: string) {
   console.log(
-    `[stripe webhook] ${event.type} (${event.id})${note ? ` — ${note}` : ""}`,
+    `[stripe webhook] ${event.type} (${event.id})${note ? ` - ${note}` : ""}`,
   );
 }
 
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
         // The customer has paid — if we couldn't record the booking, fail the
         // webhook so Stripe retries rather than losing the paid booking.
         if (!bookingId) {
-          log(event, "could not record booking — asking Stripe to retry");
+          log(event, "could not record booking - asking Stripe to retry");
           return new Response("Could not record booking", { status: 500 });
         }
         log(event, `booking ${bookingId} recorded`);
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
             ? charge.payment_intent
             : null;
         if (!piId) {
-          log(event, "no payment_intent on charge — nothing to reconcile");
+          log(event, "no payment_intent on charge - nothing to reconcile");
           break;
         }
         const patch: {
@@ -146,7 +146,7 @@ export async function POST(req: Request) {
           await upsertBrandBilling(userId, subscriptionToRow(sub));
           log(event, `subscription ${sub.status} for ${userId}`);
         } else {
-          log(event, "subscription event without user_id metadata — skipped");
+          log(event, "subscription event without user_id metadata - skipped");
         }
         break;
       }

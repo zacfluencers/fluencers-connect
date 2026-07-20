@@ -56,7 +56,7 @@ export async function startCreatorConversation(creatorId: string) {
   }
   // Gate: only subscribed brands can message creators.
   if (!(await brandCanTransact(me.id))) {
-    return { error: "Subscribe to message creators — see Membership on your dashboard." };
+    return { error: "Subscribe to message creators - see Membership on your dashboard." };
   }
 
   const supabase = await createClient();
@@ -82,7 +82,7 @@ export async function sendFirstMessage(
   if (text.length > 4000) return { error: "Message is too long." };
   // Gate: a free brand can't send messages (creators are never gated).
   if (me.role === "brand" && !(await brandCanTransact(me.id))) {
-    return { error: "Subscribe to message creators — see Membership on your dashboard." };
+    return { error: "Subscribe to message creators - see Membership on your dashboard." };
   }
 
   const brandId = me.role === "brand" ? me.id : counterpartId;
@@ -156,7 +156,7 @@ export async function sendMessage(
   if (text.length > 4000) return { error: "Message is too long." };
   // Gate: a free brand can't send messages (creators are never gated).
   if (me.role === "brand" && !(await brandCanTransact(me.id))) {
-    return { error: "Subscribe to message creators — see Membership on your dashboard." };
+    return { error: "Subscribe to message creators - see Membership on your dashboard." };
   }
 
   const supabase = await createClient();

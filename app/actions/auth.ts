@@ -111,7 +111,7 @@ export async function updatePassword(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "Your reset link has expired — request a new one." };
+    return { error: "Your reset link has expired - request a new one." };
   }
 
   const { error } = await supabase.auth.updateUser({ password });

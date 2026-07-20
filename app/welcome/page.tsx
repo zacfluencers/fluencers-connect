@@ -5,7 +5,7 @@ import { getBrandProfile } from "@/lib/queries";
 import { BrandProfileForm } from "@/components/BrandProfileForm";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Welcome — Fluencers Connect" };
+export const metadata = { title: "Welcome - Fluencers Connect" };
 
 export default async function WelcomePage() {
   const me = await getCurrentUser();
@@ -39,7 +39,7 @@ export default async function WelcomePage() {
           href="/marketplace"
           className="text-sm text-[var(--muted)] underline-offset-4 hover:text-[var(--foreground)] hover:underline"
         >
-          Skip for now — browse creators →
+          Skip for now - browse creators →
         </Link>
       </div>
     </main>

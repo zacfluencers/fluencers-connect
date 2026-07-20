@@ -4,7 +4,7 @@ import { BrandCard } from "@/components/BrandCard";
 import { Reveal } from "@/components/ui/motion";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Brands hiring — Fluencers Connect" };
+export const metadata = { title: "Brands hiring - Fluencers Connect" };
 
 export default async function BrandsPage() {
   const [brands, me, favoriteBrandIds] = await Promise.all([
@@ -26,7 +26,7 @@ export default async function BrandsPage() {
 
       {brands.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[var(--border-strong)] p-12 text-center text-[var(--muted)]">
-          No brands are looking right now — check back soon.
+          No brands are looking right now - check back soon.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

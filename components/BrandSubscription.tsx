@@ -82,9 +82,9 @@ export function BrandSubscription({
           </Badge>
           <p className="mt-2 max-w-md text-sm text-[var(--muted)]">
             {status === "past_due"
-              ? "Your last payment didn't go through — update it to keep your plan."
+              ? "Your last payment didn't go through - update it to keep your plan."
               : cancelAtPeriodEnd
-                ? `Your plan ends${renews ? ` on ${renews}` : ""} — you won't be charged again.`
+                ? `Your plan ends${renews ? ` on ${renews}` : ""} - you won't be charged again.`
                 : renews
                   ? `Renews on ${renews}.`
                   : "Your subscription is active."}
@@ -101,7 +101,7 @@ export function BrandSubscription({
   if (plans.length === 0) {
     return (
       <p className="text-sm text-[var(--muted)]">
-        Subscriptions aren&apos;t available just yet — check back soon.
+        Subscriptions aren&apos;t available just yet - check back soon.
       </p>
     );
   }

@@ -61,7 +61,7 @@ function safe(s: string) {
   return s
     .replace(/[‘’]/g, "'")
     .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, "-")
+    .replace(/[--]/g, "-")
     .replace(/…/g, "...")
     .replace(/[^\x09\x0A\x0D\x20-\xFF]/g, "");
 }
@@ -201,7 +201,7 @@ async function buildInvoice(d: {
   const paid = d.paymentStatus === "released" || d.paymentStatus === "held";
   const payLine = paid
     ? "Paid in full via secure escrow (Stripe). Funds released on completion."
-    : "Demo booking — no payment was taken in this environment.";
+    : "Demo booking - no payment was taken in this environment.";
   text(paid ? "PAID" : "DEMO", M, y, 11, bold, paid ? ACCENT : MUTED);
   y -= 16;
   text(payLine, M, y, 9.5, font, MUTED);

@@ -22,7 +22,7 @@ import { Reveal } from "@/components/ui/motion";
 import { gbp } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Brand Dashboard — Fluencers Connect" };
+export const metadata = { title: "Brand Dashboard - Fluencers Connect" };
 
 export default async function BrandDashboard({
   searchParams,
@@ -94,7 +94,7 @@ export default async function BrandDashboard({
                     </span>
                   ) : (
                     <span className="text-[var(--muted)]">
-                      ○ Hidden — turn on “Looking for creators” below to appear.
+                      ○ Hidden - turn on “Looking for creators” below to appear.
                     </span>
                   )}
                 </p>
@@ -102,7 +102,7 @@ export default async function BrandDashboard({
             ) : (
               <div className="rounded-xl border border-dashed border-[var(--border-strong)] p-6 text-center text-sm text-[var(--muted)]">
                 Fill in your brand profile below and your card will appear here
-                — this is what creators will see.
+                - this is what creators will see.
               </div>
             )}
           </Panel>

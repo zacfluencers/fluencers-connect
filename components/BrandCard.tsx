@@ -20,7 +20,7 @@ export function BrandCard({
 }) {
   const budget =
     brand.budget_min != null && brand.budget_max != null
-      ? `${gbp.format(brand.budget_min)}–${gbp.format(brand.budget_max)}`
+      ? `${gbp.format(brand.budget_min)}-${gbp.format(brand.budget_max)}`
       : brand.budget_max != null
         ? `up to ${gbp.format(brand.budget_max)}`
         : brand.budget_min != null

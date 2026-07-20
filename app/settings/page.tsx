@@ -42,7 +42,7 @@ export default async function SettingsPage() {
       <div className="mt-12 space-y-12">
         <Section
           title="Emails"
-          blurb="What lands in your inbox. You'll always see everything in the app — this only controls the emails."
+          blurb="What lands in your inbox. You'll always see everything in the app - this only controls the emails."
         >
           <NotificationPrefsForm
             emailMessages={prefs?.email_messages ?? true}

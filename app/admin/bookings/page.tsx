@@ -56,9 +56,9 @@ export default async function AdminBookingsPage() {
                     {b.brandName} → {b.creatorName}
                   </Link>
                 </Td>
-                <Td>{serviceLabel(b.serviceType) ?? "—"}</Td>
+                <Td>{serviceLabel(b.serviceType) ?? "-"}</Td>
                 <Td className="font-semibold text-[var(--foreground)]">
-                  {b.price != null ? gbp.format(b.price) : "—"}
+                  {b.price != null ? gbp.format(b.price) : "-"}
                 </Td>
                 <Td>
                   <Badge tone={PAYMENT_TONE[b.paymentStatus] ?? "neutral"}>
@@ -82,7 +82,7 @@ export default async function AdminBookingsPage() {
                       creatorName={b.creatorName}
                     />
                   ) : (
-                    <span className="text-xs text-[var(--muted)]">—</span>
+                    <span className="text-xs text-[var(--muted)]">-</span>
                   )}
                 </Td>
               </tr>

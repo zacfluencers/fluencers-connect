@@ -47,14 +47,14 @@ export function NotificationPrefsForm({
           checked={messages}
           onChange={setMessages}
           label="New messages"
-          hint="An email each time someone messages you. Turn this off if it's too chatty — you'll still see them in the app."
+          hint="An email each time someone messages you. Turn this off if it's too chatty - you'll still see them in the app."
         />
         <Toggle
           name="email_bookings"
           checked={bookings}
           onChange={setBookings}
           label="Booking updates"
-          hint="Requests, acceptances, delivered content, payments. Worth keeping on — these are the ones with money attached."
+          hint="Requests, acceptances, delivered content, payments. Worth keeping on - these are the ones with money attached."
         />
       </div>
       <button type="submit" disabled={pending} className={`${BUTTON} mt-5`}>
@@ -175,7 +175,7 @@ export function DeleteAccountForm() {
         </p>
         <p className="mt-1.5">
           Records of bookings you&apos;ve paid for or been paid for are kept, with
-          your personal details stripped out — we&apos;re required to keep those.
+          your personal details stripped out - we&apos;re required to keep those.
         </p>
       </div>
       <Labelled label="Your password">

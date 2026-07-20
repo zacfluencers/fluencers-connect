@@ -15,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Fluencers Connect — Book creators instantly",
+  title: "Fluencers Connect - Book creators instantly",
   description:
     "A high-end marketplace where brands book creators. No negotiation. No friction.",
 };

@@ -6,7 +6,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { DealRoomLink } from "@/components/DealRoomLink";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "My Bookings — Fluencers Connect" };
+export const metadata = { title: "My Bookings - Fluencers Connect" };
 
 const gbp = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" });
 

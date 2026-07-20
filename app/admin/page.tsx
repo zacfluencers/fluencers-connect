@@ -73,7 +73,7 @@ export default async function AdminOverviewPage() {
       {s.excludedAdmins > 0 && (
         <p className="text-sm text-[var(--muted)]">
           Your own admin {s.excludedAdmins === 1 ? "account is" : "accounts are"}{" "}
-          left out of the counts above — otherwise you&apos;d show up as one of
+          left out of the counts above - otherwise you&apos;d show up as one of
           your own paying brands.
         </p>
       )}

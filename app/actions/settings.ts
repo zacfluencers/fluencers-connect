@@ -115,7 +115,7 @@ export async function changeEmail(
   if (error) return { error: error.message };
 
   return {
-    ok: `Check ${email} — we've sent a link to confirm the change. Your old address keeps working until you click it.`,
+    ok: `Check ${email} - we've sent a link to confirm the change. Your old address keeps working until you click it.`,
   };
 }
 

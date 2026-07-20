@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ForgotPasswordForm } from "@/components/ForgotPasswordForm";
 
-export const metadata = { title: "Reset password — Fluencers Connect" };
+export const metadata = { title: "Reset password - Fluencers Connect" };
 
 export default async function ForgotPasswordPage({
   searchParams,
@@ -25,7 +25,7 @@ export default async function ForgotPasswordPage({
               your password.
             </p>
             <p className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3.5 py-2.5 text-sm text-emerald-300">
-              Check your inbox (and spam) for the reset link — it expires after a
+              Check your inbox (and spam) for the reset link - it expires after a
               while, so use it soon.
             </p>
           </>

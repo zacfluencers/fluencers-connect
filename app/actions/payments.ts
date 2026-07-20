@@ -25,7 +25,7 @@ export async function createBookingCheckout(
   if (me.role !== "brand") return { error: "Only brands can book creators." };
   // Gate: only subscribed brands can book (free brands can browse only).
   if (!(await brandCanTransact(me.id))) {
-    return { error: "Subscribe to book creators — see Membership on your dashboard." };
+    return { error: "Subscribe to book creators - see Membership on your dashboard." };
   }
 
   const def = serviceDef(service);
@@ -94,7 +94,7 @@ export async function createBookingCheckout(
           price_data: {
             currency: "gbp",
             unit_amount: toPence(rate),
-            product_data: { name: `${def.label} — ${creator.name}` },
+            product_data: { name: `${def.label} - ${creator.name}` },
           },
         },
       ],

@@ -17,7 +17,7 @@ export const BRAND_PLANS = {
     key: "annual",
     label: "Annual",
     lookupEnv: "STRIPE_PRICE_BRAND_ANNUAL_LOOKUP_KEY",
-    blurb: "Best value — one payment for the year.",
+    blurb: "Best value - one payment for the year.",
   },
 } as const;
 

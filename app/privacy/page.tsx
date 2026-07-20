@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalLayout, Section } from "@/components/LegalLayout";
 
-export const metadata = { title: "Privacy Policy — Fluencers Connect" };
+export const metadata = { title: "Privacy Policy - Fluencers Connect" };
 
 export default function PrivacyPage() {
   return (
@@ -17,34 +17,34 @@ export default function PrivacyPage() {
       <Section n={1} title="Data we collect">
         <ul className="list-disc space-y-1.5 pl-5">
           <li>
-            <strong className="text-[var(--foreground)]">Account details</strong> —
+            <strong className="text-[var(--foreground)]">Account details</strong> -
             your name, email address, password (stored encrypted) and whether
             you&rsquo;re a Brand or Creator.
           </li>
           <li>
             <strong className="text-[var(--foreground)]">Profile information</strong>{" "}
-            — anything you add to your profile, such as company details, bio,
+            - anything you add to your profile, such as company details, bio,
             niche, rates, images/logo, and your social handles.
           </li>
           <li>
-            <strong className="text-[var(--foreground)]">Social data</strong> — when
+            <strong className="text-[var(--foreground)]">Social data</strong> - when
             you connect a public Instagram or TikTok handle, we retrieve public
             profile data (such as follower counts, avatar and engagement) to
             populate your profile.
           </li>
           <li>
-            <strong className="text-[var(--foreground)]">Payment data</strong> —
+            <strong className="text-[var(--foreground)]">Payment data</strong> -
             bookings, subscriptions and payouts are processed by Stripe. We
             don&rsquo;t store your full card or bank details; Stripe does, as a
             separate controller.
           </li>
           <li>
             <strong className="text-[var(--foreground)]">Content and messages</strong>{" "}
-            — bookings, briefs, delivered content, and messages you send through
+            - bookings, briefs, delivered content, and messages you send through
             the Service.
           </li>
           <li>
-            <strong className="text-[var(--foreground)]">Technical data</strong> —
+            <strong className="text-[var(--foreground)]">Technical data</strong> -
             basic usage information, cookies needed to keep you signed in, and
             limited diagnostic data if something goes wrong.
           </li>
@@ -70,19 +70,19 @@ export default function PrivacyPage() {
           needed to provide their service:
         </p>
         <ul className="list-disc space-y-1.5 pl-5">
-          <li><strong className="text-[var(--foreground)]">Stripe</strong> — payments, subscriptions and creator payouts.</li>
-          <li><strong className="text-[var(--foreground)]">Supabase</strong> — database, authentication and file storage.</li>
-          <li><strong className="text-[var(--foreground)]">Vercel</strong> — hosting of the Service.</li>
-          <li><strong className="text-[var(--foreground)]">Resend</strong> — sending account and notification emails.</li>
-          <li><strong className="text-[var(--foreground)]">Sentry</strong> — error monitoring to keep the Service reliable.</li>
-          <li><strong className="text-[var(--foreground)]">ScrapeCreators</strong> — retrieving public social-profile data you choose to connect.</li>
-          <li><strong className="text-[var(--foreground)]">Sanity</strong> — managing website content.</li>
+          <li><strong className="text-[var(--foreground)]">Stripe</strong> - payments, subscriptions and creator payouts.</li>
+          <li><strong className="text-[var(--foreground)]">Supabase</strong> - database, authentication and file storage.</li>
+          <li><strong className="text-[var(--foreground)]">Vercel</strong> - hosting of the Service.</li>
+          <li><strong className="text-[var(--foreground)]">Resend</strong> - sending account and notification emails.</li>
+          <li><strong className="text-[var(--foreground)]">Sentry</strong> - error monitoring to keep the Service reliable.</li>
+          <li><strong className="text-[var(--foreground)]">ScrapeCreators</strong> - retrieving public social-profile data you choose to connect.</li>
+          <li><strong className="text-[var(--foreground)]">Sanity</strong> - managing website content.</li>
         </ul>
       </Section>
 
       <Section n={4} title="Cookies">
         <p>
-          We use only the cookies needed to run the Service — mainly to keep you
+          We use only the cookies needed to run the Service - mainly to keep you
           signed in and secure. We don&rsquo;t use advertising or third-party
           tracking cookies.
         </p>

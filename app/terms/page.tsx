@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalLayout, Section } from "@/components/LegalLayout";
 
-export const metadata = { title: "Terms of Service — Fluencers Connect" };
+export const metadata = { title: "Terms of Service - Fluencers Connect" };
 
 export default function TermsPage() {
   return (

@@ -203,7 +203,7 @@ export default async function DealRoomPage({
               <BookingActions bookingId={booking.id} actions={actions} />
             ) : (
               <p className="text-sm text-[var(--muted)]">
-                {STATUS_META[booking.status].label} — nothing to do right now.
+                {STATUS_META[booking.status].label} - nothing to do right now.
               </p>
             )}
             {canDispute && (
@@ -249,7 +249,7 @@ function escrowNote(status: string) {
     case "refunded":
       return "Funds refunded to the brand.";
     case "unpaid":
-      return "Demo booking — payments are off, so no funds were taken.";
+      return "Demo booking - payments are off, so no funds were taken.";
     default:
       return "Awaiting payment.";
   }

@@ -71,7 +71,7 @@ export default async function AdminUsersPage({
                 <Td className="capitalize">{u.role}</Td>
                 <Td>
                   {u.role !== "brand" ? (
-                    <span className="text-[var(--muted)]">—</span>
+                    <span className="text-[var(--muted)]">-</span>
                   ) : u.subscription ? (
                     <span className="capitalize">{u.subscription.replace("_", " ")}</span>
                   ) : (
@@ -85,7 +85,7 @@ export default async function AdminUsersPage({
                         month: "short",
                         year: "numeric",
                       })
-                    : "—"}
+                    : "-"}
                 </Td>
               </tr>
             ))}

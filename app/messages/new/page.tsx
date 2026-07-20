@@ -9,7 +9,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Avatar } from "@/components/Avatar";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "New message — Fluencers Connect" };
+export const metadata = { title: "New message - Fluencers Connect" };
 
 /**
  * Compose screen for a conversation that doesn't exist yet. Looks like a

@@ -120,7 +120,7 @@ interface ProfileNudgeInput {
   role: "creator" | "brand";
   /** Absolute URL to the right profile editor. */
   url: string;
-  /** Second and final nudge — shorter, and says it's the last one. */
+  /** Second and final nudge - shorter, and says it's the last one. */
   isFinal?: boolean;
 }
 
@@ -130,7 +130,7 @@ interface ProfileNudgeInput {
  * A lifecycle email rather than a notification: someone made an account and
  * then stopped, and until they save a profile they're invisible to the other
  * side of the marketplace. Deliberately short, concrete about what's missing,
- * and honest that it's one of at most two — nobody gets nagged indefinitely.
+ * and honest that it's one of at most two - nobody gets nagged indefinitely.
  */
 export function renderProfileNudgeEmail({ role, url, isFinal = false }: ProfileNudgeInput): {
   subject: string;
@@ -152,12 +152,12 @@ export function renderProfileNudgeEmail({ role, url, isFinal = false }: ProfileN
     : "Creators can't see you yet";
 
   const lead = isCreator
-    ? "You created an account, but your profile hasn't been saved — so you don't appear when brands browse for creators. It takes about two minutes."
-    : "You created an account, but your brand profile hasn't been saved — so creators can't see who you are when you get in touch. It takes about two minutes.";
+    ? "You created an account, but your profile hasn't been saved - so you don't appear when brands browse for creators. It takes about two minutes."
+    : "You created an account, but your brand profile hasn't been saved - so creators can't see who you are when you get in touch. It takes about two minutes.";
 
   const steps = isCreator
     ? [
-        "Add a photo — profiles with one get looked at far more",
+        "Add a photo - profiles with one get looked at far more",
         "Connect your Instagram or TikTok so your follower numbers fill in automatically",
         "Set your rates for the work you'll take on",
       ]
@@ -168,7 +168,7 @@ export function renderProfileNudgeEmail({ role, url, isFinal = false }: ProfileN
       ];
 
   const closing = isFinal
-    ? "This is the last reminder we'll send — your account stays open either way."
+    ? "This is the last reminder we'll send - your account stays open either way."
     : "";
 
   const stepsHtml = steps

@@ -282,7 +282,7 @@ export async function refreshActiveCreatorsSocialData(): Promise<number> {
  */
 export async function refreshFeaturedCreatorsSocialData(): Promise<number> {
   console.warn(
-    "[social] refreshFeaturedCreatorsSocialData: no 'featured' flag exists yet — add creator_profiles.featured and filter here.",
+    "[social] refreshFeaturedCreatorsSocialData: no 'featured' flag exists yet - add creator_profiles.featured and filter here.",
   );
   return 0;
 }

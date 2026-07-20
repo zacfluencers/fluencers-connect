@@ -49,7 +49,7 @@ export async function adminRefundBooking(
         booking.payment_status === "refunded"
           ? "This booking has already been refunded."
           : booking.payment_status === "released"
-            ? "That money has already been paid out to the creator — refund it in Stripe if you really mean to."
+            ? "That money has already been paid out to the creator - refund it in Stripe if you really mean to."
             : "There's no money held on this booking to refund.",
     };
   }

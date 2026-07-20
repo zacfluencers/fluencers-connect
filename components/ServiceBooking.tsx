@@ -157,7 +157,7 @@ export function ServiceBooking({
       )}
       {viewerRole === "brand" && (
         <p className="mt-3 text-xs text-[var(--muted)]">
-          Paid into escrow — released only when you approve the work.
+          Paid into escrow - released only when you approve the work.
         </p>
       )}
       {error && <p className="mt-2 text-sm text-rose-300">{error}</p>}

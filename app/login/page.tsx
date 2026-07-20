@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AuthForm } from "@/components/AuthForm";
 
-export const metadata = { title: "Sign in — Fluencers Connect" };
+export const metadata = { title: "Sign in - Fluencers Connect" };
 
 export default async function LoginPage({
   searchParams,

@@ -37,7 +37,7 @@ const SECTIONS: SectionDef[] = [
     title: "Campaign details",
     fields: [
       { key: "campaign_name", label: "Campaign name", type: "input", placeholder: "Summer skincare launch" },
-      { key: "target_audience", label: "Target audience", type: "input", placeholder: "Women 25–34, skincare-curious" },
+      { key: "target_audience", label: "Target audience", type: "input", placeholder: "Women 25-34, skincare-curious" },
     ],
   },
   {
@@ -45,14 +45,14 @@ const SECTIONS: SectionDef[] = [
     fields: [
       { key: "platform", label: "Platform", type: "select" },
       { key: "creative_brief", label: "Creative brief", type: "textarea", rows: 5, placeholder: "The story, tone, deliverables and direction you have in mind…" },
-      { key: "cta", label: "Call to action", type: "input", placeholder: "e.g. “Use code GLOW20 — link in bio”" },
+      { key: "cta", label: "Call to action", type: "input", placeholder: "e.g. “Use code GLOW20 - link in bio”" },
     ],
   },
   {
     title: "Requirements",
     fields: [
       { key: "must_include", label: "Must include", type: "textarea", placeholder: "Required hashtags, mentions, claims, disclosures" },
-      { key: "avoid", label: "Avoid", type: "textarea", placeholder: "Anything off-limits — competitors, phrases, settings" },
+      { key: "avoid", label: "Avoid", type: "textarea", placeholder: "Anything off-limits - competitors, phrases, settings" },
       { key: "deadline", label: "Deadline", type: "date" },
     ],
   },
@@ -172,7 +172,7 @@ function BriefSummary({
         <p className="text-sm text-[var(--muted)]">
           {isBrand
             ? "No brief yet. Add campaign details, deliverables and references so your creator knows exactly what to make."
-            : "The brand hasn’t added a brief yet — you’ll be notified when they do."}
+            : "The brand hasn’t added a brief yet - you’ll be notified when they do."}
         </p>
         {isBrand && (
           <Button variant="secondary" size="sm" className="mt-4" onClick={onEdit}>
@@ -593,7 +593,7 @@ function AssetUploader({
           <>
             <span className="text-2xl">＋</span>
             <span>Upload assets</span>
-            <span className="text-xs">Images, decks, example clips — up to {MAX_MB}MB each.</span>
+            <span className="text-xs">Images, decks, example clips - up to {MAX_MB}MB each.</span>
           </>
         )}
       </label>

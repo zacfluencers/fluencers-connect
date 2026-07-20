@@ -45,7 +45,7 @@ export function DualRange({
           {label}
         </span>
         <span className="text-sm text-[var(--muted)]">
-          {format(lo)} – {format(hi)}
+          {format(lo)} - {format(hi)}
           {hi >= max ? "+" : ""}
         </span>
       </div>

@@ -39,7 +39,7 @@ const STEPS = [
   },
   {
     title: "Book at a fixed price",
-    body: "Every service — UGC, event day, B-roll — has a clear rate. Pick one and book in a couple of clicks. No briefs lost in DMs.",
+    body: "Every service - UGC, event day, B-roll - has a clear rate. Pick one and book in a couple of clicks. No briefs lost in DMs.",
   },
   {
     title: "Pay safely on delivery",
@@ -51,7 +51,7 @@ const STEPS = [
 const BRAND_VALUES = [
   {
     title: "Transparent pricing",
-    body: "See every rate upfront. No haggling, no surprise quotes — just the price to book.",
+    body: "See every rate upfront. No haggling, no surprise quotes - just the price to book.",
   },
   {
     title: "Escrow protection",
@@ -63,7 +63,7 @@ const BRAND_VALUES = [
   },
   {
     title: "Fast turnaround",
-    body: "Most content is delivered in under 48 hours — not weeks of back-and-forth.",
+    body: "Most content is delivered in under 48 hours - not weeks of back-and-forth.",
   },
 ];
 
@@ -78,7 +78,7 @@ const CREATOR_VALUES = [
   },
   {
     title: "Brands come to you",
-    body: "Switch on your availability and let brands book you directly — no cold pitching.",
+    body: "Switch on your availability and let brands book you directly - no cold pitching.",
   },
   {
     title: "Fixed scope, fixed price",
@@ -173,9 +173,9 @@ export default async function LandingPage() {
           <Reveal index={2}>
             <p className="text-lead mx-auto mt-8 max-w-2xl text-[var(--muted)]">
               {isCreator
-                ? "Set your rates, show your work, and let brands book you at fixed prices — paid safely through escrow, no chasing invoices."
+                ? "Set your rates, show your work, and let brands book you at fixed prices - paid safely through escrow, no chasing invoices."
                 : content?.heroSubheadline ??
-                  "A high-end marketplace where brands book vetted creators at fixed prices. Browse, request, and pay through escrow — content delivered, no chasing."}
+                  "A high-end marketplace where brands book vetted creators at fixed prices. Browse, request, and pay through escrow - content delivered, no chasing."}
             </p>
           </Reveal>
 
@@ -277,7 +277,7 @@ export default async function LandingPage() {
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-[var(--border-strong)] p-12 text-center text-[var(--muted)]">
-              No brands are looking right now — check back soon.
+              No brands are looking right now - check back soon.
             </div>
           )
         ) : creators.length > 0 ? (
@@ -428,7 +428,7 @@ export default async function LandingPage() {
               </h2>
               <p className="text-lead mx-auto mt-5 max-w-xl text-[var(--muted)]">
                 {content?.finalSubheading ??
-                  "Whether you’re hiring creators or getting booked, it starts the same way — a profile, a price, and a click."}
+                  "Whether you’re hiring creators or getting booked, it starts the same way - a profile, a price, and a click."}
               </p>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                 {me ? (

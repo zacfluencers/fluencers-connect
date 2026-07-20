@@ -23,7 +23,7 @@ import { gbp } from "@/lib/format";
 import type { CreatorProfile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Creator Dashboard — Fluencers Connect" };
+export const metadata = { title: "Creator Dashboard - Fluencers Connect" };
 
 export default async function CreatorDashboard() {
   const me = await getCurrentUser();
@@ -95,7 +95,7 @@ export default async function CreatorDashboard() {
               </>
             ) : (
               <div className="rounded-xl border border-dashed border-[var(--border-strong)] p-6 text-center text-sm text-[var(--muted)]">
-                Fill in your profile below and your card will appear here —
+                Fill in your profile below and your card will appear here -
                 this is what brands will see.
               </div>
             )}
@@ -206,7 +206,7 @@ export default async function CreatorDashboard() {
           {/* Portfolio */}
           <Panel
             title="Portfolio"
-            subtitle="Upload 9:16 videos — these appear on your public profile."
+            subtitle="Upload 9:16 videos - these appear on your public profile."
           >
             <PortfolioManager userId={me.id} items={portfolio} />
           </Panel>

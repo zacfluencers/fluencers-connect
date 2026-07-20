@@ -29,7 +29,7 @@ export default function Error({
         <h1 className="h-display text-3xl font-bold">Something went wrong</h1>
         <p className="mb-7 mt-2 text-[var(--muted)]">
           A hiccup on our side stopped that from loading. It&apos;s usually
-          temporary — please try again.
+          temporary - please try again.
         </p>
         <div className="flex flex-col items-center gap-3">
           <button

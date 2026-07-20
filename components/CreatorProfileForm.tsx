@@ -65,7 +65,7 @@ export function CreatorProfileForm({
       {/* Transparent per-service rates — leave blank for any you don't offer. */}
       <fieldset className="rounded-xl border border-[var(--border)] p-4">
         <legend className="px-1 text-sm font-medium text-[var(--foreground)]">
-          Your rates (£) — set at least one
+          Your rates (£) - set at least one
         </legend>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Text label="UGC (per video)" name="ugc_rate" type="number" defaultValue={profile?.ugc_rate != null ? String(profile.ugc_rate) : ""} placeholder="e.g. 250" />
@@ -127,7 +127,7 @@ function Niche({ defaultValue }: { defaultValue: string }) {
         ))}
       </select>
       <span className="mt-1 block text-xs text-[var(--muted)]">
-        Brands filter by niche — without one you won&apos;t show up in their search.
+        Brands filter by niche - without one you won&apos;t show up in their search.
       </span>
     </label>
   );
