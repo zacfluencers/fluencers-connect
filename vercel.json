@@ -9,6 +9,10 @@
     {
       "path": "/api/cron/refresh-social?cohort=active",
       "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/refresh-social?cohort=avatars",
+      "schedule": "30 6 * * *"
     }
   ]
 }

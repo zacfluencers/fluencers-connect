@@ -4,6 +4,7 @@ import {
   refreshFeaturedCreatorsSocialData,
   refreshInactiveCreatorsSocialData,
   refreshUnsyncedCreatorsSocialData,
+  mirrorPendingSocialAvatars,
 } from "@/lib/social/enrichment";
 
 /**
@@ -11,6 +12,8 @@ import {
  *   • ?cohort=unsynced  → daily   (SCHEDULED) safety net: creators with a handle
  *                         but no stats yet. Each creator qualifies at most once.
  *   • ?cohort=active    → weekly  (SCHEDULED) keep available creators current.
+ *   • ?cohort=avatars   → daily   (SCHEDULED) copy any still-external profile
+ *                         picture into our storage. No provider calls.
  *   • ?cohort=featured  → daily   (not scheduled — needs a "featured" flag first)
  *   • ?cohort=inactive  → monthly (not scheduled)
  *
@@ -46,6 +49,9 @@ export async function GET(req: Request) {
       break;
     case "featured":
       refreshed = await refreshFeaturedCreatorsSocialData();
+      break;
+    case "avatars":
+      refreshed = await mirrorPendingSocialAvatars();
       break;
     case "inactive":
       refreshed = await refreshInactiveCreatorsSocialData();

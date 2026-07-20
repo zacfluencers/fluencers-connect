@@ -12,6 +12,7 @@
 
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isMirroredAvatar, mirrorSocialAvatar } from "@/lib/social/avatar-mirror";
 import {
   fetchSocialProfile,
   cleanHandle,
@@ -99,6 +100,14 @@ export async function enrichCreatorSocial(
   const { normalized, raw } = result;
   const now = new Date().toISOString();
 
+  // Store a copy of the profile picture rather than the provider's expiring,
+  // frequently ad-blocked CDN link. If the copy fails we keep the original —
+  // a photo that works for a few days beats no photo (see avatar-mirror.ts).
+  const avatarUrl = normalized.avatarUrl
+    ? ((await mirrorSocialAvatar(creatorId, platform, normalized.avatarUrl)) ??
+      normalized.avatarUrl)
+    : null;
+
   // Source of truth: one row per creator+platform (upsert, never duplicate).
   const { error: upsertError } = await admin
     .from("creator_social_accounts")
@@ -110,7 +119,7 @@ export async function enrichCreatorSocial(
         profile_url: normalized.profileUrl ?? null,
         display_name: normalized.displayName ?? null,
         bio: normalized.bio ?? null,
-        avatar_url: normalized.avatarUrl ?? null,
+        avatar_url: avatarUrl,
         follower_count: normalized.followerCount ?? null,
         following_count: normalized.followingCount ?? null,
         post_count: normalized.postCount ?? null,
@@ -298,6 +307,55 @@ export async function refreshUnsyncedCreatorsSocialData(): Promise<number> {
     .is("followers_synced_at", null)
     .or("instagram.not.is.null,tiktok.not.is.null");
   return refreshCohort((data ?? []).map((r) => r.user_id));
+}
+
+/**
+ * Repair pass: copy any still-external social avatar into our own storage.
+ *
+ * Creators synced before avatar mirroring existed are holding provider CDN
+ * links that expire within days. This walks them and mirrors each one — no
+ * paid provider calls, just a download and an upload.
+ *
+ * Idempotent and self-retiring: an already-mirrored URL is skipped, so once
+ * everyone is converted this costs one small query and nothing else. Runs daily
+ * so a creator whose mirror failed (provider hiccup, link already dead) gets
+ * another attempt on the next sync rather than sitting broken for a week.
+ */
+export async function mirrorPendingSocialAvatars(): Promise<number> {
+  const admin = createAdminClient();
+  const { data: accounts } = await admin
+    .from("creator_social_accounts")
+    .select("creator_id, platform, avatar_url")
+    .not("avatar_url", "is", null);
+
+  let mirrored = 0;
+  for (const acct of accounts ?? []) {
+    const url = acct.avatar_url as string;
+    if (isMirroredAvatar(url)) continue;
+
+    const stored = await mirrorSocialAvatar(
+      acct.creator_id as string,
+      acct.platform as SocialPlatform,
+      url,
+    );
+    if (!stored) continue;
+
+    const { error } = await admin
+      .from("creator_social_accounts")
+      .update({ avatar_url: stored })
+      .eq("creator_id", acct.creator_id)
+      .eq("platform", acct.platform);
+    if (error) {
+      console.error("[social] avatar backfill update failed:", error.message);
+      continue;
+    }
+
+    // Push it onto the card fields too, or the marketplace keeps showing the
+    // old external link until the creator's next full sync.
+    await syncProfileFromSocialAccounts(acct.creator_id as string);
+    mirrored++;
+  }
+  return mirrored;
 }
 
 /** Inactive creators (not available) — intended cadence: monthly. */
