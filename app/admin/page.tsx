@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAdminStats } from "@/lib/admin-queries";
+import { AdminNudgePreviewButton } from "@/components/AdminNudgePreviewButton";
 import { gbp } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -64,6 +65,10 @@ export default async function AdminOverviewPage() {
           <Stat label="Refunded" value={money(s.refundedPence)} />
         </div>
       </section>
+
+      <AdminNudgePreviewButton
+        pending={s.creatorsPending + s.brandsPending}
+      />
 
       {s.excludedAdmins > 0 && (
         <p className="text-sm text-[var(--muted)]">

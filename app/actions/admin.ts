@@ -5,6 +5,8 @@ import { requireAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { refundEscrow } from "@/lib/stripe/escrow";
 import { notify } from "@/lib/notifications";
+import { isEmailConfigured } from "@/lib/email";
+import { sendProfileNudgePreview } from "@/lib/profile-nudge";
 
 export type AdminActionState = { error: string } | { ok: string } | null;
 
@@ -78,4 +80,24 @@ export async function adminRefundBooking(
   revalidatePath(`/bookings/${bookingId}`);
 
   return { ok: "Refunded. Both parties have been told." };
+}
+
+/**
+ * Email a sample of both "finish your profile" nudges to the admin who asked,
+ * so the wording can be checked in a real inbox before any creator gets one.
+ *
+ * Sends only to the signed-in admin's own address — it takes no recipient from
+ * the form, so this can't be turned into a way to email arbitrary people.
+ */
+export async function adminPreviewProfileNudge(): Promise<AdminActionState> {
+  const me = await requireAdmin();
+
+  if (!isEmailConfigured()) {
+    return { error: "Email isn't configured, so nothing can be sent." };
+  }
+
+  const ok = await sendProfileNudgePreview(me.email);
+  return ok
+    ? { ok: `Sent both sample emails to ${me.email}.` }
+    : { error: "The email provider rejected the send. Nothing went out." };
 }
