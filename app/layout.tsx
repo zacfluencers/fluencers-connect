@@ -4,6 +4,7 @@ import "./globals.css";
 import { draftMode } from "next/headers";
 import { VisualEditing } from "next-sanity/visual-editing";
 import { AgentationProvider } from "@/components/AgentationProvider";
+import { InAppBrowserNotice } from "@/components/InAppBrowserNotice";
 import { Nav } from "@/components/Nav";
 import { SentryUser } from "@/components/SentryUser";
 import { SiteChrome } from "@/components/SiteChrome";
@@ -28,6 +29,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen font-[family-name:var(--font-sans)] antialiased">
+        <InAppBrowserNotice />
         <SiteChrome nav={<Nav />} extras={<AgentationProvider />}>
           {children}
         </SiteChrome>
