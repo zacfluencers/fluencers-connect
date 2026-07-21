@@ -8,7 +8,8 @@ import { CREATOR_PROFILE_COLUMNS, getFavoriteIds } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
 import { brandCanTransact } from "@/lib/subscription";
 import { offeredServices } from "@/lib/services";
-import { isKnownNiche, rankByNicheFocus } from "@/lib/niches";
+import { isKnownNiche } from "@/lib/niches";
+import { rankCreators } from "@/lib/creator-ranking";
 import type { CreatorProfile } from "@/lib/types";
 
 export const metadata = {
@@ -79,10 +80,17 @@ async function getCreators(f: Filters): Promise<CreatorProfile[]> {
     return true;
   });
 
-  // Specialists first: matching on your MAIN niche beats matching on a
-  // secondary one. This is what lets creators claim as many niches as they
-  // like without flooding brand search - breadth buys visibility, never rank.
-  return rankByNicheFocus(matched, niches);
+  // Which creators have portfolio video, for the strength score. One small
+  // query rather than a join, because the marketplace select is a shared
+  // column list used by several pages.
+  const { data: portfolio } = await supabase
+    .from("portfolio_items")
+    .select("creator_id");
+  const portfolioIds = new Set(
+    (portfolio ?? []).map((p) => p.creator_id as string),
+  );
+
+  return rankCreators(matched, { niches, portfolioIds });
 }
 
 export default async function MarketplacePage({

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sanitiseSecondaryNiches, rankByNicheFocus, NICHES } from "./niches";
+import { sanitiseSecondaryNiches, NICHES } from "./niches";
 
 describe("sanitiseSecondaryNiches", () => {
   it("keeps valid picks in the order chosen", () => {
@@ -51,40 +51,5 @@ describe("sanitiseSecondaryNiches", () => {
 
   it("handles an empty submission", () => {
     expect(sanitiseSecondaryNiches([], "Lifestyle")).toEqual([]);
-  });
-});
-
-describe("rankByNicheFocus", () => {
-  const priya = { niche: "Beauty & Skincare", secondary_niches: [] };
-  const karlie = { niche: "Lifestyle", secondary_niches: ["Beauty & Skincare"] };
-  const tom = { niche: "Tech & Gaming", secondary_niches: ["Beauty & Skincare", "Travel"] };
-
-  // The whole reason unlimited secondary niches are safe: a creator who tags
-  // everything appears in every search but never above someone it's actually
-  // the main focus for, so there's no gain in spamming the list.
-  it("puts main-niche matches above secondary-only matches", () => {
-    expect(
-      rankByNicheFocus([karlie, tom, priya], ["Beauty & Skincare"]).map((c) => c.niche),
-    ).toEqual(["Beauty & Skincare", "Lifestyle", "Tech & Gaming"]);
-  });
-
-  it("keeps the existing order within each group", () => {
-    const a = { niche: "Beauty & Skincare", secondary_niches: [] };
-    const b = { niche: "Beauty & Skincare", secondary_niches: [] };
-    const ranked = rankByNicheFocus([a, b, karlie], ["Beauty & Skincare"]);
-    expect(ranked[0]).toBe(a);
-    expect(ranked[1]).toBe(b);
-  });
-
-  it("leaves the list untouched when no niche filter is applied", () => {
-    const input = [karlie, tom, priya];
-    expect(rankByNicheFocus(input, [])).toEqual(input);
-  });
-
-  it("handles a creator with no niche set", () => {
-    const nameless = { niche: null, secondary_niches: null };
-    expect(
-      rankByNicheFocus([nameless, priya], ["Beauty & Skincare"]).map((c) => c.niche),
-    ).toEqual(["Beauty & Skincare", null]);
   });
 });

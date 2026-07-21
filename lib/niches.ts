@@ -60,22 +60,6 @@ export function sanitiseSecondaryNiches(
   return [...new Set(clean)];
 }
 
-/**
- * Order filtered search results so the best fit comes first.
- *
- * A creator whose MAIN niche matches what the brand asked for ranks above one
- * who only matches on a secondary. This is what makes unlimited secondary
- * niches safe: breadth buys visibility, never rank, so a creator who ticks
- * everything lands at the bottom of every search they didn't specialise in.
- *
- * Relies on Array.prototype.sort being stable (guaranteed since ES2019), which
- * preserves the existing alphabetical order within each group.
- */
-export function rankByNicheFocus<
-  T extends { niche: string | null; secondary_niches?: string[] | null },
->(creators: T[], filtered: string[]): T[] {
-  if (filtered.length === 0) return creators;
-  const wanted = new Set(filtered);
-  const rank = (c: T) => (c.niche && wanted.has(c.niche) ? 0 : 1);
-  return [...creators].sort((a, b) => rank(a) - rank(b));
-}
+// Result ordering (niche focus, profile strength, daily rotation) lives in
+// lib/creator-ranking.ts — it's one comparator, because sorting by each
+// dimension separately would let a later pass undo an earlier one.
