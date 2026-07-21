@@ -7,7 +7,9 @@ import { addPortfolioItem, deletePortfolioItem } from "@/app/actions/portfolio";
 import { uploadToBucketWithProgress } from "@/lib/upload";
 import type { PortfolioItem } from "@/lib/types";
 
-const MAX_MB = 150;
+// Must stay at or below the smaller of the bucket limit and the project-wide
+// storage limit in the Supabase dashboard. See 0027_raise_upload_limits.sql.
+const MAX_MB = 500;
 
 /**
  * Upload + manage portfolio videos. Files go to Supabase Storage; rows are
@@ -170,8 +172,9 @@ export function PortfolioManager({
 
       {error && <p className="mt-3 text-sm text-rose-300">{error}</p>}
       <p className="mt-3 text-xs text-[var(--muted)]">
-        Vertical video (9:16), MP4 or MOV, up to {MAX_MB}MB each. Tip: shorter
-        or compressed clips upload much faster. Shown on your public profile.
+        Vertical video (9:16), MP4 or MOV, up to {MAX_MB}MB each. Shown on your
+        public profile. On mobile data, large clips take a while - wifi is
+        steadier for anything over a minute long.
       </p>
     </div>
   );

@@ -7,7 +7,9 @@ import { uploadToBucketWithProgress } from "@/lib/upload";
 import { recordDeliverable, deleteDeliverable } from "@/app/actions/deliverables";
 import type { BookingDeliverable, BookingStatus } from "@/lib/types";
 
-const MAX_MB = 150;
+// Must stay at or below the smaller of the bucket limit and the project-wide
+// storage limit in the Supabase dashboard. See 0027_raise_upload_limits.sql.
+const MAX_MB = 500;
 
 /**
  * Real content delivery. The creator uploads files (video/image) straight to

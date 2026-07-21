@@ -40,15 +40,31 @@ export function uploadToBucketWithProgress({
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) resolve({});
-      else
-        resolve({
-          error:
-            safeMessage(xhr.responseText) || `Upload failed (${xhr.status}).`,
-        });
+      else resolve({ error: uploadError(xhr.status, xhr.responseText) });
     };
     xhr.onerror = () => resolve({ error: "Network error during upload." });
     xhr.send(file);
   });
+}
+
+/**
+ * Turn a storage API failure into something a creator can act on.
+ *
+ * The size rejection is the one that matters. Storage enforces a project-wide
+ * ceiling that sits ABOVE the per-bucket limit, so a file can pass our own
+ * check, upload for several minutes, and only then be refused. Saying "too
+ * large" after we already told them the file was fine reads as a broken site,
+ * so name the real cause and give them a way forward.
+ */
+function uploadError(status: number, body: string): string {
+  const message = safeMessage(body);
+  if (status === 413 || /maximum allowed size/i.test(message ?? "")) {
+    return "This file is too large for the server to accept. Phone video is often much bigger than it looks - try a shorter clip, or export it at 1080p instead of 4K.";
+  }
+  if (status === 401 || status === 403) {
+    return "Your session expired during the upload. Please sign in again and retry.";
+  }
+  return message || `Upload failed (${status}).`;
 }
 
 function safeMessage(text: string): string | null {
