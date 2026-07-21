@@ -5,7 +5,7 @@ import {
   upsertCreatorProfile,
   type ProfileState,
 } from "@/app/actions/profile";
-import { NICHES, MAX_SECONDARY_NICHES } from "@/lib/niches";
+import { NICHES } from "@/lib/niches";
 import { GENDERS, COUNTRIES } from "@/lib/demographics";
 import { ImageUpload } from "@/components/ImageUpload";
 import { SocialFields } from "@/components/SocialFields";
@@ -166,7 +166,6 @@ function SecondaryNiches({
   // If they promote a secondary niche to primary, drop it from here rather
   // than counting the same category twice.
   const selected = picked.filter((n) => n !== primary);
-  const atLimit = selected.length >= MAX_SECONDARY_NICHES;
 
   return (
     <fieldset className="rounded-xl border border-[var(--border)] p-4">
@@ -186,7 +185,6 @@ function SecondaryNiches({
               key={n}
               type="button"
               aria-pressed={on}
-              disabled={!on && atLimit}
               onClick={() =>
                 setPicked((prev) =>
                   prev.includes(n)
@@ -197,7 +195,7 @@ function SecondaryNiches({
               className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
                 on
                   ? "border-[var(--accent-2)] bg-[var(--accent-2)]/15 text-[var(--foreground)]"
-                  : "border-[var(--border-strong)] text-[var(--muted)] hover:border-[var(--accent-2)]/50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[var(--border-strong)]"
+                  : "border-[var(--border-strong)] text-[var(--muted)] hover:border-[var(--accent-2)]/50"
               }`}
             >
               {n}
@@ -207,10 +205,11 @@ function SecondaryNiches({
       </div>
 
       <p className="mt-3 text-xs text-[var(--muted)]">
-        {selected.length}/{MAX_SECONDARY_NICHES} chosen.{" "}
-        {atLimit
-          ? "That's the maximum - unpick one to swap it."
-          : "You'll appear in searches for these too. Your card still shows only your main niche."}
+        {selected.length > 0 ? `${selected.length} chosen. ` : ""}
+        Pick as many as genuinely fit - you&apos;ll show up in searches for all
+        of them, and your card still shows only your main niche. Brands
+        searching your main niche see you first, so there&apos;s no advantage in
+        ticking ones you don&apos;t really cover.
       </p>
     </fieldset>
   );

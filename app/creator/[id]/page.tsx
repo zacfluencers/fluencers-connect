@@ -129,17 +129,6 @@ export default async function CreatorPage({
                   {creator.niche}
                 </span>
               )}
-              {/* Named in full here, unlike on the card: a brand who has opened
-                  the profile is deciding whether to book, and "+2 more" with no
-                  way to see what they are is just a dead end. */}
-              {creator.secondary_niches?.map((n) => (
-                <span
-                  key={n}
-                  className="inline-block rounded-full border border-[var(--border)] px-3 py-1 text-sm text-[var(--muted)] opacity-80"
-                >
-                  {n}
-                </span>
-              ))}
               {facts.map((f) => (
                 <span
                   key={f}
@@ -149,6 +138,26 @@ export default async function CreatorPage({
                 </span>
               ))}
             </div>
+
+            {/* Named in full here, unlike on the card: a brand who has opened
+                the profile is deciding whether to book, and "+2 more" with no
+                way to see what they are is a dead end. Kept on its own row so a
+                creator with a dozen of them doesn't bury their age/country. */}
+            {creator.secondary_niches?.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                <span className="text-xs uppercase tracking-wide text-[var(--muted)] opacity-70">
+                  Also covers
+                </span>
+                {creator.secondary_niches.map((n) => (
+                  <span
+                    key={n}
+                    className="inline-block rounded-full border border-[var(--border)] px-2.5 py-0.5 text-xs text-[var(--muted)]"
+                  >
+                    {n}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {creator.bio && (
               <p className="mt-4 text-[var(--muted)]">{creator.bio}</p>

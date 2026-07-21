@@ -8,7 +8,7 @@ import { CREATOR_PROFILE_COLUMNS, getFavoriteIds } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
 import { brandCanTransact } from "@/lib/subscription";
 import { offeredServices } from "@/lib/services";
-import { isKnownNiche } from "@/lib/niches";
+import { isKnownNiche, rankByNicheFocus } from "@/lib/niches";
 import type { CreatorProfile } from "@/lib/types";
 
 export const metadata = {
@@ -61,7 +61,7 @@ async function getCreators(f: Filters): Promise<CreatorProfile[]> {
     return [];
   }
 
-  return (data ?? []).filter((c) => {
+  const matched = (data ?? []).filter((c) => {
     if (f.ageMin != null && (c.age == null || c.age < f.ageMin)) return false;
     if (f.ageMax != null && (c.age == null || c.age > f.ageMax)) return false;
 
@@ -78,6 +78,11 @@ async function getCreators(f: Filters): Promise<CreatorProfile[]> {
     if (f.ttMin != null && (c.tiktok_followers ?? 0) < f.ttMin) return false;
     return true;
   });
+
+  // Specialists first: matching on your MAIN niche beats matching on a
+  // secondary one. This is what lets creators claim as many niches as they
+  // like without flooding brand search - breadth buys visibility, never rank.
+  return rankByNicheFocus(matched, niches);
 }
 
 export default async function MarketplacePage({
