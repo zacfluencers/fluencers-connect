@@ -17,11 +17,31 @@ import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { getBaseUrl } from "@/lib/stripe/server";
 import { isEmailConfigured, renderProfileNudgeEmail, sendEmail } from "@/lib/email";
 
-/** Wait this long after signup before the first nudge. */
-const FIRST_NUDGE_AFTER_HOURS = 48;
+/**
+ * Wait this long after signup before the first nudge.
+ *
+ * Was 48h, which suited organic signups. Invited creators behave differently:
+ * the 21 Jul wave saw 221 signups between 13:00 and 21:00, and at 48h the
+ * job would have skipped every one of them the next morning. 12h makes this a
+ * genuine next-morning reminder while they still remember signing up.
+ *
+ * Anyone who finishes their profile overnight is excluded by the SQL at send
+ * time, so a shorter window costs nothing.
+ */
+const FIRST_NUDGE_AFTER_HOURS = 12;
 
 /** Never send more than this many, ever. */
 const MAX_NUDGES = 2;
+
+/**
+ * Gap between sends. Resend rate-limits at roughly 2 requests a second and
+ * rejects the overflow. This job was written for an audience of 7 and sent as
+ * fast as it could; the 21 Jul invite wave pushed one run to 88 recipients,
+ * where an unthrottled loop would have had most of them refused.
+ */
+const SEND_GAP_MS = 600;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Minimum gap between the first nudge and the last. */
 const REPEAT_AFTER_HOURS = 120;
@@ -75,7 +95,9 @@ export async function sendProfileNudges(
   }
 
   let sent = 0;
-  for (const person of candidates) {
+  for (const [index, person] of candidates.entries()) {
+    if (index > 0) await sleep(SEND_GAP_MS);
+
     const nudgeNumber = person.sent_count + 1;
     const { subject, html, text } = renderProfileNudgeEmail({
       role: person.role,

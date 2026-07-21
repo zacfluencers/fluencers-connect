@@ -15,8 +15,12 @@
       "schedule": "30 6 * * *"
     },
     {
+      "path": "/api/cron/resend-confirmations",
+      "schedule": "0 8 * * *"
+    },
+    {
       "path": "/api/cron/nudge-profiles",
-      "schedule": "0 10 * * *"
+      "schedule": "30 8 * * *"
     }
   ]
 }
