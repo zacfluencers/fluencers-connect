@@ -10,6 +10,7 @@ import {
 } from "@/lib/social/enrichment";
 import { isScrapeCreatorsConfigured, cleanHandle } from "@/lib/social/scrapecreators";
 import { isAdminConfigured } from "@/lib/supabase/admin";
+import { sanitiseSecondaryNiches } from "@/lib/niches";
 
 export type ProfileState = { error: string } | { ok: true } | null;
 
@@ -34,6 +35,15 @@ export async function upsertCreatorProfile(
   // is effectively unlisted (and leaves a gap on their card).
   const niche = String(formData.get("niche") ?? "").trim();
   if (!niche) return { error: "Pick a niche so brands can find you." };
+
+  // Extra niches widen who finds them in search. Validated against our fixed
+  // list rather than trusted: these values are interpolated into the
+  // marketplace filter query, and the primary is stripped so a creator can't
+  // be counted twice for the same category.
+  const secondaryNiches = sanitiseSecondaryNiches(
+    formData.getAll("secondary_niches").map((v) => String(v)),
+    niche,
+  );
 
   // Optional whole-number count. Blank → null.
   const toCount = (key: string): number | null => {
@@ -85,6 +95,7 @@ export async function upsertCreatorProfile(
     name,
     bio: String(formData.get("bio") ?? "").trim() || null,
     niche,
+    secondary_niches: secondaryNiches,
     instagram,
     tiktok,
     profile_image: String(formData.get("profile_image") ?? "").trim() || null,

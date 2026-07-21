@@ -102,6 +102,8 @@ export interface CreatorProfile {
   name: string;
   bio: string | null;
   niche: string | null;
+  /** Extra niches this creator matches in search. Summarised, not listed, on cards. */
+  secondary_niches: string[];
   instagram: string | null;
   tiktok: string | null;
   availability: boolean;

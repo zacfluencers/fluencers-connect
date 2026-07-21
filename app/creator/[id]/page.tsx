@@ -129,6 +129,17 @@ export default async function CreatorPage({
                   {creator.niche}
                 </span>
               )}
+              {/* Named in full here, unlike on the card: a brand who has opened
+                  the profile is deciding whether to book, and "+2 more" with no
+                  way to see what they are is just a dead end. */}
+              {creator.secondary_niches?.map((n) => (
+                <span
+                  key={n}
+                  className="inline-block rounded-full border border-[var(--border)] px-3 py-1 text-sm text-[var(--muted)] opacity-80"
+                >
+                  {n}
+                </span>
+              ))}
               {facts.map((f) => (
                 <span
                   key={f}

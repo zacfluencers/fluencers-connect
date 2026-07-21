@@ -105,7 +105,17 @@ export function CreatorCard({
         </div>
 
         {creator.niche && (
-          <p className="truncate text-sm text-[var(--muted)]">{creator.niche}</p>
+          <p className="truncate text-sm text-[var(--muted)]">
+            {creator.niche}
+            {/* Extra niches are a count, not a list - naming them all turns
+                every card into a wall of tags and buries the main one. */}
+            {creator.secondary_niches?.length > 0 && (
+              <span className="opacity-70">
+                {" "}
+                +{creator.secondary_niches.length} more
+              </span>
+            )}
+          </p>
         )}
 
         {/* Socials with per-platform follower counts → external profiles */}

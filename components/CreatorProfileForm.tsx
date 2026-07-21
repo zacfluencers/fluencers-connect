@@ -5,7 +5,7 @@ import {
   upsertCreatorProfile,
   type ProfileState,
 } from "@/app/actions/profile";
-import { NICHES } from "@/lib/niches";
+import { NICHES, MAX_SECONDARY_NICHES } from "@/lib/niches";
 import { GENDERS, COUNTRIES } from "@/lib/demographics";
 import { ImageUpload } from "@/components/ImageUpload";
 import { SocialFields } from "@/components/SocialFields";
@@ -23,6 +23,9 @@ export function CreatorProfileForm({
     upsertCreatorProfile,
     null,
   );
+  // Held here, not inside <Niche>, because the secondary picker has to hide
+  // whichever niche is currently primary.
+  const [niche, setNiche] = useState(profile?.niche ?? "");
 
   return (
     <form action={formAction} className="space-y-4">
@@ -40,7 +43,7 @@ export function CreatorProfileForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Text label="Display name" name="name" defaultValue={profile?.name} required />
-        <Niche defaultValue={profile?.niche ?? ""} />
+        <Niche value={niche} onChange={setNiche} />
         <Dropdown label="Gender" name="gender" defaultValue={profile?.gender ?? ""} placeholder="Prefer not to say">
           {GENDERS.map((g) => (
             <option key={g.value} value={g.value}>{g.label}</option>
@@ -53,6 +56,11 @@ export function CreatorProfileForm({
           ))}
         </Dropdown>
       </div>
+
+      <SecondaryNiches
+        primary={niche}
+        defaultValues={profile?.secondary_niches ?? []}
+      />
 
       <SocialFields
         creatorId={userId}
@@ -102,19 +110,24 @@ export function CreatorProfileForm({
 const FIELD =
   "w-full rounded-lg border border-[var(--border-strong)] bg-[var(--surface-2)] px-3 py-2 text-[var(--foreground)] outline-none focus:border-[var(--accent-2)]/60";
 
-function Niche({ defaultValue }: { defaultValue: string }) {
-  const [value, setValue] = useState(defaultValue);
+function Niche({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
   // Keep any legacy free-text value selectable so it isn't lost.
   const isKnown = (NICHES as readonly string[]).includes(value);
   return (
     <label className="block">
       <span className="mb-1 block text-sm font-medium text-[var(--foreground)]">
-        Niche
+        Main niche
       </span>
       <select
         name="niche"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         className={FIELD}
         required
       >
@@ -127,9 +140,79 @@ function Niche({ defaultValue }: { defaultValue: string }) {
         ))}
       </select>
       <span className="mt-1 block text-xs text-[var(--muted)]">
-        Brands filter by niche - without one you won&apos;t show up in their search.
+        This is the one shown on your card. Without it you won&apos;t show up in
+        brand searches.
       </span>
     </label>
+  );
+}
+
+/**
+ * Extra categories a creator also fits.
+ *
+ * These widen who finds them in search without cluttering their card, which
+ * only ever shows the main niche plus a count. Submitted as repeated hidden
+ * inputs so the whole thing stays one plain form post.
+ */
+function SecondaryNiches({
+  primary,
+  defaultValues,
+}: {
+  primary: string;
+  defaultValues: string[];
+}) {
+  const [picked, setPicked] = useState<string[]>(defaultValues);
+
+  // If they promote a secondary niche to primary, drop it from here rather
+  // than counting the same category twice.
+  const selected = picked.filter((n) => n !== primary);
+  const atLimit = selected.length >= MAX_SECONDARY_NICHES;
+
+  return (
+    <fieldset className="rounded-xl border border-[var(--border)] p-4">
+      <legend className="px-1 text-sm font-medium text-[var(--foreground)]">
+        Also relevant for (optional)
+      </legend>
+
+      {selected.map((n) => (
+        <input key={n} type="hidden" name="secondary_niches" value={n} />
+      ))}
+
+      <div className="flex flex-wrap gap-2">
+        {NICHES.filter((n) => n !== primary).map((n) => {
+          const on = selected.includes(n);
+          return (
+            <button
+              key={n}
+              type="button"
+              aria-pressed={on}
+              disabled={!on && atLimit}
+              onClick={() =>
+                setPicked((prev) =>
+                  prev.includes(n)
+                    ? prev.filter((x) => x !== n)
+                    : [...prev, n],
+                )
+              }
+              className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                on
+                  ? "border-[var(--accent-2)] bg-[var(--accent-2)]/15 text-[var(--foreground)]"
+                  : "border-[var(--border-strong)] text-[var(--muted)] hover:border-[var(--accent-2)]/50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[var(--border-strong)]"
+              }`}
+            >
+              {n}
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="mt-3 text-xs text-[var(--muted)]">
+        {selected.length}/{MAX_SECONDARY_NICHES} chosen.{" "}
+        {atLimit
+          ? "That's the maximum - unpick one to swap it."
+          : "You'll appear in searches for these too. Your card still shows only your main niche."}
+      </p>
+    </fieldset>
   );
 }
 

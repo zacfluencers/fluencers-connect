@@ -8,6 +8,7 @@ import { CREATOR_PROFILE_COLUMNS, getFavoriteIds } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
 import { brandCanTransact } from "@/lib/subscription";
 import { offeredServices } from "@/lib/services";
+import { isKnownNiche } from "@/lib/niches";
 import type { CreatorProfile } from "@/lib/types";
 
 export const metadata = {
@@ -41,7 +42,15 @@ async function getCreators(f: Filters): Promise<CreatorProfile[]> {
     .select(CREATOR_PROFILE_COLUMNS)
     .order("name");
 
-  if (f.niches.length) query = query.in("niche", f.niches);
+  // Match the main niche OR any secondary one, so a fitness creator who also
+  // does health shows up under either. Values are re-checked against our fixed
+  // list because they arrive from the URL and get interpolated into the filter
+  // string below.
+  const niches = f.niches.filter(isKnownNiche);
+  if (niches.length) {
+    const list = niches.map((n) => `"${n}"`).join(",");
+    query = query.or(`niche.in.(${list}),secondary_niches.ov.{${list}}`);
+  }
   if (f.gender) query = query.eq("gender", f.gender);
   if (f.country) query = query.eq("country", f.country);
   if (f.availableOnly) query = query.eq("availability", true);
