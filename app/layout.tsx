@@ -5,6 +5,7 @@ import { draftMode } from "next/headers";
 import { VisualEditing } from "next-sanity/visual-editing";
 import { AgentationProvider } from "@/components/AgentationProvider";
 import { Nav } from "@/components/Nav";
+import { SentryUser } from "@/components/SentryUser";
 import { SiteChrome } from "@/components/SiteChrome";
 import { SanityLive } from "@/lib/sanity/live";
 
@@ -30,6 +31,8 @@ export default async function RootLayout({
         <SiteChrome nav={<Nav />} extras={<AgentationProvider />}>
           {children}
         </SiteChrome>
+        {/* Attributes errors to an account so Sentry can count affected users. */}
+        <SentryUser />
         {/* Live content + click-to-edit overlays (overlays only in preview). */}
         <SanityLive />
         {isDraft && <VisualEditing />}

@@ -13,6 +13,33 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
   enableLogs: true,
   integrations: [Sentry.replayIntegration()],
+
+  // Noise from the visitor's browser, not from our code. Left unfiltered these
+  // drown out real problems: 'window.webkit.messageHandlers' alone accounted
+  // for ~75% of all events on 21 Jul, entirely from creators opening invite
+  // links inside the Instagram/TikTok in-app browser, which injects its own
+  // native bridge and then trips over it. None of these strings appear
+  // anywhere in our source.
+  ignoreErrors: [
+    "window.webkit.messageHandlers",
+    "EmptyRanges",
+    // Fired by browsers when a layout loop self-corrects. Harmless and
+    // unactionable; a long-standing false positive.
+    "ResizeObserver loop",
+    // Safari's wording when the user navigates away mid-request.
+    "cancelled",
+    ". cancelled.",
+  ],
+
+  // Errors thrown by injected scripts. A password manager or content blocker
+  // crashing in a visitor's browser is not our bug and we cannot fix it.
+  denyUrls: [
+    /extensions\//i,
+    /^chrome:\/\//i,
+    /^chrome-extension:\/\//i,
+    /^moz-extension:\/\//i,
+    /^safari-(web-)?extension:\/\//i,
+  ],
 });
 
 // Captures client-side navigation errors (App Router transitions).
