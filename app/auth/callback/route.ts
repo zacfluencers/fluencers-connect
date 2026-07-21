@@ -19,6 +19,8 @@ export async function GET(request: Request) {
     }
   }
 
-  // No/invalid code — send them back to sign in with a gentle note.
-  return NextResponse.redirect(`${origin}/login?reset_error=1`);
+  // No/invalid code. This route serves signup confirmation as well as password
+  // reset, so the message must not assume a reset - a creator confirming their
+  // email has never requested one.
+  return NextResponse.redirect(`${origin}/login?link_error=1`);
 }

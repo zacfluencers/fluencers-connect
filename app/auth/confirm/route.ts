@@ -21,5 +21,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?reset_error=1`);
+  return NextResponse.redirect(`${origin}/login?link_error=1`);
 }

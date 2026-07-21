@@ -6,9 +6,13 @@ export const metadata = { title: "Sign in - Fluencers Connect" };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ check_email?: string; reset_error?: string }>;
+  searchParams: Promise<{
+    check_email?: string;
+    reset_error?: string;
+    link_error?: string;
+  }>;
 }) {
-  const { check_email, reset_error } = await searchParams;
+  const { check_email, reset_error, link_error } = await searchParams;
 
   return (
     <div className="relative flex min-h-[calc(100vh-60px)] items-center justify-center px-6 py-16">      <div className="relative w-full max-w-md rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)]/80 p-8 shadow-[0_24px_70px_-40px_rgba(0,0,0,0.9)]">
@@ -26,9 +30,17 @@ export default async function LoginPage({
           </p>
         )}
 
-        {reset_error && (
+        {/* One message for both flows: this route handles signup confirmation
+            as well as password reset, and telling someone confirming their
+            email that their "reset link" expired is just confusing. */}
+        {(link_error || reset_error) && (
           <p className="mb-6 rounded-xl border border-rose-400/20 bg-rose-400/10 px-3.5 py-2.5 text-sm text-rose-300">
-            That reset link was invalid or has expired. Please request a new one.
+            That link has expired - they&apos;re only valid for a short time.
+            Sign in below, or{" "}
+            <Link href="/forgot-password" className="underline">
+              get a fresh link
+            </Link>
+            .
           </p>
         )}
 

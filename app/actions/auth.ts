@@ -19,11 +19,25 @@ export async function signUp(
   if (!email || !password) return { error: "Email and password are required." };
   if (role !== "brand" && role !== "creator") return { error: "Pick a role." };
 
+  // Where the confirmation email should land them once the account is live.
+  // Without this Supabase falls back to the project's Site URL - the home page
+  // - which has no code to exchange the one-time `code` for a session. The
+  // creator clicks their link, arrives signed OUT, and gets bounced to /login
+  // with no idea why. Confirmed in a session replay on 21 Jul:
+  // connect.fluencersgroup.com/?code=... followed by /login.
+  const h = await headers();
+  const origin =
+    h.get("origin") ?? (h.get("host") ? `https://${h.get("host")}` : "");
+  const next = role === "creator" ? "/dashboard/creator" : "/welcome";
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { role } },
+    options: {
+      data: { role },
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+    },
   });
   if (error) return { error: error.message };
 
