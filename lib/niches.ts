@@ -3,30 +3,26 @@
  * the marketplace filter so the values stay consistent (no typos / duplicates).
  */
 export const NICHES = [
-  "Beauty & Makeup",
-  "Skincare",
-  "Fashion & Style",
+  // Fitness, health and sport stay as three separate options even though they
+  // overlap: that's where most of the roster sits, so it's the one area where
+  // brands need to tell creators apart. Condensing happened in the long tail.
   "Fitness & Gym",
   "Health & Wellness",
+  "Sports & Outdoors",
   "Food & Cooking",
-  "Travel",
+  "Beauty & Skincare",
+  "Fashion & Style",
   "Lifestyle",
+  "Travel",
   "Home & Interior",
   "Parenting & Family",
   "Pets & Animals",
-  "Tech & Gadgets",
-  "Gaming",
-  "Finance & Investing",
-  "Business & Entrepreneurship",
+  "Business & Finance",
+  "Tech & Gaming",
+  "Entertainment & Music",
+  "Art, Design & DIY",
   "Education & How-To",
-  "Comedy & Entertainment",
-  "Beauty Tech & Nails",
-  "DIY & Crafts",
-  "Sustainability",
   "Automotive",
-  "Sports & Outdoors",
-  "Music & Dance",
-  "Art & Design",
 ] as const;
 
 export type Niche = (typeof NICHES)[number];
