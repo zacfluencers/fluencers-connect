@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { after } from "next/server";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getConversation } from "@/lib/queries";
+import { markConversationRead } from "@/app/actions/messages";
 import { Card } from "@/components/ui/Card";
 import { Conversation } from "@/components/Conversation";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -22,6 +24,13 @@ export default async function ConversationPage({
 
   const convo = await getConversation(id);
   if (!convo) notFound();
+
+  // Opening the thread is what "reading" means. Runs after the response so a
+  // slow write never delays the messages appearing, and it's deliberately not
+  // awaited during render - rendering shouldn't have side effects.
+  after(async () => {
+    await markConversationRead(id);
+  });
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-14 sm:py-20">

@@ -271,10 +271,23 @@ export interface ConversationSummary {
   lastAt: string | null;
   bookingId: string | null;
   bookingStatus: BookingStatus | null;
+  /** They've said something since I last opened it. */
+  unread: boolean;
+  /** Put away, and nothing newer has arrived to bring it back. */
+  archived: boolean;
+  /** Unsolicited contact awaiting accept or decline. */
+  isRequest: boolean;
+  /** Declined - hidden from every view. */
+  declined: boolean;
 }
 
+/** Which pile of the inbox to show. */
+export type ConversationView = "inbox" | "requests" | "archived";
+
 /** Conversations the current user is part of, with counterpart + last message. */
-export async function getMyConversations(): Promise<ConversationSummary[]> {
+export async function getMyConversations(
+  view: ConversationView = "inbox",
+): Promise<ConversationSummary[]> {
   const me = await getCurrentUser();
   if (!me) return [];
   const supabase = await createClient();
@@ -298,8 +311,10 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
       supabase.from("creator_profiles").select("user_id, name, profile_image").in("user_id", creatorIds),
       supabase.from("brand_profiles").select("user_id, company_name, logo_url").in("user_id", brandIds),
       supabase
+        // sender_id drives both the unread check and "have I ever replied",
+        // which is what separates a request from a real conversation.
         .from("messages")
-        .select("conversation_id, body, created_at")
+        .select("conversation_id, body, created_at, sender_id")
         .in("conversation_id", ids)
         .order("created_at", { ascending: false }),
       bookingIds.length
@@ -315,14 +330,53 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
     (bks ?? []).map((b) => [b.id, b.status as BookingStatus]),
   );
   const lastByConvo = new Map<string, { body: string; created_at: string }>();
+  // Newest message from the other party, and whether I've ever spoken.
+  const theirLatest = new Map<string, string>();
+  const iHaveReplied = new Set<string>();
   for (const m of msgs ?? []) {
     if (!lastByConvo.has(m.conversation_id)) {
       lastByConvo.set(m.conversation_id, { body: m.body, created_at: m.created_at });
     }
+    if (m.sender_id === me.id) {
+      iHaveReplied.add(m.conversation_id);
+    } else if (!theirLatest.has(m.conversation_id)) {
+      theirLatest.set(m.conversation_id, m.created_at);
+    }
   }
 
-  return convos.map((c) => {
+  const { data: states } = await supabase
+    .from("conversation_states")
+    .select("conversation_id, last_read_at, archived_at, request_accepted_at, request_declined_at")
+    .in("conversation_id", ids);
+  const stateByConvo = new Map((states ?? []).map((s) => [s.conversation_id, s]));
+
+  const summaries = convos.map((c) => {
     const last = lastByConvo.get(c.id);
+    const state = stateByConvo.get(c.id);
+    const theirs = theirLatest.get(c.id) ?? null;
+
+    // Unread = they've said something since I last looked.
+    const unread =
+      theirs != null &&
+      (state?.last_read_at == null || theirs > state.last_read_at);
+
+    // Archiving is a moment, not a flag: anything said afterwards pulls the
+    // thread back into the inbox, so archiving can't lose a live reply.
+    const archived =
+      state?.archived_at != null &&
+      !(last?.created_at != null && last.created_at > state.archived_at);
+
+    // A request is unsolicited contact: they opened it, I've never replied,
+    // and there's no booking. A deal room is never a request - we already
+    // have a paid relationship with that person.
+    const isRequest =
+      c.booking_id == null &&
+      !iHaveReplied.has(c.id) &&
+      theirs != null &&
+      state?.request_accepted_at == null &&
+      state?.request_declined_at == null;
+
+    const declined = state?.request_declined_at != null;
     const isBrandViewer = me.role === "brand";
     const counterpart = isBrandViewer
       ? (creatorName.get(c.creator_id) ?? "Creator")
@@ -340,8 +394,34 @@ export async function getMyConversations(): Promise<ConversationSummary[]> {
       bookingStatus: c.booking_id
         ? (bookingStatus.get(c.booking_id) ?? null)
         : null,
+      unread,
+      archived,
+      isRequest,
+      declined,
     };
   });
+
+  // A declined thread is gone from every pile - that's the point of declining.
+  const visible = summaries.filter((s) => !s.declined);
+  if (view === "requests") return visible.filter((s) => s.isRequest);
+  if (view === "archived") return visible.filter((s) => s.archived);
+  // The inbox holds everything that isn't waiting on a decision or put away.
+  return visible.filter((s) => !s.archived && !s.isRequest);
+}
+
+/** Unread and pending-request counts, for the inbox tabs and the nav badge. */
+export async function getMessageCounts(): Promise<{
+  unread: number;
+  requests: number;
+}> {
+  const [inbox, requests] = await Promise.all([
+    getMyConversations("inbox"),
+    getMyConversations("requests"),
+  ]);
+  return {
+    unread: inbox.filter((c) => c.unread).length,
+    requests: requests.length,
+  };
 }
 
 export interface ConversationDetail {

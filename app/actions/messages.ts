@@ -182,3 +182,97 @@ export async function sendMessage(
   revalidatePath(`/messages/${conversationId}`);
   return { ok: true };
 }
+
+/**
+ * Per-person state on a conversation: read, archived, request answered.
+ *
+ * All four write to the same row, so they share one helper. RLS restricts a
+ * user to their own row and checks they're a party to the thread, so the
+ * conversation id needs no separate validation here.
+ */
+async function setConversationState(
+  conversationId: string,
+  patch: Record<string, string | null>,
+): Promise<{ error: string } | { ok: true }> {
+  const me = await getCurrentUser();
+  if (!me) return { error: "Please sign in." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("conversation_states").upsert(
+    { conversation_id: conversationId, user_id: me.id, ...patch },
+    { onConflict: "conversation_id,user_id" },
+  );
+  if (error) return { error: error.message };
+
+  revalidatePath("/messages");
+  revalidatePath(`/messages/${conversationId}`);
+  return { ok: true };
+}
+
+/** Mark everything in a thread as seen. Called when the thread is opened. */
+export async function markConversationRead(conversationId: string) {
+  return setConversationState(conversationId, {
+    last_read_at: new Date().toISOString(),
+  });
+}
+
+/**
+ * Put a thread away. Deliberately reversible and non-destructive: anything
+ * the other person says afterwards brings it straight back, so archiving can
+ * never silently swallow a reply.
+ */
+export async function archiveConversation(conversationId: string) {
+  return setConversationState(conversationId, {
+    archived_at: new Date().toISOString(),
+  });
+}
+
+export async function unarchiveConversation(conversationId: string) {
+  return setConversationState(conversationId, { archived_at: null });
+}
+
+/** Accept a message request: it moves into the inbox like any other thread. */
+export async function acceptMessageRequest(conversationId: string) {
+  return setConversationState(conversationId, {
+    request_accepted_at: new Date().toISOString(),
+    request_declined_at: null,
+  });
+}
+
+/**
+ * Decline a message request. Unlike archiving this is sticky - later messages
+ * do NOT bring it back, which is the whole point when the volume is unwanted.
+ * The creator isn't told; they simply get no reply.
+ */
+export async function declineMessageRequest(conversationId: string) {
+  return setConversationState(conversationId, {
+    request_declined_at: new Date().toISOString(),
+  });
+}
+
+/**
+ * Form-friendly wrappers.
+ *
+ * A <form action> must resolve to void, while the functions above return a
+ * result object so other callers can react to failures. These adapt between
+ * the two rather than forcing either side to compromise.
+ */
+function conversationIdFrom(formData: FormData): string {
+  return String(formData.get("conversationId") ?? "");
+}
+
+export async function archiveConversationAction(formData: FormData) {
+  await archiveConversation(conversationIdFrom(formData));
+}
+
+export async function unarchiveConversationAction(formData: FormData) {
+  await unarchiveConversation(conversationIdFrom(formData));
+}
+
+export async function acceptMessageRequestAction(formData: FormData) {
+  await acceptMessageRequest(conversationIdFrom(formData));
+}
+
+export async function declineMessageRequestAction(formData: FormData) {
+  await declineMessageRequest(conversationIdFrom(formData));
+}
