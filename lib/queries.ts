@@ -282,7 +282,11 @@ export interface ConversationSummary {
 }
 
 /** Which pile of the inbox to show. */
-export type ConversationView = "inbox" | "requests" | "archived";
+export type ConversationView =
+  | "inbox"
+  | "requests"
+  | "archived"
+  | "declined";
 
 /** Conversations the current user is part of, with counterpart + last message. */
 export async function getMyConversations(
@@ -401,7 +405,11 @@ export async function getMyConversations(
     };
   });
 
-  // A declined thread is gone from every pile - that's the point of declining.
+  // Declined threads get their own pile rather than vanishing. Nothing is
+  // deleted, so hiding them everywhere would make declining feel destructive
+  // and leave a mis-tap unrecoverable.
+  if (view === "declined") return summaries.filter((s) => s.declined);
+
   const visible = summaries.filter((s) => !s.declined);
   if (view === "requests") return visible.filter((s) => s.isRequest);
   if (view === "archived") return visible.filter((s) => s.archived);
@@ -409,18 +417,21 @@ export async function getMyConversations(
   return visible.filter((s) => !s.archived && !s.isRequest);
 }
 
-/** Unread and pending-request counts, for the inbox tabs and the nav badge. */
+/** Counts for the inbox tabs. */
 export async function getMessageCounts(): Promise<{
   unread: number;
   requests: number;
+  declined: number;
 }> {
-  const [inbox, requests] = await Promise.all([
+  const [inbox, requests, declined] = await Promise.all([
     getMyConversations("inbox"),
     getMyConversations("requests"),
+    getMyConversations("declined"),
   ]);
   return {
     unread: inbox.filter((c) => c.unread).length,
     requests: requests.length,
+    declined: declined.length,
   };
 }
 

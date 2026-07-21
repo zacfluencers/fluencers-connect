@@ -11,6 +11,7 @@ import {
   unarchiveConversationAction,
   acceptMessageRequestAction,
   declineMessageRequestAction,
+  restoreMessageRequestAction,
 } from "@/app/actions/messages";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -23,12 +24,16 @@ const VIEWS: { key: ConversationView; label: string }[] = [
   { key: "inbox", label: "Inbox" },
   { key: "requests", label: "Requests" },
   { key: "archived", label: "Archived" },
+  // Declined is listed last and only appears once something is in it, so it
+  // stays out of the way without ever being a dead end.
+  { key: "declined", label: "Declined" },
 ];
 
 const EMPTY: Record<ConversationView, string> = {
   inbox: "No conversations yet.",
   requests: "No new requests. People who message you first land here.",
   archived: "Nothing archived. Threads you put away appear here.",
+  declined: "Nothing declined.",
 };
 
 export default async function MessagesPage({
@@ -41,7 +46,9 @@ export default async function MessagesPage({
 
   const { view: raw } = await searchParams;
   const view: ConversationView =
-    raw === "requests" || raw === "archived" ? raw : "inbox";
+    raw === "requests" || raw === "archived" || raw === "declined"
+      ? raw
+      : "inbox";
 
   const [conversations, counts] = await Promise.all([
     getMyConversations(view),
@@ -54,7 +61,9 @@ export default async function MessagesPage({
       <p className="mt-2 text-[var(--muted)]">Your conversations.</p>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        {VIEWS.map((v) => {
+        {VIEWS.filter(
+          (v) => v.key !== "declined" || counts.declined > 0 || view === "declined",
+        ).map((v) => {
           const active = v.key === view;
           // Only surface a count where it means "something needs you".
           const badge =
@@ -162,6 +171,12 @@ export default async function MessagesPage({
                         label="Decline"
                       />
                     </>
+                  ) : view === "declined" ? (
+                    <StateButton
+                      action={restoreMessageRequestAction}
+                      id={c.id}
+                      label="Undo decline"
+                    />
                   ) : view === "archived" ? (
                     <StateButton
                       action={unarchiveConversationAction}

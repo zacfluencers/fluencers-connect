@@ -193,6 +193,7 @@ export async function sendMessage(
 async function setConversationState(
   conversationId: string,
   patch: Record<string, string | null>,
+  opts: { revalidateThread?: boolean } = {},
 ): Promise<{ error: string } | { ok: true }> {
   const me = await getCurrentUser();
   if (!me) return { error: "Please sign in." };
@@ -205,15 +206,33 @@ async function setConversationState(
   if (error) return { error: error.message };
 
   revalidatePath("/messages");
-  revalidatePath(`/messages/${conversationId}`);
+  if (opts.revalidateThread !== false) {
+    revalidatePath(`/messages/${conversationId}`);
+  }
   return { ok: true };
 }
 
-/** Mark everything in a thread as seen. Called when the thread is opened. */
+/**
+ * Mark everything in a thread as seen. Called from the thread page once it
+ * has mounted.
+ *
+ * This was originally run from after() on the page render, which silently did
+ * nothing: after() fires once the response is sent, where the Supabase client
+ * can no longer complete its cookie-based auth, so the write was rejected
+ * before it began - last_read_at was never once written. A real action call
+ * also matters for the refresh, because only a server action's revalidatePath
+ * reaches the browser's router cache, and without that the inbox still shows
+ * its stale unread dots when you navigate back.
+ *
+ * Deliberately does NOT revalidate the thread you're reading: that would
+ * re-render the page you're sitting on for no visible benefit.
+ */
 export async function markConversationRead(conversationId: string) {
-  return setConversationState(conversationId, {
-    last_read_at: new Date().toISOString(),
-  });
+  return setConversationState(
+    conversationId,
+    { last_read_at: new Date().toISOString() },
+    { revalidateThread: false },
+  );
 }
 
 /**
@@ -275,4 +294,19 @@ export async function acceptMessageRequestAction(formData: FormData) {
 
 export async function declineMessageRequestAction(formData: FormData) {
   await declineMessageRequest(conversationIdFrom(formData));
+}
+
+/**
+ * Undo a decline: the thread returns to Requests to be decided again.
+ *
+ * Declining hides a conversation but never deletes anything, so it has to be
+ * reversible - otherwise a mis-tap silently loses a real approach, and the
+ * person who sent it is never told either way.
+ */
+export async function restoreMessageRequest(conversationId: string) {
+  return setConversationState(conversationId, { request_declined_at: null });
+}
+
+export async function restoreMessageRequestAction(formData: FormData) {
+  await restoreMessageRequest(conversationIdFrom(formData));
 }
