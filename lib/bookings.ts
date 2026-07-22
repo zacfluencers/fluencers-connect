@@ -1,3 +1,4 @@
+import { revisionCopy } from "@/lib/services";
 import type { BookingStatus, UserRole } from "@/lib/types";
 
 /** Matches the DB check constraint in 0001_init.sql. */
@@ -62,19 +63,35 @@ export const TRANSITIONS: Record<BookingStatus, Transition[]> = {
   refunded: [],
 };
 
-/** Transitions a given role may perform from a given status, with revision cap applied. */
+/**
+ * Transitions a given role may perform from a given status, with revision cap
+ * applied.
+ *
+ * `serviceType` only changes wording. "Request revision" is creative-work
+ * language: on a Meta Whitelist the deliverable is an access code, which either
+ * works or doesn't, so the same button reads "Ask them to fix the access". The
+ * action itself stays on every service - without it a brand holding a code that
+ * doesn't work can only approve it or raise a dispute.
+ */
 export function availableActions(
   status: BookingStatus,
   role: UserRole,
   revisionCount: number,
+  serviceType?: string | null,
 ): Transition[] {
-  return TRANSITIONS[status].filter((t) => {
-    if (t.actor !== role) return false;
-    if (t.action === "request_revision" && revisionCount >= MAX_REVISIONS) {
-      return false;
-    }
-    return true;
-  });
+  return TRANSITIONS[status]
+    .filter((t) => {
+      if (t.actor !== role) return false;
+      if (t.action === "request_revision" && revisionCount >= MAX_REVISIONS) {
+        return false;
+      }
+      return true;
+    })
+    .map((t) =>
+      t.action === "request_revision"
+        ? { ...t, label: revisionCopy(serviceType).action }
+        : t,
+    );
 }
 
 /** Look up a single transition by status + action (used to validate in the server action). */

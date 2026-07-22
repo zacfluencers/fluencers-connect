@@ -25,9 +25,10 @@ async function notifyBookingAction(
     brandId: string;
     creatorId: string;
     bookingId: string;
+    serviceType: string | null;
   },
 ) {
-  const { action, actorRole, brandId, creatorId, bookingId } = args;
+  const { action, actorRole, brandId, creatorId, bookingId, serviceType } = args;
   const recipientId = actorRole === "brand" ? creatorId : brandId;
 
   const actorName =
@@ -41,7 +42,14 @@ async function notifyBookingAction(
     start: { title: `${actorName} started work on your booking` },
     submit: { title: `${actorName} submitted work for review`, body: "Review it and approve or request a revision." },
     approve: { title: `${actorName} approved & completed your booking`, body: "Funds have been released to you." },
-    request_revision: { title: `${actorName} requested a revision` },
+    // Says what they actually want back. On a whitelist "requested a revision"
+    // leaves the creator hunting for creative feedback that doesn't exist.
+    request_revision: {
+      title:
+        termFor(serviceType)?.kind === "licence"
+          ? `${actorName} needs the access fixed`
+          : `${actorName} requested a revision`,
+    },
     unaccept: { title: `${actorName} moved the booking back to requested` },
     revert_to_accepted: { title: `${actorName} moved the booking back a step` },
     withdraw: { title: `${actorName} withdrew the submission`, body: "They're making changes before resubmitting." },
@@ -175,6 +183,7 @@ export async function transitionBooking(
     brandId: booking.brand_id,
     creatorId: booking.creator_id,
     bookingId,
+    serviceType: booking.service_type,
   };
 
   // Money-moving transitions go through escrow (these set the status too).

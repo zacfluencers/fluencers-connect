@@ -53,7 +53,24 @@ export interface ServiceDef {
   delivery: DeliveryDef;
   /** Set when the service runs for a period rather than handing over outright. */
   term?: TermDef;
+  /**
+   * Wording for the brand's "send it back" action. Defaults to revision
+   * language, which only fits services where there is creative work to revise.
+   */
+  revision?: RevisionCopy;
 }
+
+export interface RevisionCopy {
+  /** The button the brand presses at review. */
+  action: string;
+  /** Heading on the counter in the deal room. */
+  counter: string;
+}
+
+const DEFAULT_REVISION: RevisionCopy = {
+  action: "Request revision",
+  counter: "Revisions",
+};
 
 /**
  * A service that runs for a period rather than handing something over outright.
@@ -114,6 +131,13 @@ export const SERVICES: ServiceDef[] = [
     // The "3 months" in that unit is a promise to both sides, so it has to be
     // a number the system acts on rather than words on a price list.
     term: { kind: "licence", months: 3, label: "Whitelisting term" },
+    // Nothing creative is being revised here - a partnership code either works
+    // or it doesn't. The brand still needs to send it back without escalating
+    // to a dispute over a typo, so the action stays and only the words change.
+    revision: {
+      action: "Ask them to fix the access",
+      counter: "Fixes requested",
+    },
     delivery: {
       title: "Whitelisting access",
       prompt:
@@ -178,6 +202,11 @@ export function isServiceType(value: unknown): value is ServiceType {
  */
 export function deliveryFor(key: string | null | undefined): DeliveryDef {
   return (key && BY_KEY.get(key as ServiceType)?.delivery) || FILE_DELIVERY;
+}
+
+/** What sending work back is called for this service. */
+export function revisionCopy(key: string | null | undefined): RevisionCopy {
+  return (key && BY_KEY.get(key as ServiceType)?.revision) || DEFAULT_REVISION;
 }
 
 /** The term a service runs for, or null if it hands over outright. */

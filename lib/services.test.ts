@@ -7,6 +7,7 @@ import {
   SERVICES,
   isServiceType,
   deliveryFor,
+  revisionCopy,
 } from "./services";
 
 // Only the three rate columns matter to these functions.
@@ -177,6 +178,36 @@ describe("deliveryFor", () => {
       if (s.delivery.kinds.includes("note")) {
         expect(s.delivery.noteLabel).toBeTruthy();
       }
+    }
+  });
+});
+
+describe("revisionCopy", () => {
+  // "Request revision" is creative-work language. A partnership ad code either
+  // works or it doesn't, so on a whitelist the same button has to say what it
+  // actually does - while still existing, because without it a brand holding a
+  // broken code can only approve it or raise a dispute.
+  it("asks for a fix, not a revision, on a whitelist", () => {
+    expect(revisionCopy("whitelist").action).toBe("Ask them to fix the access");
+    expect(revisionCopy("whitelist").counter).toBe("Fixes requested");
+  });
+
+  it("keeps revision wording where there is creative work to revise", () => {
+    for (const key of ["ugc", "event", "broll", "post"]) {
+      expect(revisionCopy(key).action).toBe("Request revision");
+      expect(revisionCopy(key).counter).toBe("Revisions");
+    }
+  });
+
+  it("falls back to revision wording for a booking with no service", () => {
+    expect(revisionCopy(null).action).toBe("Request revision");
+    expect(revisionCopy("nonsense").counter).toBe("Revisions");
+  });
+
+  it("never leaves a button or counter unlabelled", () => {
+    for (const s of SERVICES) {
+      expect(revisionCopy(s.key).action).not.toBe("");
+      expect(revisionCopy(s.key).counter).not.toBe("");
     }
   });
 });

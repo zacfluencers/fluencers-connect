@@ -20,7 +20,7 @@ import { Deliverables } from "@/components/Deliverables";
 import { BookingBrief } from "@/components/BookingBrief";
 import { LicenceWindow } from "@/components/LicenceWindow";
 import { gbp } from "@/lib/format";
-import { serviceLabel, deliveryFor, termFor } from "@/lib/services";
+import { serviceLabel, deliveryFor, termFor, revisionCopy } from "@/lib/services";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,12 @@ export default async function DealRoomPage({
   const { booking, creator, brand } = detail;
   const delivery = deliveryFor(booking.service_type);
   const term = termFor(booking.service_type);
-  const actions = availableActions(booking.status, me.role, booking.revision_count);
+  const actions = availableActions(
+    booking.status,
+    me.role,
+    booking.revision_count,
+    booking.service_type,
+  );
   const creatorName = creator?.name ?? "Creator";
   const canDispute =
     me.role === "brand" &&
@@ -213,7 +218,9 @@ export default async function DealRoomPage({
             {/* Revision counter */}
             <div className="mt-5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--muted)]">Revisions</span>
+                <span className="text-[var(--muted)]">
+                  {revisionCopy(booking.service_type).counter}
+                </span>
                 <span className="text-[var(--foreground)]">
                   {booking.revision_count} / {MAX_REVISIONS}
                 </span>
