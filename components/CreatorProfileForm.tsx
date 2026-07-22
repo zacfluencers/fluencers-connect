@@ -95,7 +95,11 @@ export function CreatorProfileForm({
           {SERVICES.map((s) => (
             <Text
               key={s.key}
-              label={`${s.label} (${s.unit})`}
+              label={s.label}
+              // Under the field, not in the label. "Meta Whitelist (3 months ad
+              // usage)" wrapped to two lines while its neighbours stayed on
+              // one, so the inputs in the row no longer lined up.
+              hint={s.unit}
               name={s.rateField}
               type="number"
               defaultValue={
@@ -300,6 +304,7 @@ function Text({
   placeholder,
   type = "text",
   required,
+  hint,
 }: {
   label: string;
   name: string;
@@ -307,11 +312,13 @@ function Text({
   placeholder?: string;
   type?: string;
   required?: boolean;
+  /** Small print under the input, for detail that would bloat the label. */
+  hint?: string;
 }) {
   const [value, setValue] = useState(defaultValue);
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-[var(--foreground)]">
+      <span className="mb-1 block truncate text-sm font-medium text-[var(--foreground)]">
         {label}
       </span>
       <input
@@ -325,6 +332,9 @@ function Text({
         min={type === "number" ? "0" : undefined}
         className={FIELD}
       />
+      {hint && (
+        <span className="mt-1 block text-xs text-[var(--muted)]">{hint}</span>
+      )}
     </label>
   );
 }
