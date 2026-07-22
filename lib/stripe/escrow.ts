@@ -3,6 +3,7 @@ import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { notify } from "@/lib/notifications";
 import { serviceLabel } from "@/lib/services";
+import { gbp } from "@/lib/format";
 
 type Result = { ok: true } | { error: string };
 
@@ -103,10 +104,67 @@ export async function releaseEscrow(bookingId: string): Promise<Result> {
     .select("stripe_account_id, payouts_enabled")
     .eq("user_id", booking.creator_id)
     .maybeSingle();
+  // The creator can't receive money yet. The brand's side is finished though,
+  // so complete the booking and mark the money owed rather than failing the
+  // approval - blocking a brand on someone else's paperwork left the job stuck
+  // in review with nobody told. The funds are already captured and sitting on
+  // the platform balance, so nothing is at risk while we wait.
   if (!creator?.stripe_account_id || !creator.payouts_enabled) {
-    return {
-      error: "The creator hasn't finished payout setup, so funds can't be released yet.",
-    };
+    await admin
+      .from("bookings")
+      .update({ status: "completed", payment_status: "pending_payout" })
+      .eq("id", bookingId);
+
+    await notify(admin, {
+      userId: booking.creator_id,
+      type: "booking",
+      title: `${gbp.format(Number(booking.price))} is waiting for you`,
+      body: "Your work was approved. Finish payout setup to receive it.",
+      link: "/dashboard/creator",
+    });
+    return { ok: true };
+  }
+
+  return transferToCreator(bookingId);
+}
+
+/**
+ * Move a completed booking's money to the creator.
+ *
+ * Split out because three different things can trigger it - the brand
+ * approving, the Stripe `account.updated` webhook, and the dashboard refresh -
+ * and they can easily overlap.
+ *
+ * The idempotency key is what makes that safe. Two simultaneous callers both
+ * see `pending_payout`, both call Stripe, and Stripe returns the SAME transfer
+ * for the second one rather than creating another. Guarding on our own row
+ * alone would not be enough: between reading it and writing it there is a gap
+ * long enough to pay someone twice.
+ */
+export async function transferToCreator(bookingId: string): Promise<Result> {
+  const admin = await escrowDb();
+  const { data: booking } = await admin
+    .from("bookings")
+    .select("id, creator_id, price, payment_status, stripe_payment_intent_id, stripe_transfer_id")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (!booking) return { error: "Booking not found." };
+
+  // Already paid out - nothing to do, and saying "ok" keeps retries harmless.
+  if (booking.payment_status === "released" || booking.stripe_transfer_id) {
+    return { ok: true };
+  }
+  if (!["held", "pending_payout"].includes(booking.payment_status)) {
+    return { error: "This booking isn't awaiting payout." };
+  }
+
+  const { data: creator } = await admin
+    .from("creator_profiles")
+    .select("stripe_account_id, payouts_enabled")
+    .eq("user_id", booking.creator_id)
+    .maybeSingle();
+  if (!creator?.stripe_account_id || !creator.payouts_enabled) {
+    return { error: "The creator can't receive payouts yet." };
   }
 
   try {
@@ -118,13 +176,18 @@ export async function releaseEscrow(bookingId: string): Promise<Result> {
 
     const gross = toPence(Number(booking.price));
     const fee = Math.round((gross * platformFeeBps()) / 10000);
-    const transfer = await stripe().transfers.create({
-      amount: gross - fee,
-      currency: "gbp",
-      destination: creator.stripe_account_id,
-      transfer_group: bookingId,
-      ...(chargeId ? { source_transaction: chargeId } : {}),
-    });
+    const transfer = await stripe().transfers.create(
+      {
+        amount: gross - fee,
+        currency: "gbp",
+        destination: creator.stripe_account_id,
+        transfer_group: bookingId,
+        ...(chargeId ? { source_transaction: chargeId } : {}),
+      },
+      // Derived from the booking, so it is the same key on every retry and
+      // from every trigger. This is the actual guarantee against paying twice.
+      { idempotencyKey: `booking-transfer-${bookingId}` },
+    );
 
     await admin
       .from("bookings")
@@ -138,6 +201,34 @@ export async function releaseEscrow(bookingId: string): Promise<Result> {
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Could not release funds." };
   }
+}
+
+/**
+ * Pay out everything owed to one creator. Called when Stripe confirms they can
+ * receive money - from the webhook, and from the dashboard's refresh.
+ *
+ * Returns how many were paid so callers can log it. Never throws: a single
+ * failed transfer must not stop the rest.
+ */
+export async function payOutPendingForCreator(
+  creatorId: string,
+): Promise<number> {
+  if (!isStripeConfigured() || !isAdminConfigured()) return 0;
+
+  const admin = createAdminClient();
+  const { data: owed } = await admin
+    .from("bookings")
+    .select("id")
+    .eq("creator_id", creatorId)
+    .eq("payment_status", "pending_payout");
+
+  let paid = 0;
+  for (const booking of owed ?? []) {
+    const result = await transferToCreator(booking.id);
+    if ("ok" in result) paid++;
+    else console.error(`[payout] ${booking.id}: ${result.error}`);
+  }
+  return paid;
 }
 
 /** Refund escrow to the brand and move the booking to `newStatus`. */

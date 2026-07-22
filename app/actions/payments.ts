@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/session";
 import { stripe, isStripeConfigured, getBaseUrl, toPence } from "@/lib/stripe/server";
-import { refundEscrow } from "@/lib/stripe/escrow";
+import { refundEscrow, payOutPendingForCreator } from "@/lib/stripe/escrow";
 import { rateFor, serviceDef, type ServiceType } from "@/lib/services";
 import { brandCanTransact } from "@/lib/subscription";
 import { notify } from "@/lib/notifications";
@@ -218,6 +218,11 @@ export async function refreshPayoutStatus(): Promise<boolean> {
         .update({ payouts_enabled: enabled })
         .eq("user_id", me.id);
     }
+    // Second chance to settle anything owed. The webhook is the primary path,
+    // but a creator returning from Stripe onboarding hits this page directly -
+    // often before the webhook lands - and money owed should not wait on it.
+    // Safe to run every time: the transfer is idempotent per booking.
+    if (enabled) await payOutPendingForCreator(me.id);
     return enabled;
   } catch (e) {
     console.error("[payout sync] failed:", e instanceof Error ? e.message : e);

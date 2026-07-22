@@ -1,6 +1,9 @@
 import type Stripe from "stripe";
 import { stripe, isStripeConfigured } from "@/lib/stripe/server";
-import { ensureBookingForSession } from "@/lib/stripe/escrow";
+import {
+  ensureBookingForSession,
+  payOutPendingForCreator,
+} from "@/lib/stripe/escrow";
 import { subscriptionToRow, upsertBrandBilling } from "@/lib/stripe/billing";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -82,11 +85,22 @@ export async function POST(req: Request) {
         const enabled =
           Boolean(account.payouts_enabled) &&
           account.capabilities?.transfers === "active";
-        await createAdminClient()
+        const admin = createAdminClient();
+        const { data: updated } = await admin
           .from("creator_profiles")
           .update({ payouts_enabled: enabled })
-          .eq("stripe_account_id", account.id);
+          .eq("stripe_account_id", account.id)
+          .select("user_id")
+          .maybeSingle();
         log(event, `payouts_enabled=${enabled}`);
+
+        // This is the moment a creator becomes payable. Anything approved
+        // while they were still onboarding has been waiting for exactly this,
+        // so settle it now rather than leaving money owed indefinitely.
+        if (enabled && updated?.user_id) {
+          const paid = await payOutPendingForCreator(updated.user_id);
+          if (paid > 0) log(event, `released ${paid} pending payout(s)`);
+        }
         break;
       }
 

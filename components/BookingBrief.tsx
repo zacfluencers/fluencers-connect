@@ -13,7 +13,10 @@ import {
 } from "@/app/actions/brief";
 import type { BookingAsset, BookingBrief, ProductMode } from "@/lib/types";
 
-const MAX_MB = 100;
+// Matches portfolio and deliverables. Brief attachments include example clips,
+// and there was no reason for this one to be stricter than the videos it's
+// meant to describe. See 0027_raise_upload_limits.sql.
+const MAX_MB = 500;
 
 const PLATFORMS = ["Instagram", "TikTok", "YouTube", "Multiple platforms", "Other"];
 

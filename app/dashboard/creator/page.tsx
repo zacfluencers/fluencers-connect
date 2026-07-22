@@ -45,6 +45,16 @@ export default async function CreatorDashboard() {
     payoutsEnabled = await refreshPayoutStatus();
   }
 
+  // Work that's been approved but can't be sent until payout setup is done.
+  // Naming the amount is the whole point - "connect an account" is ignorable,
+  // "£250 is waiting for you" is not.
+  const { data: owedRows } = await supabase
+    .from("bookings")
+    .select("price")
+    .eq("creator_id", me.id)
+    .eq("payment_status", "pending_payout");
+  const owed = (owedRows ?? []).reduce((sum, b) => sum + Number(b.price), 0);
+
   const [portfolio, bookings, conversations] = await Promise.all([
     getPortfolio(me.id),
     listMyBookings(me.id),
@@ -105,6 +115,7 @@ export default async function CreatorDashboard() {
             <PayoutSetup
               hasAccount={Boolean(profile?.stripe_account_id)}
               payoutsEnabled={payoutsEnabled}
+              owed={owed}
             />
           </Panel>
         </aside>
