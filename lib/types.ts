@@ -36,6 +36,13 @@ export interface Booking {
   created_at: string;
   payment_status: PaymentStatus;
   service_type: ServiceType | null;
+  /**
+   * The window during which the brand holds the rights they bought. Only set
+   * for services that sell a term - whitelisting - and stamped at approval.
+   * See lib/licence.ts.
+   */
+  licence_starts_at: string | null;
+  licence_ends_at: string | null;
 }
 
 /** How a physical product (if any) reaches the creator for a booking. */

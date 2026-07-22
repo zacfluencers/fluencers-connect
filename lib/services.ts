@@ -51,6 +51,12 @@ export interface ServiceDef {
   /** Short hint shown under the price. */
   unit: string;
   delivery: DeliveryDef;
+  /**
+   * For services that sell a *term* rather than an outright handover: how many
+   * months the brand's rights last, counted from approval. Only whitelisting
+   * has one today. See lib/licence.ts.
+   */
+  licenceMonths?: number;
 }
 
 /** Files, the original behaviour. Also used for bookings with no service set. */
@@ -87,6 +93,9 @@ export const SERVICES: ServiceDef[] = [
     label: "Meta Whitelist",
     rateField: "whitelist_rate",
     unit: "3 months ad usage",
+    // The "3 months" in that unit is a promise to both sides, so it has to be
+    // a number the system acts on rather than words on a price list.
+    licenceMonths: 3,
     delivery: {
       title: "Whitelisting access",
       prompt:
@@ -148,6 +157,12 @@ export function isServiceType(value: unknown): value is ServiceType {
  */
 export function deliveryFor(key: string | null | undefined): DeliveryDef {
   return (key && BY_KEY.get(key as ServiceType)?.delivery) || FILE_DELIVERY;
+}
+
+/** Months of rights a service grants, or null if it doesn't sell a term. */
+export function licenceMonthsFor(key: string | null | undefined): number | null {
+  if (!key) return null;
+  return BY_KEY.get(key as ServiceType)?.licenceMonths ?? null;
 }
 
 export function serviceLabel(key: string | null | undefined): string | null {

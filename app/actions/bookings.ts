@@ -10,6 +10,7 @@ import {
   type BookingAction,
 } from "@/lib/bookings";
 import { releaseEscrow, refundEscrow } from "@/lib/stripe/escrow";
+import { licenceWindow } from "@/lib/licence";
 import { notify } from "@/lib/notifications";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -55,6 +56,47 @@ async function notifyBookingAction(
   });
 }
 
+/**
+ * Tell both sides the licence clock has started, and when it stops.
+ *
+ * Said once, at the start, so neither party has to go looking for the date -
+ * and so "I didn't know when it ran out" isn't available to either of them
+ * later. The reminders a week before and on the day come from the scheduled
+ * job in lib/licence-reminders.ts.
+ */
+async function announceLicence(
+  supabase: SupabaseClient,
+  args: {
+    brandId: string;
+    creatorId: string;
+    bookingId: string;
+    endsAt: Date;
+  },
+) {
+  const when = args.endsAt.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/London",
+  });
+  const link = `/bookings/${args.bookingId}`;
+
+  await notify(supabase, {
+    userId: args.brandId,
+    type: "booking_update",
+    title: `Your whitelisting runs until ${when}`,
+    body: "You can run ads from the creator's handle until this date. We'll remind you a week before it ends.",
+    link,
+  });
+  await notify(supabase, {
+    userId: args.creatorId,
+    type: "booking_update",
+    title: `Whitelisting agreed until ${when}`,
+    body: "The brand can run ads from your handle until this date. After that you can remove them as an approved partner.",
+    link,
+  });
+}
+
 // Booking creation now happens through Stripe Checkout — see
 // createBookingCheckout in app/actions/payments.ts.
 
@@ -75,7 +117,7 @@ export async function transitionBooking(
 
   const { data: booking, error: fetchErr } = await supabase
     .from("bookings")
-    .select("id, brand_id, creator_id, status, revision_count")
+    .select("id, brand_id, creator_id, status, revision_count, service_type")
     .eq("id", bookingId)
     .maybeSingle();
 
@@ -119,6 +161,38 @@ export async function transitionBooking(
         ? await releaseEscrow(bookingId)
         : await refundEscrow(bookingId, "declined");
     if ("error" in result) return result;
+
+    // Approval is what starts a whitelist's three months. Recorded here rather
+    // than in escrow because it's a fact about the agreement, not the payment -
+    // and it must not be set by a decline or a refund.
+    if (action === "approve") {
+      const window = licenceWindow(booking.service_type, new Date());
+      if (window) {
+        const { data: started } = await supabase
+          .from("bookings")
+          .update({
+            licence_starts_at: window.startsAt.toISOString(),
+            licence_ends_at: window.endsAt.toISOString(),
+          })
+          .eq("id", bookingId)
+          // Never restart a clock that's already running: a second approval
+          // would silently extend the brand's rights.
+          .is("licence_ends_at", null)
+          .select("id");
+
+        // Only announce a clock we actually started, so a repeated approval
+        // can't tell either side the term has been reset.
+        if (started?.length) {
+          await announceLicence(supabase, {
+            brandId: booking.brand_id,
+            creatorId: booking.creator_id,
+            bookingId,
+            endsAt: window.endsAt,
+          });
+        }
+      }
+    }
+
     await notifyBookingAction(supabase, notifyArgs);
     revalidateBooking(bookingId);
     return { ok: true };

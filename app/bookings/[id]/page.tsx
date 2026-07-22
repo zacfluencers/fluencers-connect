@@ -18,8 +18,9 @@ import { DisputeButton } from "@/components/DisputeButton";
 import { Conversation } from "@/components/Conversation";
 import { Deliverables } from "@/components/Deliverables";
 import { BookingBrief } from "@/components/BookingBrief";
+import { LicenceWindow } from "@/components/LicenceWindow";
 import { gbp } from "@/lib/format";
-import { serviceLabel, deliveryFor } from "@/lib/services";
+import { serviceLabel, deliveryFor, licenceMonthsFor } from "@/lib/services";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ export default async function DealRoomPage({
 
   const { booking, creator, brand } = detail;
   const delivery = deliveryFor(booking.service_type);
+  const licenceMonths = licenceMonthsFor(booking.service_type);
   const actions = availableActions(booking.status, me.role, booking.revision_count);
   const creatorName = creator?.name ?? "Creator";
   const canDispute =
@@ -170,6 +172,17 @@ export default async function DealRoomPage({
             />
           </Card>
 
+          {/* The clock on a whitelist, above the price - it's the thing either
+              side is most likely to have come here to check. */}
+          {booking.licence_ends_at && (
+            <LicenceWindow
+              startsAt={booking.licence_starts_at}
+              endsAt={booking.licence_ends_at}
+              role={me.role}
+              creatorName={creatorName}
+            />
+          )}
+
           <Card className="p-6">
             {serviceLabel(booking.service_type) && (
               <div className="mb-3 flex items-center justify-between">
@@ -186,6 +199,14 @@ export default async function DealRoomPage({
               </span>
             </div>
             <p className="mt-1 text-xs text-[var(--muted)]">{escrowNote(booking.payment_status)}</p>
+            {/* Before approval there's no clock yet, so say when it starts.
+                Both sides should know the term exists before it's running. */}
+            {licenceMonths != null && !booking.licence_ends_at && (
+              <p className="mt-2 text-xs text-[var(--muted)]">
+                {licenceMonths} months of ad rights, starting the day the brand
+                approves the work.
+              </p>
+            )}
 
             {/* Revision counter */}
             <div className="mt-5">
