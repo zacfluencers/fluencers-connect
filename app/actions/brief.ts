@@ -67,6 +67,10 @@ export async function saveBookingBrief(
     avoid: str(form, "avoid"),
     deadline: str(form, "deadline"),
     usage_rights: str(form, "usage_rights"),
+    // Whitelisting and posts only - the form doesn't show these otherwise, so
+    // they simply come through empty.
+    meta_business_id: str(form, "meta_business_id"),
+    brand_handle: str(form, "brand_handle"),
     // Only keep the fields that match the chosen product mode.
     product_mode: productMode,
     shipping_tracking: productMode === "ship" ? str(form, "shipping_tracking") : null,

@@ -35,7 +35,7 @@ interface SectionDef {
   fields: FieldDef[];
 }
 
-const SECTIONS: SectionDef[] = [
+const BASE_SECTIONS: SectionDef[] = [
   {
     title: "Campaign details",
     fields: [
@@ -67,6 +67,75 @@ const SECTIONS: SectionDef[] = [
   },
 ];
 
+/**
+ * The two audience services need practical details before the creator can even
+ * begin. Whitelisting can't start without the brand's Business Manager ID, and
+ * neither a whitelist nor a post can be tagged without their handle - so both
+ * would otherwise stall on day one with each side waiting on the other.
+ */
+const EXTRA_SECTION: Record<"whitelist" | "post", SectionDef> = {
+  whitelist: {
+    title: "Whitelisting access",
+    fields: [
+      {
+        key: "brand_handle",
+        label: "Your Instagram handle",
+        type: "input",
+        placeholder: "@yourbrand",
+        hint: "The account the creator approves as a partner.",
+      },
+      {
+        key: "meta_business_id",
+        label: "Meta Business Manager ID",
+        type: "input",
+        placeholder: "e.g. 123456789012345",
+        hint: "In Meta Business Suite: Business settings → Business info. The creator can't grant access without it.",
+      },
+    ],
+  },
+  post: {
+    title: "Posting details",
+    fields: [
+      {
+        key: "brand_handle",
+        label: "Your Instagram handle",
+        type: "input",
+        placeholder: "@yourbrand",
+        hint: "Who the creator tags in the post.",
+      },
+    ],
+  },
+};
+
+/** Service-specific wording for fields that already exist. */
+const PLACEHOLDER_OVERRIDES: Record<string, Partial<Record<keyof BriefValues, string>>> = {
+  post: {
+    creative_brief:
+      "Say whether you're supplying the image or video or the creator is making it, plus the caption, tags and any link…",
+  },
+  whitelist: {
+    creative_brief:
+      "Which posts should the ads run from, and anything the creator should know about how they'll be used…",
+  },
+};
+
+/** The brief for one service: the shared sections plus whatever it needs. */
+function sectionsFor(service: string | null | undefined): SectionDef[] {
+  const overrides = (service && PLACEHOLDER_OVERRIDES[service]) || {};
+  const base = BASE_SECTIONS.map((s) => ({
+    ...s,
+    fields: s.fields.map((f) =>
+      overrides[f.key] ? { ...f, placeholder: overrides[f.key] } : f,
+    ),
+  }));
+
+  const extra =
+    service === "whitelist" || service === "post" ? EXTRA_SECTION[service] : null;
+  // Slotted second, right after the campaign name: it's the practical detail
+  // the creator needs before anything else can happen.
+  return extra ? [base[0], extra, ...base.slice(1)] : base;
+}
+
 type BriefValues = {
   campaign_name: string;
   target_audience: string;
@@ -77,6 +146,8 @@ type BriefValues = {
   avoid: string;
   deadline: string;
   usage_rights: string;
+  meta_business_id: string;
+  brand_handle: string;
   product_mode: ProductMode;
   shipping_tracking: string;
   product_link: string;
@@ -94,6 +165,8 @@ function valuesFrom(brief: BookingBrief | null): BriefValues {
     avoid: brief?.avoid ?? "",
     deadline: brief?.deadline ?? "",
     usage_rights: brief?.usage_rights ?? "",
+    meta_business_id: brief?.meta_business_id ?? "",
+    brand_handle: brief?.brand_handle ?? "",
     product_mode: brief?.product_mode ?? "none",
     shipping_tracking: brief?.shipping_tracking ?? "",
     product_link: brief?.product_link ?? "",
@@ -105,16 +178,20 @@ export function BookingBrief({
   bookingId,
   userId,
   role,
+  serviceType,
   brief,
   assets,
 }: {
   bookingId: string;
   userId: string;
   role: "brand" | "creator";
+  /** Decides which extra questions the brief asks. */
+  serviceType: string | null;
   brief: BookingBrief | null;
   assets: BookingAsset[];
 }) {
   const isBrand = role === "brand";
+  const sections = useMemo(() => sectionsFor(serviceType), [serviceType]);
   const hasContent = useMemo(() => briefHasContent(brief, assets), [brief, assets]);
   // Brands start in edit mode when there's nothing yet (the post-booking nudge).
   const [editing, setEditing] = useState(isBrand && !hasContent);
@@ -124,6 +201,7 @@ export function BookingBrief({
       <BriefForm
         bookingId={bookingId}
         userId={userId}
+        sections={sections}
         brief={brief}
         assets={assets}
         onClose={() => setEditing(false)}
@@ -136,6 +214,7 @@ export function BookingBrief({
     <BriefSummary
       brief={brief}
       assets={assets}
+      sections={sections}
       isBrand={isBrand}
       hasContent={hasContent}
       onEdit={() => setEditing(true)}
@@ -159,12 +238,14 @@ function briefHasContent(brief: BookingBrief | null, assets: BookingAsset[]) {
 function BriefSummary({
   brief,
   assets,
+  sections,
   isBrand,
   hasContent,
   onEdit,
 }: {
   brief: BookingBrief | null;
   assets: BookingAsset[];
+  sections: SectionDef[];
   isBrand: boolean;
   hasContent: boolean;
   onEdit: () => void;
@@ -188,7 +269,7 @@ function BriefSummary({
 
   return (
     <div className="space-y-6">
-      {SECTIONS.map((section) => {
+      {sections.map((section) => {
         const filled = section.fields.filter((f) => (brief?.[f.key] ?? "") !== "");
         if (filled.length === 0) return null;
         return (
@@ -294,6 +375,7 @@ function ProductSummary({ brief }: { brief: BookingBrief | null }) {
 function BriefForm({
   bookingId,
   userId,
+  sections,
   brief,
   assets,
   onClose,
@@ -301,6 +383,7 @@ function BriefForm({
 }: {
   bookingId: string;
   userId: string;
+  sections: SectionDef[];
   brief: BookingBrief | null;
   assets: BookingAsset[];
   onClose: () => void;
@@ -332,7 +415,7 @@ function BriefForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-7">
-      {SECTIONS.map((section) => (
+      {sections.map((section) => (
         <fieldset key={section.title} className="space-y-4">
           <legend className="text-xs font-medium uppercase tracking-widest text-[var(--accent-2)]">
             {section.title}

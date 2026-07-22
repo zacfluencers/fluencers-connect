@@ -32,23 +32,87 @@ export async function recordDeliverable(input: {
   name: string;
   size: number;
 }): Promise<{ ok: true } | { error: string }> {
-  const ctx = await creatorBooking(input.bookingId);
-  if (!ctx.ok) return { error: ctx.error };
-  const { supabase, booking } = ctx;
-
-  // Was this the first delivered file? Let the brand know once.
-  const { count } = await supabase
-    .from("booking_deliverables")
-    .select("id", { count: "exact", head: true })
-    .eq("booking_id", input.bookingId);
-
-  const { error } = await supabase.from("booking_deliverables").insert({
-    booking_id: input.bookingId,
+  return insertDeliverable(input.bookingId, "uploaded content", {
+    kind: "file",
     url: input.url,
     storage_path: input.storagePath,
     name: input.name,
     size: input.size,
   });
+}
+
+/**
+ * Record a link or a note instead of a file.
+ *
+ * An Influencer Post is delivered as a live URL and a Meta Whitelist as a
+ * partnership ad code, so neither creator has anything to upload. Both were
+ * bookable from 22 Jul against a deal room that only accepted uploads.
+ */
+export async function addDeliverableEntry(input: {
+  bookingId: string;
+  kind: "link" | "note";
+  value: string;
+}): Promise<{ ok: true } | { error: string }> {
+  const value = input.value.trim();
+  if (!value) {
+    return {
+      error:
+        input.kind === "link" ? "Add a link first." : "Add some detail first.",
+    };
+  }
+  if (value.length > 2000) return { error: "That's too long." };
+
+  if (input.kind === "link") {
+    const url = normaliseUrl(value);
+    if (!url) return { error: "That doesn't look like a link. It should start with https://" };
+    return insertDeliverable(input.bookingId, "added a link", {
+      kind: "link",
+      url,
+      name: url,
+    });
+  }
+
+  return insertDeliverable(input.bookingId, "sent whitelisting details", {
+    kind: "note",
+    note: value,
+  });
+}
+
+/**
+ * Accept a pasted link only if it's a real http(s) URL. Anything else - a
+ * handle, a code, a sentence - belongs in a note, and silently storing it as a
+ * link would render a dead anchor for the brand to click.
+ */
+function normaliseUrl(value: string): string | null {
+  const withScheme = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  try {
+    const url = new URL(withScheme);
+    if (!url.hostname.includes(".")) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+/** Shared insert + first-delivery notification for every kind of deliverable. */
+async function insertDeliverable(
+  bookingId: string,
+  verb: string,
+  row: Record<string, unknown>,
+): Promise<{ ok: true } | { error: string }> {
+  const ctx = await creatorBooking(bookingId);
+  if (!ctx.ok) return { error: ctx.error };
+  const { supabase, booking } = ctx;
+
+  // Was this the first thing delivered? Let the brand know once.
+  const { count } = await supabase
+    .from("booking_deliverables")
+    .select("id", { count: "exact", head: true })
+    .eq("booking_id", bookingId);
+
+  const { error } = await supabase
+    .from("booking_deliverables")
+    .insert({ booking_id: bookingId, ...row });
   if (error) return { error: error.message };
 
   if (!count) {
@@ -57,13 +121,13 @@ export async function recordDeliverable(input: {
     await notify(supabase, {
       userId: booking.brand_id,
       type: "booking_update",
-      title: `${creatorName} uploaded content`,
-      body: "New deliverables are ready to review.",
-      link: `/bookings/${input.bookingId}`,
+      title: `${creatorName} ${verb}`,
+      body: "There's something new to review.",
+      link: `/bookings/${bookingId}`,
     });
   }
 
-  revalidatePath(`/bookings/${input.bookingId}`);
+  revalidatePath(`/bookings/${bookingId}`);
   return { ok: true };
 }
 

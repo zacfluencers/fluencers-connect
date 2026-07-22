@@ -19,7 +19,7 @@ import { Conversation } from "@/components/Conversation";
 import { Deliverables } from "@/components/Deliverables";
 import { BookingBrief } from "@/components/BookingBrief";
 import { gbp } from "@/lib/format";
-import { serviceLabel } from "@/lib/services";
+import { serviceLabel, deliveryFor } from "@/lib/services";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +36,7 @@ export default async function DealRoomPage({
   if (!detail) notFound();
 
   const { booking, creator, brand } = detail;
+  const delivery = deliveryFor(booking.service_type);
   const actions = availableActions(booking.status, me.role, booking.revision_count);
   const creatorName = creator?.name ?? "Creator";
   const canDispute =
@@ -108,18 +109,23 @@ export default async function DealRoomPage({
               bookingId={booking.id}
               userId={me.id}
               role={me.role}
+              serviceType={booking.service_type}
               brief={brief}
               assets={assets}
             />
           </Card>
 
           <Card className="p-6">
-            <h2 className="mb-4 text-lg font-semibold">Content delivery</h2>
+            {/* Named after what's actually being handed over. "Content
+                delivery" is wrong for a whitelist, where the deliverable is
+                access rather than a file. */}
+            <h2 className="mb-4 text-lg font-semibold">{delivery.title}</h2>
             <Deliverables
               bookingId={booking.id}
               userId={me.id}
               role={me.role}
               status={booking.status}
+              delivery={delivery}
               deliverables={deliverables}
             />
           </Card>

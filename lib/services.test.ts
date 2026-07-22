@@ -6,6 +6,7 @@ import {
   serviceLabel,
   SERVICES,
   isServiceType,
+  deliveryFor,
 } from "./services";
 
 // Only the three rate columns matter to these functions.
@@ -126,5 +127,56 @@ describe("isServiceType", () => {
     expect(isServiceType(null)).toBe(false);
     expect(isServiceType(undefined)).toBe(false);
     expect(isServiceType(123)).toBe(false);
+  });
+});
+
+describe("deliveryFor", () => {
+  // The deal room only ever accepted uploads. Whitelisting hands over a
+  // partnership ad code and a profile post hands over a live URL, so both
+  // creators arrived at an upload box with nothing to upload.
+  it("asks for a code, not a file, on a whitelist", () => {
+    const d = deliveryFor("whitelist");
+    expect(d.kinds).toContain("note");
+    expect(d.kinds[0]).toBe("note");
+  });
+
+  it("asks for a link on an influencer post", () => {
+    const d = deliveryFor("post");
+    expect(d.kinds[0]).toBe("link");
+  });
+
+  it("still asks for files on the content services", () => {
+    for (const key of ["ugc", "event", "broll"]) {
+      expect(deliveryFor(key).kinds).toEqual(["file"]);
+    }
+  });
+
+  // Bookings made before service types existed carry a null service_type, and
+  // every one of them was a file delivery.
+  it("falls back to files for unknown or missing services", () => {
+    expect(deliveryFor(null).kinds).toEqual(["file"]);
+    expect(deliveryFor(undefined).kinds).toEqual(["file"]);
+    expect(deliveryFor("nonsense").kinds).toEqual(["file"]);
+  });
+
+  it("gives every service a heading and a prompt", () => {
+    for (const s of SERVICES) {
+      expect(s.delivery.title).not.toBe("");
+      expect(s.delivery.prompt).not.toBe("");
+      expect(s.delivery.kinds.length).toBeGreaterThan(0);
+    }
+  });
+
+  // An input with no label is an unexplained empty box, which for a code or a
+  // post URL is exactly as unhelpful as the upload box it replaced.
+  it("labels whichever input it offers", () => {
+    for (const s of SERVICES) {
+      if (s.delivery.kinds.includes("link")) {
+        expect(s.delivery.linkLabel).toBeTruthy();
+      }
+      if (s.delivery.kinds.includes("note")) {
+        expect(s.delivery.noteLabel).toBeTruthy();
+      }
+    }
   });
 });

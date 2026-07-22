@@ -16,7 +16,7 @@ import type {
 } from "@/lib/types";
 
 const BOOKING_BRIEF_COLUMNS =
-  "booking_id, campaign_name, objective, target_audience, platform, deliverables, creative_brief, talking_points, cta, must_include, avoid, deadline, payment, usage_rights, product_mode, shipping_tracking, product_link, discount_code, updated_at";
+  "booking_id, campaign_name, objective, target_audience, platform, deliverables, creative_brief, talking_points, cta, must_include, avoid, deadline, payment, usage_rights, product_mode, shipping_tracking, product_link, discount_code, meta_business_id, brand_handle, updated_at";
 
 const BRAND_PROFILE_COLUMNS =
   "user_id, company_name, about, budget_min, budget_max, looking_for_creators, logo_url, website, instagram, tiktok, created_at";
@@ -170,7 +170,10 @@ export async function getBookingBrief(
  * party. Rows without a storage_path keep whatever url they had (legacy).
  */
 async function withSignedUrls<
-  T extends { url: string; storage_path: string | null },
+  // `url` is nullable because a deliverable can now be a plain note (a
+  // whitelisting code) with no stored object behind it. Those rows have no
+  // storage_path, so they pass through this untouched.
+  T extends { url: string | null; storage_path: string | null },
 >(
   supabase: Awaited<ReturnType<typeof createClient>>,
   bucket: string,
@@ -218,7 +221,7 @@ export async function getBookingDeliverables(
   const supabase = await createClient();
   const { data } = await supabase
     .from("booking_deliverables")
-    .select("id, booking_id, url, storage_path, name, size, created_at")
+    .select("id, booking_id, kind, url, note, storage_path, name, size, created_at")
     .eq("booking_id", bookingId)
     .order("created_at", { ascending: true });
   return withSignedUrls(supabase, "deliverables", data ?? []);

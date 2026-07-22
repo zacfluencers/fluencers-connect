@@ -1,5 +1,7 @@
 /** Shapes mirroring the database schema in supabase/migrations/0001_init.sql. */
 
+import type { DeliveryKind } from "@/lib/services";
+
 export type UserRole = "brand" | "creator";
 
 export type BookingStatus =
@@ -59,6 +61,10 @@ export interface BookingBrief {
   shipping_tracking: string | null;
   product_link: string | null;
   discount_code: string | null;
+  /** Whitelisting only - the creator needs this to add the brand as a partner. */
+  meta_business_id: string | null;
+  /** Whitelisting and posts - who the creator tags. */
+  brand_handle: string | null;
   updated_at: string;
 }
 
@@ -89,7 +95,16 @@ export interface BrandBilling {
 export interface BookingDeliverable {
   id: string;
   booking_id: string;
-  url: string;
+  /**
+   * What was handed over. `file` is an upload; `link` is a live post URL;
+   * `note` is text such as a whitelisting partnership code. See
+   * 0034_link_deliverables.sql.
+   */
+  kind: DeliveryKind;
+  /** Present for `file` and `link`; null for `note`. */
+  url: string | null;
+  /** Present for `note`; null otherwise. */
+  note: string | null;
   storage_path: string | null;
   name: string | null;
   size: number | null;
