@@ -81,9 +81,13 @@ export function CreatorCard({
           </div>
         )}
 
+        {/* This flag is the creator's own "not taking work right now" switch.
+            It used to read "Booked", which invented a job nobody had made -
+            misleading to brands, and unfair to a creator who might simply be
+            on holiday. Say only what we actually know. */}
         {!creator.availability && (
           <div className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">
-            Booked
+            Not available
           </div>
         )}
       </div>

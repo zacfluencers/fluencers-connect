@@ -258,7 +258,9 @@ function AvailabilityPill({ available }: { available: boolean }) {
           available ? "bg-emerald-500" : "bg-[var(--muted)]"
         }`}
       />
-      {available ? "Available now" : "Currently booked"}
+      {/* Not "Currently booked": the creator set this themselves and may just
+          be away. We don't know why, so we don't claim to. */}
+      {available ? "Available now" : "Not available"}
     </span>
   );
 }
