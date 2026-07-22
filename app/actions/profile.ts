@@ -11,6 +11,7 @@ import {
 import { isScrapeCreatorsConfigured, cleanHandle } from "@/lib/social/scrapecreators";
 import { isAdminConfigured } from "@/lib/supabase/admin";
 import { sanitiseSecondaryNiches } from "@/lib/niches";
+import { SERVICES, type ServiceDef } from "@/lib/services";
 
 export type ProfileState = { error: string } | { ok: true } | null;
 
@@ -61,15 +62,17 @@ export async function upsertCreatorProfile(
     return Number.isFinite(n) && n >= 0 ? n : null;
   };
 
-  const ugc_rate = toRate("ugc_rate");
-  const event_rate = toRate("event_rate");
-  const broll_rate = toRate("broll_rate");
+  // Driven by SERVICES so adding a service can't leave its rate silently
+  // unsaved - the form field and the column name are the same string.
+  const rateByField = Object.fromEntries(
+    SERVICES.map((s) => [s.rateField, toRate(s.rateField)]),
+  ) as Record<ServiceDef["rateField"], number | null>;
 
-  const rates = [ugc_rate, event_rate, broll_rate].filter(
+  const rates = Object.values(rateByField).filter(
     (r): r is number => r != null,
   );
   if (rates.length === 0) {
-    return { error: "Set at least one rate (UGC, Event Day, or B-Roll)." };
+    return { error: "Set at least one rate so brands can book you." };
   }
 
   const age = toCount("age");
@@ -104,9 +107,7 @@ export async function upsertCreatorProfile(
     // on the form before saving).
     instagram_followers: toCount("instagram_followers"),
     tiktok_followers: toCount("tiktok_followers"),
-    ugc_rate,
-    event_rate,
-    broll_rate,
+    ...rateByField,
     gender: String(formData.get("gender") ?? "").trim() || null,
     age,
     country: String(formData.get("country") ?? "").trim() || null,

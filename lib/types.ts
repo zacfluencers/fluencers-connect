@@ -112,6 +112,10 @@ export interface CreatorProfile {
   /** Per-service rates (GBP). Null = not offered. */
   ugc_rate: number | null;
   event_rate: number | null;
+  /** Meta whitelisting - brand may run ads from the creator's handle, 3 months. */
+  whitelist_rate: number | null;
+  /** Creator publishes to their own profile. */
+  post_rate: number | null;
   broll_rate: number | null;
   gender: string | null;
   age: number | null;

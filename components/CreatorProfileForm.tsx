@@ -6,6 +6,16 @@ import {
   type ProfileState,
 } from "@/app/actions/profile";
 import { NICHES } from "@/lib/niches";
+import { SERVICES, type ServiceType } from "@/lib/services";
+
+/** Realistic example prices, so the field isn't a blank guess. */
+const RATE_PLACEHOLDER: Record<ServiceType, string> = {
+  ugc: "e.g. 250",
+  event: "e.g. 600",
+  broll: "e.g. 400",
+  whitelist: "e.g. 500",
+  post: "e.g. 350",
+};
 import { GENDERS, COUNTRIES } from "@/lib/demographics";
 import { ImageUpload } from "@/components/ImageUpload";
 import { SocialFields } from "@/components/SocialFields";
@@ -75,11 +85,29 @@ export function CreatorProfileForm({
         <legend className="px-1 text-sm font-medium text-[var(--foreground)]">
           Your rates (£) - set at least one
         </legend>
+        {/* Driven by SERVICES, so adding a bookable service adds its field here
+            automatically rather than leaving a rate no one can enter. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Text label="UGC (per video)" name="ugc_rate" type="number" defaultValue={profile?.ugc_rate != null ? String(profile.ugc_rate) : ""} placeholder="e.g. 250" />
-          <Text label="Event Day (per day)" name="event_rate" type="number" defaultValue={profile?.event_rate != null ? String(profile.event_rate) : ""} placeholder="e.g. 600" />
-          <Text label="B-Roll (per pack)" name="broll_rate" type="number" defaultValue={profile?.broll_rate != null ? String(profile.broll_rate) : ""} placeholder="e.g. 400" />
+          {SERVICES.map((s) => (
+            <Text
+              key={s.key}
+              label={`${s.label} (${s.unit})`}
+              name={s.rateField}
+              type="number"
+              defaultValue={
+                profile?.[s.rateField] != null
+                  ? String(profile[s.rateField])
+                  : ""
+              }
+              placeholder={RATE_PLACEHOLDER[s.key]}
+            />
+          ))}
         </div>
+        <p className="mt-3 text-xs text-[var(--muted)]">
+          Leave blank anything you don&apos;t offer. Whitelisting lets a brand
+          run ads from your handle for 3 months; an Influencer Post is you
+          posting to your own profile.
+        </p>
       </fieldset>
 
       <Bio defaultValue={profile?.bio ?? ""} />

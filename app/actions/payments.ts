@@ -35,7 +35,9 @@ export async function createBookingCheckout(
   const { data: creator } = await supabase
     .from("creator_profiles")
     .select(
-      "user_id, name, ugc_rate, event_rate, broll_rate, availability",
+      // Every rate column, not a hand-picked list: a missing one reads as
+      // "doesn't offer this service" and silently blocks the booking.
+      "user_id, name, ugc_rate, event_rate, broll_rate, whitelist_rate, post_rate, availability",
     )
     .eq("user_id", creatorId)
     .maybeSingle();
