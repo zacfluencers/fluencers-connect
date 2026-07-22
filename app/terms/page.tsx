@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { LegalLayout, Section } from "@/components/LegalLayout";
+import { LegalLayout, Section, Sub } from "@/components/LegalLayout";
 
 export const metadata = { title: "Terms of Service - Fluencers Connect" };
 
 export default function TermsPage() {
   return (
-    <LegalLayout title="Terms of Service" updated="10 July 2026">
+    <LegalLayout title="Terms of Service" updated="22 July 2026">
       <p>
         These Terms of Service (&ldquo;Terms&rdquo;) govern your use of Influencer
         Connect (the &ldquo;Service&rdquo;), a marketplace operated by Fluencers
@@ -19,8 +19,9 @@ export default function TermsPage() {
           Fluencers Connect is a two-sided marketplace that connects
           &ldquo;Brands&rdquo; (businesses looking to book content) with
           &ldquo;Creators&rdquo; (individuals who produce content such as UGC,
-          event coverage and B-roll). We provide the platform, booking tools and
-          payment handling. We are not the employer, agent or partner of any
+          event coverage and B-roll, and who may also allow a Brand to advertise
+          from their own social account or post to their own profile). We
+          provide the platform, booking tools and payment handling. We are not the employer, agent or partner of any
           Creator or Brand, and the actual content work is agreed directly between
           the Brand and the Creator.
         </p>
@@ -82,9 +83,88 @@ export default function TermsPage() {
           rights to anything you upload, and for not infringing anyone
           else&rsquo;s intellectual property.
         </p>
+        <p>
+          Whitelisting and Influencer Posts work differently, because they use a
+          Creator&rsquo;s own account rather than handing content over. Section
+          7 sets out what each side may and may not do, and for how long.
+        </p>
       </Section>
 
-      <Section n={7} title="Acceptable use">
+      {/* Whitelisting and profile posts are the only services that run for a
+          period and that touch a Creator's own account, so they need rules the
+          other three don't. The platform now records and enforces the dates;
+          this is what those dates mean. */}
+      <Section n={7} title="Whitelisting and profile posts">
+        <p>
+          Two services work differently from the rest, because they involve a
+          Creator&rsquo;s own social media account rather than content handed
+          over as files. These rules apply in addition to the rest of these
+          Terms.
+        </p>
+
+        <Sub title="Meta Whitelisting" />
+        <p>
+          Whitelisting means a Creator allows a Brand to run paid ads from the
+          Creator&rsquo;s own social account (also called partnership ads). The
+          term is <strong>three months</strong>, starting on the day the Brand
+          approves the booking. Both parties can see the exact end date in the
+          booking, and we email you both a week before it ends and again on the
+          day.
+        </p>
+        <p>
+          During the term, the Creator must keep the Brand&rsquo;s partner
+          access in place and must not withdraw it early. The Brand may use that
+          access only for the campaign booked.
+        </p>
+        <p>
+          At the end of the term the Brand must stop running ads from the
+          Creator&rsquo;s account, and the Creator is free to withdraw access.
+          Running ads after the end date, or withdrawing access before it, is a
+          breach of these Terms. To continue beyond three months, book the
+          Creator again.
+        </p>
+
+        <Sub title="Influencer Posts" />
+        <p>
+          An Influencer Post means the Creator publishes agreed content to their
+          own profile. The post must stay live for at least{" "}
+          <strong>30 days</strong> from the day the Brand approves the booking.
+          Removing, archiving, hiding or materially editing the post within that
+          period, without the Brand&rsquo;s agreement, is a breach of these
+          Terms.
+        </p>
+        <p>
+          After 30 days the Creator may remove the post whenever they choose. We
+          email the Brand a week beforehand so they can save anything they still
+          need.
+        </p>
+        <p>
+          A profile post does not by itself give the Brand the right to reuse
+          that content elsewhere, such as in their own advertising. That has to
+          be agreed separately (see section 6) or booked as Whitelisting.
+        </p>
+
+        <Sub title="Disclosure and platform rules" />
+        <p>
+          Creators are responsible for clearly disclosing paid partnerships, as
+          required by law and by the platform they post on - in the UK, that
+          means the CAP Code and ASA guidance. Both parties are responsible for
+          complying with the rules of the platform involved, including
+          Meta&rsquo;s advertising and branded content policies. We are not
+          affiliated with, endorsed by or acting on behalf of Meta, Instagram or
+          TikTok.
+        </p>
+
+        <Sub title="If something goes wrong" />
+        <p>
+          Tell us. Where we think it is warranted we may refund a Brand,
+          withhold or reverse funds, or suspend an account. Section 9 still
+          applies: we are not the judge of every disagreement, and disputes
+          about the work itself remain between the Brand and the Creator.
+        </p>
+      </Section>
+
+      <Section n={8} title="Acceptable use">
         <p>You agree not to use the Service to:</p>
         <ul className="list-disc space-y-1.5 pl-5">
           <li>break the law or infringe others&rsquo; rights;</li>
@@ -105,7 +185,7 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section n={8} title="Our role and disclaimers">
+      <Section n={9} title="Our role and disclaimers">
         <p>
           We provide the platform &ldquo;as is&rdquo;. We do not guarantee the
           quality, legality or outcome of any booking, or the conduct of any Brand
@@ -115,7 +195,7 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section n={9} title="Limitation of liability">
+      <Section n={10} title="Limitation of liability">
         <p>
           Nothing in these Terms limits liability that cannot be limited by law
           (such as for death or personal injury caused by negligence, or for
@@ -126,7 +206,7 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section n={10} title="Suspension and termination">
+      <Section n={11} title="Suspension and termination">
         <p>
           You can stop using the Service and close your account at any time. We may
           suspend or end your access if you breach these Terms, if required by law,
@@ -136,7 +216,7 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section n={11} title="Changes to these Terms">
+      <Section n={12} title="Changes to these Terms">
         <p>
           We may update these Terms from time to time. If we make material changes
           we&rsquo;ll take reasonable steps to let you know. Continuing to use the
@@ -144,7 +224,7 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section n={12} title="Governing law">
+      <Section n={13} title="Governing law">
         <p>
           These Terms are governed by the laws of England and Wales, and the courts
           of England and Wales have exclusive jurisdiction, except where applicable
@@ -152,7 +232,7 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section n={13} title="Contact us">
+      <Section n={14} title="Contact us">
         <p>
           Questions about these Terms? Email us at{" "}
           <a

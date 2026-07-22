@@ -31,6 +31,19 @@ export function LegalLayout({
   );
 }
 
+/**
+ * A sub-heading within a section. Used where one section has to cover two
+ * genuinely different things - whitelisting and profile posts have separate
+ * rules, and running them together as prose makes both easy to misread.
+ */
+export function Sub({ title }: { title: string }) {
+  return (
+    <h3 className="pt-1 text-[15px] font-semibold text-[var(--foreground)]">
+      {title}
+    </h3>
+  );
+}
+
 /** A titled section with a heading. */
 export function Section({
   n,
