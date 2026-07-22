@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { withCronMonitor } from "@/lib/cron-monitor";
 import {
   refreshActiveCreatorsSocialData,
   refreshFeaturedCreatorsSocialData,
@@ -42,6 +43,30 @@ export async function GET(req: Request) {
   }
 
   const cohort = new URL(req.url).searchParams.get("cohort") ?? "active";
+
+  // Only the three scheduled cohorts are monitored. `featured` and `inactive`
+  // are run by hand, and a monitor for a job with no schedule would alert
+  // every time nobody ran it.
+  const schedule = MONITORED_COHORTS[cohort];
+  if (schedule) {
+    const refreshed = await withCronMonitor(
+      `refresh-social-${cohort}`,
+      schedule,
+      () => runCohort(cohort),
+    );
+    return NextResponse.json({ cohort, refreshed });
+  }
+  return NextResponse.json({ cohort, refreshed: await runCohort(cohort) });
+}
+
+/** Schedules mirrored from vercel.json. */
+const MONITORED_COHORTS: Record<string, string> = {
+  unsynced: "0 5 * * *",
+  active: "0 6 * * 1",
+  avatars: "30 6 * * *",
+};
+
+async function runCohort(cohort: string): Promise<number> {
   let refreshed = 0;
   switch (cohort) {
     case "unsynced":
@@ -61,6 +86,5 @@ export async function GET(req: Request) {
       refreshed = await refreshActiveCreatorsSocialData();
       break;
   }
-
-  return NextResponse.json({ cohort, refreshed });
+  return refreshed;
 }

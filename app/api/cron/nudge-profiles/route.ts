@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendProfileNudges } from "@/lib/profile-nudge";
+import { withCronMonitor } from "@/lib/cron-monitor";
 
 /**
  * "Finish your profile" nudge job.
@@ -35,6 +36,14 @@ export async function GET(req: Request) {
   }
 
   const dryRun = new URL(req.url).searchParams.get("dryRun") === "1";
-  const result = await sendProfileNudges({ dryRun });
+
+  // A dry run is a human checking the audience, not the scheduled job - only
+  // the real run should count as a check-in, or a manual peek would mask a
+  // scheduled run that never happened.
+  const result = dryRun
+    ? await sendProfileNudges({ dryRun })
+    : await withCronMonitor("nudge-profiles", "30 8 * * *", () =>
+        sendProfileNudges({ dryRun }),
+      );
   return NextResponse.json({ dryRun, ...result });
 }

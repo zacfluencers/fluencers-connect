@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { resendSignupConfirmations } from "@/lib/signup-confirmations";
+import { withCronMonitor } from "@/lib/cron-monitor";
 
 /**
  * Confirmation-email recovery job.
@@ -35,6 +36,10 @@ export async function GET(req: Request) {
   }
 
   const dryRun = new URL(req.url).searchParams.get("dryRun") === "1";
-  const result = await resendSignupConfirmations({ dryRun });
+  const result = dryRun
+    ? await resendSignupConfirmations({ dryRun })
+    : await withCronMonitor("resend-confirmations", "0 8 * * *", () =>
+        resendSignupConfirmations({ dryRun }),
+      );
   return NextResponse.json({ dryRun, ...result });
 }
