@@ -10,6 +10,7 @@ import {
 } from "@/lib/queries";
 import { availableActions } from "@/lib/bookings";
 import { refreshPayoutStatus } from "@/app/actions/payments";
+import { platformFeeBps } from "@/lib/stripe/server";
 import { BookingActions } from "@/components/BookingActions";
 import { CreatorProfileForm } from "@/components/CreatorProfileForm";
 import { CreatorCard } from "@/components/CreatorCard";
@@ -116,6 +117,7 @@ export default async function CreatorDashboard() {
               hasAccount={Boolean(profile?.stripe_account_id)}
               payoutsEnabled={payoutsEnabled}
               owed={owed}
+              feeBps={platformFeeBps()}
             />
           </Panel>
         </aside>
@@ -211,7 +213,11 @@ export default async function CreatorDashboard() {
                 : "Create your profile so brands can find and book you."
             }
           >
-            <CreatorProfileForm profile={(profile as CreatorProfile) ?? null} userId={me.id} />
+            <CreatorProfileForm
+              profile={(profile as CreatorProfile) ?? null}
+              userId={me.id}
+              feeBps={platformFeeBps()}
+            />
           </Panel>
 
           {/* Portfolio */}

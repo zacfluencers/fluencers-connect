@@ -269,3 +269,44 @@ export async function refundBooking(
   revalidatePath("/dashboard/brand");
   return { ok: true };
 }
+
+/**
+ * Send a creator to their own Stripe dashboard.
+ *
+ * Feedback from the first real booking (22 Jul): the £20 arrived correctly but
+ * the creator couldn't tell where it had gone. It was in her Stripe Express
+ * balance, waiting on Stripe's own payout schedule to reach her bank - a step
+ * our app never mentioned and gave her no way to look at.
+ *
+ * Express login links are single-use and short-lived, so this has to be
+ * generated on demand rather than stored.
+ */
+export async function openPayoutDashboard(): Promise<{ error: string } | void> {
+  const me = await getCurrentUser();
+  if (!me) redirect("/login");
+  if (me.role !== "creator") return { error: "Only creators have payouts." };
+  if (!isStripeConfigured()) return { error: "Payments aren't set up yet." };
+
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("creator_profiles")
+    .select("stripe_account_id, payouts_enabled")
+    .eq("user_id", me.id)
+    .maybeSingle();
+
+  if (!profile?.stripe_account_id || !profile.payouts_enabled) {
+    return { error: "Finish payout setup first." };
+  }
+
+  let url: string;
+  try {
+    const link = await stripe().accounts.createLoginLink(
+      profile.stripe_account_id,
+    );
+    url = link.url;
+  } catch (e) {
+    console.error("[payout dashboard]", e instanceof Error ? e.message : e);
+    return { error: "Couldn't open your Stripe dashboard. Try again shortly." };
+  }
+  redirect(url);
+}

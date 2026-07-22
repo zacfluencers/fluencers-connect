@@ -6,6 +6,7 @@ import {
   type ProfileState,
 } from "@/app/actions/profile";
 import { NICHES } from "@/lib/niches";
+import { gbp } from "@/lib/format";
 import { SERVICES, type ServiceType } from "@/lib/services";
 
 /** Realistic example prices, so the field isn't a blank guess. */
@@ -25,9 +26,12 @@ import type { CreatorProfile } from "@/lib/types";
 export function CreatorProfileForm({
   profile,
   userId,
+  feeBps = 0,
 }: {
   profile: CreatorProfile | null;
   userId: string;
+  /** Platform fee in basis points (1000 = 10%). Passed from the server. */
+  feeBps?: number;
 }) {
   const [state, formAction, pending] = useActionState<ProfileState, FormData>(
     upsertCreatorProfile,
@@ -103,7 +107,21 @@ export function CreatorProfileForm({
             />
           ))}
         </div>
-        <p className="mt-3 text-xs text-[var(--muted)]">
+        {/* The fee belongs here, where the number is being decided - our first
+            paid creator only discovered it after the money arrived. It was in
+            the Terms and nowhere else. */}
+        {feeBps > 0 && (
+          <p className="mt-3 text-xs text-[var(--muted)]">
+            These are the prices brands pay. We take {feeBps / 100}%, so you
+            keep{" "}
+            <strong className="text-[var(--foreground)]">
+              {100 - feeBps / 100}%
+            </strong>{" "}
+            - set {gbp.format(200)} and you receive{" "}
+            {gbp.format(200 * (1 - feeBps / 10000))}.
+          </p>
+        )}
+        <p className="mt-2 text-xs text-[var(--muted)]">
           Leave blank anything you don&apos;t offer. Whitelisting lets a brand
           run ads from your handle for 3 months; an Influencer Post is you
           posting to your own profile.
