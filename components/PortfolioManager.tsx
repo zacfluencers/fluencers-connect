@@ -127,7 +127,7 @@ export function PortfolioManager({
               onClick={() => remove(item.id)}
               disabled={pending}
               aria-label="Delete video"
-              className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100"
+              className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white shadow transition-colors hover:bg-black/90"
             >
               ✕
             </button>
