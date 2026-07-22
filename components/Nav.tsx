@@ -14,17 +14,24 @@ export async function Nav() {
   const dashboardHref =
     me?.role === "creator" ? "/dashboard/creator" : "/dashboard/brand";
 
-  const [notifications, unread] = me
-    ? await Promise.all([getMyNotifications(), getUnreadNotificationCount()])
-    : [[], 0];
+  // All four are independent once we know who's asking, but they used to run
+  // one after another - four round trips to the database, in series, on every
+  // single page load, before the page itself had started.
+  //
+  // `locked`: unsubscribed brands only get to browse; the paid features
+  // (favourites, messages, bookings) are removed from the nav until they
+  // subscribe. `admin` is an extra permission on top of the normal role, so an
+  // admin still sees their usual nav plus one link nobody else does.
+  const [notifications, unread, canTransact, admin] = me
+    ? await Promise.all([
+        getMyNotifications(),
+        getUnreadNotificationCount(),
+        me.role === "brand" ? brandCanTransact(me.id) : Promise.resolve(true),
+        isAdmin(me.id),
+      ])
+    : [[], 0, true, false];
 
-  // Unsubscribed brands only get to browse — the paid features (favourites,
-  // messages, bookings) are removed from the nav until they subscribe.
-  const locked = me?.role === "brand" ? !(await brandCanTransact(me.id)) : false;
-
-  // Admin is an extra permission on top of the normal role, so an admin still
-  // sees their usual nav — plus one link nobody else does.
-  const admin = me ? await isAdmin(me.id) : false;
+  const locked = me?.role === "brand" && !canTransact;
 
   // Shared link set — drives both the desktop bar and the mobile menu.
   const links: { href: string; label: string }[] = [
