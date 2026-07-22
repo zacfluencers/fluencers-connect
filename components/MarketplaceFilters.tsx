@@ -48,6 +48,9 @@ export function MarketplaceFilters() {
         if (v == null || v === "") params.delete(k);
         else params.set(k, v);
       }
+      // Any filter change means a different set of results, so page 3 of the
+      // old set is meaningless. Always go back to the first page.
+      params.delete("page");
       const qs = params.toString();
       router.push(qs ? `/marketplace?${qs}` : "/marketplace");
     },
