@@ -22,6 +22,10 @@ Sentry.init({
   // anywhere in our source.
   ignoreErrors: [
     "window.webkit.messageHandlers",
+    // The Android half of the same problem: Instagram's in-app browser injects
+    // a native performance logger, then throws on page unload once Android has
+    // collected the Java object behind it. Nothing to do with our code.
+    "Java object is gone",
     "EmptyRanges",
     // Fired by browsers when a layout loop self-corrects. Harmless and
     // unactionable; a long-standing false positive.
@@ -34,6 +38,11 @@ Sentry.init({
   // Errors thrown by injected scripts. A password manager or content blocker
   // crashing in a visitor's browser is not our bug and we cannot fix it.
   denyUrls: [
+    // Scripts the social apps inject into their in-app browsers load from an
+    // app:// URL. Ours are always served over https from our own domain, so
+    // anything thrown by an app:// script is theirs by definition - this
+    // catches future variants without us naming each message.
+    /^app:\/\//i,
     /extensions\//i,
     /^chrome:\/\//i,
     /^chrome-extension:\/\//i,
