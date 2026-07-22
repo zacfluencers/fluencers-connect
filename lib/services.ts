@@ -57,6 +57,19 @@ export function serviceDef(key: ServiceType): ServiceDef | undefined {
   return BY_KEY.get(key);
 }
 
+/**
+ * Whether an untrusted string names a real service.
+ *
+ * Exists because the checkout webhook used to carry its own hardcoded list of
+ * three, so when Meta Whitelist and Influencer Post were added on 22 Jul a
+ * booking for either would have recorded service_type: null - the money moves
+ * but the record of what was sold is lost. Derived from SERVICES so it cannot
+ * fall behind again.
+ */
+export function isServiceType(value: unknown): value is ServiceType {
+  return typeof value === "string" && BY_KEY.has(value as ServiceType);
+}
+
 export function serviceLabel(key: string | null | undefined): string | null {
   if (!key) return null;
   return BY_KEY.get(key as ServiceType)?.label ?? null;

@@ -5,6 +5,7 @@ import {
   lowestRate,
   serviceLabel,
   SERVICES,
+  isServiceType,
 } from "./services";
 
 // Only the three rate columns matter to these functions.
@@ -108,5 +109,22 @@ describe("whitelisting and profile posts", () => {
   it("every service key is one the database will accept", () => {
     const allowedByDb = ["ugc", "event", "broll", "whitelist", "post"];
     expect(SERVICES.map((s) => s.key).sort()).toEqual([...allowedByDb].sort());
+  });
+});
+
+describe("isServiceType", () => {
+  // The checkout webhook used to carry its own hardcoded list of three. When
+  // two services were added on 22 Jul it silently recorded service_type: null
+  // for them - and it happened to a real £20 booking. Deriving the check from
+  // SERVICES is what stops that recurring.
+  it("accepts every service we sell", () => {
+    for (const s of SERVICES) expect(isServiceType(s.key)).toBe(true);
+  });
+
+  it("rejects anything else", () => {
+    expect(isServiceType("nonsense")).toBe(false);
+    expect(isServiceType(null)).toBe(false);
+    expect(isServiceType(undefined)).toBe(false);
+    expect(isServiceType(123)).toBe(false);
   });
 });

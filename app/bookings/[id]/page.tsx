@@ -76,7 +76,17 @@ export default async function DealRoomPage({
             <span className="text-[var(--muted)]">#{booking.id.slice(0, 8)}</span>
           </h1>
         </div>
-        <StatusBadge status={booking.status} />
+        {/* What was bought, next to how it's going. It was only further down
+            the page beside the price, which reads as a detail rather than the
+            headline - the deal room should say what the deal IS. */}
+        <div className="flex shrink-0 items-center gap-2">
+          {serviceLabel(booking.service_type) && (
+            <span className="rounded-full border border-[var(--accent-2)]/40 bg-[var(--accent-2)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--foreground)]">
+              {serviceLabel(booking.service_type)}
+            </span>
+          )}
+          <StatusBadge status={booking.status} />
+        </div>
       </div>
 
       {/* Status tracker */}

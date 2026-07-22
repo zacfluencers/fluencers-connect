@@ -2,7 +2,7 @@ import { stripe, isStripeConfigured, platformFeeBps, toPence } from "@/lib/strip
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { notify } from "@/lib/notifications";
-import { serviceLabel } from "@/lib/services";
+import { serviceLabel, isServiceType } from "@/lib/services";
 import { gbp } from "@/lib/format";
 
 type Result = { ok: true } | { error: string };
@@ -37,9 +37,7 @@ export async function ensureBookingForSession(
   const brandId = meta.brand_id;
   const creatorId = meta.creator_id;
   const price = Number(meta.price);
-  const service = ["ugc", "event", "broll"].includes(meta.service)
-    ? meta.service
-    : null;
+  const service = isServiceType(meta.service) ? meta.service : null;
   if (!brandId || !creatorId || !Number.isFinite(price)) return null;
 
   const paymentIntentId =
