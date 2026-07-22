@@ -2,7 +2,7 @@ import "server-only";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { notify } from "@/lib/notifications";
 import { licenceStatus, LICENCE_WARNING_DAYS } from "@/lib/licence";
-import { serviceLabel } from "@/lib/services";
+import { serviceLabel, termFor } from "@/lib/services";
 
 /**
  * Tell both sides when a whitelisting licence is about to end, and again when
@@ -117,42 +117,81 @@ async function warn(admin: Admin, row: Row, now: Date) {
   const { days } = licenceStatus(new Date(row.licence_ends_at), now);
   const when = formatDate(row.licence_ends_at);
   const inDays = days === 1 ? "tomorrow" : `in ${days} days`;
+  const link = `/bookings/${row.id}`;
 
+  // Whitelisting: the brand's rights are what run out.
+  if (termFor(row.service_type)?.kind !== "commitment") {
+    await notify(admin, {
+      userId: row.brand_id,
+      type: "booking_update",
+      title: `Your whitelisting rights end ${inDays}`,
+      body: `Ads running from ${creatorName}'s handle need to stop on ${when}. Book again if you'd like to keep going.`,
+      link,
+    });
+    await notify(admin, {
+      userId: row.creator_id,
+      type: "booking_update",
+      title: `${brandName}'s whitelisting ends ${inDays}`,
+      body: `Their ad rights run out on ${when}. After that you can remove them as an approved partner in Instagram.`,
+      link,
+    });
+    return;
+  }
+
+  // A post: the creator's commitment is what runs out. The brand is warned so
+  // they can save the content before it's allowed to come down.
   await notify(admin, {
     userId: row.brand_id,
     type: "booking_update",
-    title: `Your whitelisting rights end ${inDays}`,
-    body: `Ads running from ${creatorName}'s handle need to stop on ${when}. Renew with them if you'd like to keep going.`,
-    link: `/bookings/${row.id}`,
+    title: `${creatorName}'s post may come down ${inDays}`,
+    body: `They agreed to keep it live until ${when}. Save anything you still need from it.`,
+    link,
   });
-
   await notify(admin, {
     userId: row.creator_id,
     type: "booking_update",
-    title: `${brandName}'s whitelisting ends ${inDays}`,
-    body: `Their ad rights run out on ${when}. After that you can remove them as an approved partner in Instagram.`,
-    link: `/bookings/${row.id}`,
+    title: `Keep your post live until ${when}`,
+    body: `That's ${inDays} - after that you're free to remove it.`,
+    link,
   });
 }
 
 async function expired(admin: Admin, row: Row) {
   const { brandName, creatorName } = await parties(admin, row);
   const when = formatDate(row.licence_ends_at);
+  const link = `/bookings/${row.id}`;
 
-  await notify(admin, {
-    userId: row.brand_id,
-    type: "booking_update",
-    title: "Your whitelisting rights have ended",
-    body: `The three months ran out on ${when}. Please stop any ads running from ${creatorName}'s handle, or book them again to continue.`,
-    link: `/bookings/${row.id}`,
-  });
+  if (termFor(row.service_type)?.kind !== "commitment") {
+    await notify(admin, {
+      userId: row.brand_id,
+      type: "booking_update",
+      title: "Your whitelisting rights have ended",
+      body: `The three months ran out on ${when}. Please stop any ads running from ${creatorName}'s handle, or book again to continue.`,
+      link,
+    });
+    await notify(admin, {
+      userId: row.creator_id,
+      type: "booking_update",
+      title: `Whitelisting for ${brandName} has ended`,
+      body: `Their three months ended on ${when}. You can now remove them as an approved partner in Instagram.`,
+      link,
+    });
+    return;
+  }
 
   await notify(admin, {
     userId: row.creator_id,
     type: "booking_update",
-    title: `Whitelisting for ${brandName} has ended`,
-    body: `Their three months ended on ${when}. You can now remove them as an approved partner in Instagram.`,
-    link: `/bookings/${row.id}`,
+    title: "Your post has done its 30 days",
+    body: `You agreed to keep it live until ${when}. It's met that, so you can remove it whenever you like.`,
+    link,
+  });
+  await notify(admin, {
+    userId: row.brand_id,
+    type: "booking_update",
+    title: `${creatorName}'s post is free to come down`,
+    body: `The agreed 30 days ended on ${when}.`,
+    link,
   });
 }
 

@@ -11,6 +11,7 @@ import {
 } from "@/lib/bookings";
 import { releaseEscrow, refundEscrow } from "@/lib/stripe/escrow";
 import { licenceWindow } from "@/lib/licence";
+import { termFor } from "@/lib/services";
 import { notify } from "@/lib/notifications";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -70,6 +71,7 @@ async function announceLicence(
     brandId: string;
     creatorId: string;
     bookingId: string;
+    serviceType: string | null;
     endsAt: Date;
   },
 ) {
@@ -80,19 +82,40 @@ async function announceLicence(
     timeZone: "Europe/London",
   });
   const link = `/bookings/${args.bookingId}`;
+  const remind = "We'll remind you both a week before it ends.";
 
-  await notify(supabase, {
-    userId: args.brandId,
-    type: "booking_update",
-    title: `Your whitelisting runs until ${when}`,
-    body: "You can run ads from the creator's handle until this date. We'll remind you a week before it ends.",
-    link,
-  });
+  // Whitelisting: the brand holds rights that expire.
+  if (termFor(args.serviceType)?.kind !== "commitment") {
+    await notify(supabase, {
+      userId: args.brandId,
+      type: "booking_update",
+      title: `Your whitelisting runs until ${when}`,
+      body: `You can run ads from the creator's handle until this date. ${remind}`,
+      link,
+    });
+    await notify(supabase, {
+      userId: args.creatorId,
+      type: "booking_update",
+      title: `Whitelisting agreed until ${when}`,
+      body: `The brand can run ads from your handle until this date. After that you can remove them as an approved partner. ${remind}`,
+      link,
+    });
+    return;
+  }
+
+  // A post: the creator holds an obligation that expires.
   await notify(supabase, {
     userId: args.creatorId,
     type: "booking_update",
-    title: `Whitelisting agreed until ${when}`,
-    body: "The brand can run ads from your handle until this date. After that you can remove them as an approved partner.",
+    title: `Keep your post live until ${when}`,
+    body: `That's the agreed 30 days. After it you're free to remove the post. ${remind}`,
+    link,
+  });
+  await notify(supabase, {
+    userId: args.brandId,
+    type: "booking_update",
+    title: `The post stays live until ${when}`,
+    body: `The creator has agreed to keep it up for 30 days. ${remind}`,
     link,
   });
 }
@@ -187,6 +210,7 @@ export async function transitionBooking(
             brandId: booking.brand_id,
             creatorId: booking.creator_id,
             bookingId,
+            serviceType: booking.service_type,
             endsAt: window.endsAt,
           });
         }

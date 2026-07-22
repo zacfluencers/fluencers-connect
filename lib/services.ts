@@ -51,12 +51,30 @@ export interface ServiceDef {
   /** Short hint shown under the price. */
   unit: string;
   delivery: DeliveryDef;
-  /**
-   * For services that sell a *term* rather than an outright handover: how many
-   * months the brand's rights last, counted from approval. Only whitelisting
-   * has one today. See lib/licence.ts.
-   */
-  licenceMonths?: number;
+  /** Set when the service runs for a period rather than handing over outright. */
+  term?: TermDef;
+}
+
+/**
+ * A service that runs for a period rather than handing something over outright.
+ *
+ * The two we sell point in opposite directions, which is why `kind` exists:
+ *
+ *  - `licence` - the *brand's* rights expire. Whitelisting: they may run ads
+ *    for three months, then must stop.
+ *  - `commitment` - the *creator* must keep something in place. An Influencer
+ *    Post has to stay live for 30 days before they may take it down.
+ *
+ * Same clock, opposite obligation. Every piece of copy has to pick the right
+ * one, or it tells the wrong person they're free.
+ */
+export interface TermDef {
+  kind: "licence" | "commitment";
+  /** Exactly one of these. Months are calendar months; days are days. */
+  months?: number;
+  days?: number;
+  /** Heading for the countdown card. */
+  label: string;
 }
 
 /** Files, the original behaviour. Also used for bookings with no service set. */
@@ -95,7 +113,7 @@ export const SERVICES: ServiceDef[] = [
     unit: "3 months ad usage",
     // The "3 months" in that unit is a promise to both sides, so it has to be
     // a number the system acts on rather than words on a price list.
-    licenceMonths: 3,
+    term: { kind: "licence", months: 3, label: "Whitelisting term" },
     delivery: {
       title: "Whitelisting access",
       prompt:
@@ -113,6 +131,9 @@ export const SERVICES: ServiceDef[] = [
     label: "Influencer Post",
     rateField: "post_rate",
     unit: "profile post",
+    // Without a minimum, a creator could take the post down the next morning
+    // and the booking would still read as complete.
+    term: { kind: "commitment", days: 30, label: "Post stays live" },
     delivery: {
       title: "Your post",
       prompt:
@@ -159,10 +180,10 @@ export function deliveryFor(key: string | null | undefined): DeliveryDef {
   return (key && BY_KEY.get(key as ServiceType)?.delivery) || FILE_DELIVERY;
 }
 
-/** Months of rights a service grants, or null if it doesn't sell a term. */
-export function licenceMonthsFor(key: string | null | undefined): number | null {
+/** The term a service runs for, or null if it hands over outright. */
+export function termFor(key: string | null | undefined): TermDef | null {
   if (!key) return null;
-  return BY_KEY.get(key as ServiceType)?.licenceMonths ?? null;
+  return BY_KEY.get(key as ServiceType)?.term ?? null;
 }
 
 export function serviceLabel(key: string | null | undefined): string | null {

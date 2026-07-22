@@ -5,6 +5,7 @@ import {
   licenceStatus,
   LICENCE_WARNING_DAYS,
 } from "./licence";
+import { termFor, SERVICES } from "./services";
 
 const utc = (iso: string) => new Date(iso);
 
@@ -52,12 +53,36 @@ describe("licenceWindow", () => {
     expect(w?.endsAt.toISOString()).toBe("2026-10-22T10:00:00.000Z");
   });
 
+  it("gives a post 30 days from approval", () => {
+    const w = licenceWindow("post", utc("2026-07-22T10:00:00Z"));
+    expect(w?.endsAt.toISOString()).toBe("2026-08-21T10:00:00.000Z");
+  });
+
   // Everything else hands something over outright. Stamping an end date on a
   // UGC booking would imply the brand's rights expire, which is not what was
   // sold and would be worse than recording nothing.
   it("gives no window to services that sell no term", () => {
-    for (const key of ["ugc", "event", "broll", "post"]) {
+    for (const key of ["ugc", "event", "broll"]) {
       expect(licenceWindow(key, utc("2026-07-22T10:00:00Z"))).toBeNull();
+    }
+  });
+
+  // The two terms bind opposite people: a whitelist expires the *brand's*
+  // rights, a post expires the *creator's* obligation. Every line of copy
+  // branches on this, and getting it backwards tells the wrong person they're
+  // free to act.
+  it("keeps the two terms pointing opposite ways", () => {
+    expect(termFor("whitelist")?.kind).toBe("licence");
+    expect(termFor("post")?.kind).toBe("commitment");
+  });
+
+  it("gives each term exactly one unit of time", () => {
+    for (const s of SERVICES) {
+      if (!s.term) continue;
+      const units = [s.term.months, s.term.days].filter((v) => v != null);
+      expect(units).toHaveLength(1);
+      expect(units[0]).toBeGreaterThan(0);
+      expect(s.term.label).not.toBe("");
     }
   });
 
