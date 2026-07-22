@@ -59,7 +59,15 @@ export function NotificationBell({
       {open && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-40 mt-2 w-[calc(100vw-1.5rem)] max-w-sm overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface-2)] shadow-2xl">
+          {/* On mobile the panel is pinned to the screen, not to the bell.
+              It used to be sized as 100vw minus the page gutter and anchored to
+              the bell's right edge - but the bell isn't the last thing in the
+              bar, the hamburger sits to its right, so the panel ran about 2.5rem
+              wider than the room it had and hung off the left of the screen.
+              Any width computed from the viewport breaks the moment something
+              is added beside the trigger. From `sm` up there's space to hang it
+              off the bell properly. */}
+          <div className="fixed left-3 right-3 top-16 z-40 overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-[var(--surface-2)] shadow-2xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96">
             <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
               <span className="text-sm font-semibold text-[var(--foreground)]">
                 Notifications
@@ -75,7 +83,9 @@ export function NotificationBell({
               )}
             </div>
 
-            <div className="max-h-96 overflow-auto">
+            {/* Capped against the screen as well as a fixed height, so a full
+                list can't run off the bottom on a short or landscape phone. */}
+            <div className="max-h-[min(24rem,60vh)] overflow-auto">
               {notifications.length === 0 ? (
                 <p className="px-4 py-8 text-center text-sm text-[var(--muted)]">
                   You&apos;re all caught up.
