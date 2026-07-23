@@ -3,11 +3,22 @@ import { getOfficialBrandIds } from "@/lib/admin";
 import { getCurrentUser } from "@/lib/session";
 import { BrandCard } from "@/components/BrandCard";
 import { Reveal } from "@/components/ui/motion";
+import { Pagination } from "@/components/ui/Pagination";
+import { paginate } from "@/lib/paginate";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Brands hiring - Fluencers Connect" };
 
-export default async function BrandsPage() {
+// One screenful of cards. Kept in step with the marketplace so no list page
+// ever holds enough images to run a phone out of memory.
+const PAGE_SIZE = 24;
+
+export default async function BrandsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const params = await searchParams;
   const [brands, me, favoriteBrandIds, officialIds] = await Promise.all([
     listBrandsLookingForCreators(),
     getCurrentUser(),
@@ -15,6 +26,12 @@ export default async function BrandsPage() {
     getOfficialBrandIds(),
   ]);
   const isCreator = me?.role === "creator";
+
+  const { visible, page, pageCount, start } = paginate(
+    brands,
+    params.page,
+    PAGE_SIZE,
+  );
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-14 sm:py-20">
@@ -31,19 +48,28 @@ export default async function BrandsPage() {
           No brands are looking right now - check back soon.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {brands.map((b, i) => (
-            <Reveal key={b.user_id} index={i}>
-              <BrandCard
-                brand={b}
-                canMessage={isCreator}
-                canFavorite={isCreator}
-                initialFavorited={favoriteBrandIds.has(b.user_id)}
-                official={officialIds.has(b.user_id)}
-              />
-            </Reveal>
-          ))}
-        </div>
+        <>
+          {pageCount > 1 && (
+            <p className="mb-6 text-sm text-[var(--muted)]">
+              {brands.length} brands · showing {start + 1}-{start + visible.length}
+            </p>
+          )}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((b, i) => (
+              <Reveal key={b.user_id} index={i}>
+                <BrandCard
+                  brand={b}
+                  canMessage={isCreator}
+                  canFavorite={isCreator}
+                  initialFavorited={favoriteBrandIds.has(b.user_id)}
+                  official={officialIds.has(b.user_id)}
+                />
+              </Reveal>
+            ))}
+          </div>
+
+          <Pagination page={page} pageCount={pageCount} basePath="/brands" />
+        </>
       )}
     </main>
   );
