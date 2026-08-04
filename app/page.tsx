@@ -201,7 +201,7 @@ export default async function LandingPage() {
                     {content?.heroPrimaryCtaLabel ?? "Browse Creators"}
                   </ButtonLink>
                   <ButtonLink href="/signup?role=brand" size="lg" variant="secondary">
-                    {content?.heroSecondaryCtaLabel ?? "Become a Brand"}
+                    {content?.heroSecondaryCtaLabel ?? "Brand Sign Up"}
                   </ButtonLink>
                 </>
               )}
@@ -366,7 +366,7 @@ export default async function LandingPage() {
                 </ul>
                 {!isCreator && (
                   <ButtonLink href="/signup?role=brand" className="mt-8">
-                    Become a Brand
+                    Brand Sign Up
                   </ButtonLink>
                 )}
               </div>
@@ -391,7 +391,7 @@ export default async function LandingPage() {
                   variant="secondary"
                   className="mt-8"
                 >
-                  {isCreator ? "Your dashboard" : "Become a Creator"}
+                  {isCreator ? "Your dashboard" : "Creator Sign Up"}
                 </ButtonLink>
               </div>
             </RevealOnView>
@@ -444,10 +444,10 @@ export default async function LandingPage() {
                 ) : (
                   <>
                     <ButtonLink href="/signup?role=brand" size="lg">
-                      Become a Brand
+                      Brand Sign Up
                     </ButtonLink>
                     <ButtonLink href="/signup?role=creator" size="lg" variant="secondary">
-                      Become a Creator
+                      Creator Sign Up
                     </ButtonLink>
                   </>
                 )}
@@ -468,10 +468,10 @@ export default async function LandingPage() {
               Browse
             </Link>
             <Link href="/signup?role=brand" className="hover:text-[var(--foreground)]">
-              Become a Brand
+              Brand Sign Up
             </Link>
             <Link href="/signup?role=creator" className="hover:text-[var(--foreground)]">
-              Become a Creator
+              Creator Sign Up
             </Link>
             <Link href="/login" className="hover:text-[var(--foreground)]">
               Sign in
