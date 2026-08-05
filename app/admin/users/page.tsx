@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listAdminUsers } from "@/lib/admin-queries";
 import { Badge } from "@/components/ui/Badge";
+import { AdminSetPasswordButton } from "@/components/AdminSetPasswordButton";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,7 @@ export default async function AdminUsersPage({
               <Th>Role</Th>
               <Th>Subscription</Th>
               <Th>Joined</Th>
+              <Th>Access</Th>
             </tr>
           </thead>
           <tbody>
@@ -86,6 +88,9 @@ export default async function AdminUsersPage({
                         year: "numeric",
                       })
                     : "-"}
+                </Td>
+                <Td>
+                  <AdminSetPasswordButton userId={u.id} email={u.email ?? ""} />
                 </Td>
               </tr>
             ))}

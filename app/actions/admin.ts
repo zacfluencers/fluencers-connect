@@ -1,5 +1,6 @@
 "use server";
 
+import { randomInt } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -126,4 +127,62 @@ export async function adminMirrorAvatars(): Promise<AdminActionState> {
         ? "Nothing to fix - every imported photo is already stored safely."
         : `Fixed ${fixed} imported ${fixed === 1 ? "photo" : "photos"}.`,
   };
+}
+
+export type SetPasswordState =
+  | { error: string }
+  | { ok: true; email: string; password: string }
+  | null;
+
+/**
+ * Set a fresh temporary password for a user, and mark their email confirmed at
+ * the same time, so an admin can let someone in when email has failed them —
+ * e.g. a corporate mail system (Microsoft 365) quarantining our confirmation
+ * and reset emails, which no amount of resending gets past.
+ *
+ * The new password is shown to the admin ONCE, to pass on privately; the user
+ * changes it under Settings after signing in. Their old password stops working.
+ *
+ * Like every action here this re-checks admin itself: a server action is a
+ * public endpoint, so the page guard alone is not enough.
+ */
+export async function adminSetTemporaryPassword(
+  _prev: SetPasswordState,
+  formData: FormData,
+): Promise<SetPasswordState> {
+  await requireAdmin();
+
+  const userId = String(formData.get("userId") ?? "").trim();
+  if (!userId) return { error: "Which user?" };
+
+  const admin = createAdminClient();
+
+  // Confirm the target exists (and grab their email for the message) before
+  // changing anything.
+  const { data: target, error: lookupError } =
+    await admin.auth.admin.getUserById(userId);
+  if (lookupError || !target?.user) return { error: "User not found." };
+
+  const password = generateTempPassword();
+
+  const { error } = await admin.auth.admin.updateUserById(userId, {
+    password,
+    email_confirm: true,
+  });
+  if (error) return { error: error.message };
+
+  return { ok: true, email: target.user.email ?? "this account", password };
+}
+
+/**
+ * A readable-but-strong one-time password: three short groups from an
+ * unambiguous alphabet (no 0/O/1/l/I), e.g. "k7mp-4gtx-9rhn". Around 60 bits of
+ * entropy, but easy to read aloud or type once. `randomInt` is crypto-grade and
+ * bias-free.
+ */
+function generateTempPassword(): string {
+  const alphabet = "abcdefghijkmnpqrstuvwxyz23456789";
+  const group = () =>
+    Array.from({ length: 4 }, () => alphabet[randomInt(alphabet.length)]).join("");
+  return [group(), group(), group()].join("-");
 }
