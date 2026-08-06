@@ -87,6 +87,16 @@ export function AuthForm({
           </>
         )}
       </p>
+
+      <p className="border-t border-[var(--border-strong)] pt-4 text-center text-xs text-[var(--muted)]">
+        Having trouble accessing Connect? Drop us a line at{" "}
+        <a
+          href="mailto:support@fluencersgroup.com"
+          className="text-[var(--accent-2)] underline-offset-4 hover:underline"
+        >
+          support@fluencersgroup.com
+        </a>
+      </p>
     </form>
   );
 }
