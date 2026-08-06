@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { checkEmailShape } from "@/lib/email-validation";
+import { checkEmailDomain } from "@/lib/email-domain";
 import type { UserRole } from "@/lib/types";
 
 export type AuthState = { error: string } | null;
@@ -18,6 +20,21 @@ export async function signUp(
 
   if (!email || !password) return { error: "Email and password are required." };
   if (role !== "brand" && role !== "creator") return { error: "Pick a role." };
+
+  // Catch the obvious email mistakes before we make an account nobody can read.
+  // First the cheap, offline checks (shape + known domain typos), then a quick
+  // DNS lookup to reject an address whose provider plainly doesn't exist. Both
+  // stay conservative and offer a "did you mean…" when they can — they can't
+  // prove the address is really theirs, only a confirmation click does that.
+  const shape = checkEmailShape(email);
+  if (!shape.ok) {
+    const fix = shape.suggestion ? ` Did you mean ${shape.suggestion}?` : "";
+    return { error: `That email address doesn't look right.${fix}` };
+  }
+  if ((await checkEmailDomain(email)) === "no-domain") {
+    const fix = shape.suggestion ? ` Did you mean ${shape.suggestion}?` : "";
+    return { error: `We couldn't find that email provider - check the spelling.${fix}` };
+  }
 
   // Where the confirmation email should land them once the account is live.
   // Without this Supabase falls back to the project's Site URL - the home page
