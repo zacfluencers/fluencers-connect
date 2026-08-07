@@ -56,6 +56,18 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** Minimum gap between one reminder and the next: a week. */
 const REPEAT_AFTER_HOURS = 168;
 
+/**
+ * Most emails to send in a single run - a deliverability guard.
+ *
+ * A backlog (or a burst of signups, like the 21 Jul invite wave) shouldn't hit
+ * the sending domain with one big cold blast; low-engagement spikes are what
+ * dent reputation, and that domain also carries our confirmation, reset and
+ * booking mail. Runs daily, so a backlog drains ~50 a morning over a few days.
+ * The SQL orders by signup date, so the longest-waiting accounts go first, and
+ * anything over the cap simply waits for tomorrow - never dropped.
+ */
+const MAX_PER_RUN = 50;
+
 interface StalledSignup {
   user_id: string;
   email: string;
@@ -77,10 +89,12 @@ export interface NudgeRunResult {
 
 /**
  * Send one round of nudges. Safe to run daily: the SQL side enforces the age,
- * cap and spacing rules, so a daily run mostly finds nobody.
+ * cap and spacing rules, so a daily run mostly finds nobody. When it does find
+ * a backlog, at most MAX_PER_RUN go out per run and the rest wait for tomorrow.
  *
  * `dryRun` resolves who *would* be emailed without sending or recording — used
- * to sanity-check the audience before turning the job loose.
+ * to sanity-check the audience before turning the job loose. Note a dry run
+ * reports the full qualifying count, not the per-run-capped batch.
  */
 export async function sendProfileNudges(
   opts: { dryRun?: boolean } = {},
@@ -104,8 +118,11 @@ export async function sendProfileNudges(
     return { candidates: candidates.length, sent: 0 };
   }
 
+  // Send only up to the daily cap; the rest wait for tomorrow's run.
+  const batch = candidates.slice(0, MAX_PER_RUN);
+
   let sent = 0;
-  for (const [index, person] of candidates.entries()) {
+  for (const [index, person] of batch.entries()) {
     if (index > 0) await sleep(SEND_GAP_MS);
 
     const nudgeNumber = person.sent_count + 1;
