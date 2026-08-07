@@ -5,9 +5,10 @@
  * they do, they're invisible: a creator doesn't appear in the marketplace, a
  * brand has nothing for creators to look at. This nudges them back.
  *
- * Deliberately gentle: at most two emails ever, several days apart, and the
- * second one says it's the last. `stalled_profile_signups()` (see migration
- * 0026) decides who qualifies; this module only sends and records.
+ * Deliberately gentle: one reminder a week for up to about three months, and
+ * the moment they save a profile they drop out of the list and hear nothing
+ * more. `stalled_profile_signups()` (see migration 0026) decides who qualifies;
+ * this module only sends and records.
  *
  * Uses the service-role client, so callers MUST authorise the request first.
  */
@@ -30,8 +31,17 @@ import { isEmailConfigured, renderProfileNudgeEmail, sendEmail } from "@/lib/ema
  */
 const FIRST_NUDGE_AFTER_HOURS = 12;
 
-/** Never send more than this many, ever. */
-const MAX_NUDGES = 2;
+/**
+ * How many reminders in total, ever - the quiet backstop.
+ *
+ * We remind weekly until they finish their profile (the SQL drops them the
+ * instant they do), but not forever: an account that never responds gets about
+ * three months of nudges and then we stop, so a dead signup isn't nagged
+ * indefinitely - and, just as importantly, endless mail to non-openers can't
+ * drag down the reputation of the domain that also sends our confirmation,
+ * reset and booking emails. At one a week, 13 sends ≈ three months.
+ */
+const MAX_NUDGES = 13;
 
 /**
  * Gap between sends. Resend rate-limits at roughly 2 requests a second and
@@ -43,8 +53,8 @@ const SEND_GAP_MS = 600;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Minimum gap between the first nudge and the last. */
-const REPEAT_AFTER_HOURS = 120;
+/** Minimum gap between one reminder and the next: a week. */
+const REPEAT_AFTER_HOURS = 168;
 
 interface StalledSignup {
   user_id: string;
@@ -102,7 +112,8 @@ export async function sendProfileNudges(
     const { subject, html, text } = renderProfileNudgeEmail({
       role: person.role,
       url: profileUrl(person.role),
-      isFinal: nudgeNumber >= MAX_NUDGES,
+      // Alternate the wording week to week (0-based: first send = variant 0).
+      variant: person.sent_count,
     });
 
     const ok = await sendEmail({ to: person.email, subject, html, text });
@@ -132,31 +143,28 @@ export async function sendProfileNudges(
 }
 
 /**
- * Send a sample of both nudge emails to one address, so the wording and layout
- * can be checked in a real inbox before anyone else receives them. Records
- * nothing and touches nobody else's state.
+ * Send a sample of the nudge email - one creator version, one brand version -
+ * to a single address, so the wording and layout can be checked in a real
+ * inbox before anyone else receives them. Records nothing and touches nobody
+ * else's state.
  */
 export async function sendProfileNudgePreview(to: string): Promise<boolean> {
   if (!isEmailConfigured()) return false;
 
-  const first = renderProfileNudgeEmail({ role: "creator", url: profileUrl("creator") });
-  const final = renderProfileNudgeEmail({
-    role: "creator",
-    url: profileUrl("creator"),
-    isFinal: true,
-  });
+  const creator = renderProfileNudgeEmail({ role: "creator", url: profileUrl("creator") });
+  const brand = renderProfileNudgeEmail({ role: "brand", url: profileUrl("brand") });
 
   const a = await sendEmail({
     to,
-    subject: `[Preview 1 of 2] ${first.subject}`,
-    html: first.html,
-    text: first.text,
+    subject: `[Preview - creator] ${creator.subject}`,
+    html: creator.html,
+    text: creator.text,
   });
   const b = await sendEmail({
     to,
-    subject: `[Preview 2 of 2] ${final.subject}`,
-    html: final.html,
-    text: final.text,
+    subject: `[Preview - brand] ${brand.subject}`,
+    html: brand.html,
+    text: brand.text,
   });
   return a && b;
 }

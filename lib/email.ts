@@ -120,8 +120,12 @@ interface ProfileNudgeInput {
   role: "creator" | "brand";
   /** Absolute URL to the right profile editor. */
   url: string;
-  /** Second and final nudge - shorter, and says it's the last one. */
-  isFinal?: boolean;
+  /**
+   * Which reminder this is (0 = the first). We send these weekly until the
+   * profile is finished, so the wording alternates - an identical email landing
+   * every week reads as spam to both the reader and the mailbox provider.
+   */
+  variant?: number;
 }
 
 /**
@@ -129,17 +133,21 @@ interface ProfileNudgeInput {
  *
  * A lifecycle email rather than a notification: someone made an account and
  * then stopped, and until they save a profile they're invisible to the other
- * side of the marketplace. Deliberately short, concrete about what's missing,
- * and honest that it's one of at most two - nobody gets nagged indefinitely.
+ * side of the marketplace. Deliberately short and concrete about what's
+ * missing. It goes out weekly until they finish - the moment a profile is
+ * saved the SQL stops selecting them, so nobody who acts keeps getting these.
  */
-export function renderProfileNudgeEmail({ role, url, isFinal = false }: ProfileNudgeInput): {
+export function renderProfileNudgeEmail({ role, url, variant = 0 }: ProfileNudgeInput): {
   subject: string;
   html: string;
   text: string;
 } {
   const isCreator = role === "creator";
+  // Alternate the subject line each week so repeated reminders don't look
+  // identical (which hurts both open rates and deliverability).
+  const altWording = variant % 2 === 1;
 
-  const subject = isFinal
+  const subject = altWording
     ? isCreator
       ? "Your Fluencers Connect profile is still empty"
       : "Finish your brand profile on Fluencers Connect"
@@ -167,9 +175,8 @@ export function renderProfileNudgeEmail({ role, url, isFinal = false }: ProfileN
         "Say what kind of creators you're looking for",
       ];
 
-  const closing = isFinal
-    ? "This is the last reminder we'll send - your account stays open either way."
-    : "";
+  // A quiet reassurance on every one: finishing the profile is what stops these.
+  const closing = "You'll stop getting these the moment your profile's live.";
 
   const stepsHtml = steps
     .map(
@@ -205,7 +212,7 @@ export function renderProfileNudgeEmail({ role, url, isFinal = false }: ProfileN
             </table>
           </td></tr>
           <tr><td style="padding:18px 28px;border-top:1px solid #f0edf7;">
-            <span style="font-size:12px;color:#9a94ac;line-height:1.5;">You're receiving this because you started an account on Fluencers Connect and haven't finished setting it up. We'll only send this a couple of times.</span>
+            <span style="font-size:12px;color:#9a94ac;line-height:1.5;">You're receiving this because you started an account on Fluencers Connect and haven't finished setting it up. Finish your profile and these stop - or if you'd rather not hear from us, email <a href="mailto:support@fluencersgroup.com" style="color:#9a94ac;">support@fluencersgroup.com</a>.</span>
           </td></tr>
         </table>
       </td></tr>
