@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { refundEscrow } from "@/lib/stripe/escrow";
 import { notify } from "@/lib/notifications";
 import { isEmailConfigured } from "@/lib/email";
-import { sendProfileNudgePreview } from "@/lib/profile-nudge";
+import { sendProfileNudgePreview, sendProfileNudges } from "@/lib/profile-nudge";
 import { mirrorPendingSocialAvatars } from "@/lib/social/enrichment";
 
 export type AdminActionState = { error: string } | { ok: string } | null;
@@ -102,6 +102,42 @@ export async function adminPreviewProfileNudge(): Promise<AdminActionState> {
   return ok
     ? { ok: `Sent both sample emails to ${me.email}.` }
     : { error: "The email provider rejected the send. Nothing went out." };
+}
+
+/**
+ * Send a round of "finish your profile" reminders now, instead of waiting for
+ * the 08:30 UTC job. Same job the scheduler runs, but reached through admin
+ * login rather than the cron secret - so a backlog can be drained on demand
+ * (e.g. after the scheduled job was blocked and missed sends).
+ *
+ * Safe to click repeatedly: the SQL only picks people who haven't been reminded
+ * in the last week and caps each run at ~50, so no one is double-emailed and an
+ * extra click simply reaches the next people in the queue.
+ */
+export async function adminSendProfileNudges(): Promise<AdminActionState> {
+  await requireAdmin();
+
+  if (!isEmailConfigured()) {
+    return { error: "Email isn't configured, so nothing can be sent." };
+  }
+
+  const { candidates, sent } = await sendProfileNudges({ dryRun: false });
+
+  revalidatePath("/admin");
+
+  if (sent === 0) {
+    return candidates === 0
+      ? { ok: "Nobody is waiting on a reminder right now - nothing to send." }
+      : { error: "Found people to remind but nothing sent - check email setup." };
+  }
+
+  const waiting = Math.max(candidates - sent, 0);
+  const sentPart = `Sent ${sent} reminder${sent === 1 ? "" : "s"}.`;
+  const waitingPart =
+    waiting > 0
+      ? ` ${waiting} more ${waiting === 1 ? "person is" : "people are"} still waiting - they'll be reminded over the next mornings (about 50 a day).`
+      : "";
+  return { ok: sentPart + waitingPart };
 }
 
 /**

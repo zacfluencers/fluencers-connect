@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getAdminStats } from "@/lib/admin-queries";
 import { AdminNudgePreviewButton } from "@/components/AdminNudgePreviewButton";
 import { AdminMaintenanceButton } from "@/components/AdminMaintenanceButton";
-import { adminMirrorAvatars } from "@/app/actions/admin";
+import { adminMirrorAvatars, adminSendProfileNudges } from "@/app/actions/admin";
 import { gbp } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -71,6 +71,21 @@ export default async function AdminOverviewPage() {
       <section className="grid gap-4 sm:grid-cols-2">
         <AdminNudgePreviewButton
           pending={s.creatorsPending + s.brandsPending}
+        />
+        <AdminMaintenanceButton
+          title="Send profile reminders now"
+          description={
+            s.creatorsPending + s.brandsPending === 0
+              ? "Nobody is waiting on a reminder right now. Runs automatically each morning (09:30 UK)."
+              : `${s.creatorsPending + s.brandsPending} ${
+                  s.creatorsPending + s.brandsPending === 1
+                    ? "person has"
+                    : "people have"
+                } signed up without finishing a profile. This sends the next batch now (about 50, oldest first) instead of waiting for the 09:30 UK job. Safe to click more than once - nobody is emailed twice.`
+          }
+          label="Send reminders now"
+          pendingLabel="Sending…"
+          action={adminSendProfileNudges}
         />
         <AdminMaintenanceButton
           title="Imported profile photos"
