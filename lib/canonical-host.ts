@@ -52,6 +52,15 @@ export function canonicalRedirect(args: {
     return null;
   }
 
+  // Never redirect /api routes. These are machine-to-machine callers - Vercel
+  // Cron and webhooks - that hit the generated *.vercel.app host directly and
+  // do NOT follow redirects, so a 307 here makes the job silently no-op. They
+  // also don't depend on the login cookie the canonical-host rule exists to
+  // protect. This is exactly what broke the daily jobs: the redirect landed on
+  // 21 Jul and every cron (profile reminders included) has bounced off it
+  // before its handler ran ever since.
+  if (target.pathname.startsWith("/api/")) return null;
+
   // Carry the path and query across, so an email link lands where it meant to
   // rather than dumping the visitor on the home page.
   return `${canonical.origin}${target.pathname}${target.search}`;

@@ -72,4 +72,28 @@ describe("canonicalRedirect", () => {
   it("does nothing without a host header", () => {
     expect(call({ host: null })).toBeNull();
   });
+
+  // The bug that killed every scheduled job: Vercel Cron calls the handler on
+  // the generated *.vercel.app host and does not follow redirects, so a 307
+  // here means the job never runs. /api routes must pass straight through.
+  it("never redirects cron or webhook /api routes", () => {
+    expect(
+      call({ requestUrl: `https://${GENERATED}/api/cron/nudge-profiles` }),
+    ).toBeNull();
+    expect(
+      call({
+        requestUrl: `https://${GENERATED}/api/cron/refresh-social?cohort=active`,
+      }),
+    ).toBeNull();
+    expect(
+      call({ requestUrl: `https://${GENERATED}/api/webhooks/stripe` }),
+    ).toBeNull();
+  });
+
+  // Pages still get sent to the canonical host - the fix is scoped to /api only.
+  it("still redirects normal page views", () => {
+    expect(
+      call({ requestUrl: `https://${GENERATED}/dashboard/creator` }),
+    ).toBe("https://connect.fluencersgroup.com/dashboard/creator");
+  });
 });
