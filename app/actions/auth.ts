@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { checkEmailShape } from "@/lib/email-validation";
 import { checkEmailDomain } from "@/lib/email-domain";
+import { checkSignupAbuse } from "@/lib/signup-abuse";
 import type { UserRole } from "@/lib/types";
 
 export type AuthState = { error: string } | null;
@@ -35,6 +36,12 @@ export async function signUp(
     const fix = shape.suggestion ? ` Did you mean ${shape.suggestion}?` : "";
     return { error: `We couldn't find that email provider - check the spelling.${fix}` };
   }
+
+  // Turn away the automated junk signups we started seeing in Aug 2026 - phone
+  // text-message gateways and Gmail "dot-scatter" (one inbox posing as many).
+  // Conservative on purpose: a normal address always passes. See lib/signup-abuse.ts.
+  const abuse = checkSignupAbuse(email);
+  if (!abuse.ok) return { error: abuse.reason ?? "That email can't be used." };
 
   // Where the confirmation email should land them once the account is live.
   // Without this Supabase falls back to the project's Site URL - the home page
