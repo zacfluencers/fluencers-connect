@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { signIn, signUp, type AuthState } from "@/app/actions/auth";
 import { Field, Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Captcha, type CaptchaHandle } from "@/components/ui/Captcha";
 
 export function AuthForm({
   mode,
@@ -18,6 +19,15 @@ export function AuthForm({
     action,
     null,
   );
+
+  // The bot check (Turnstile) supplies a one-time token. Wait for it before
+  // letting the form submit, and get a fresh one if the attempt comes back
+  // with an error, since the old token is already spent.
+  const captcha = useRef<CaptchaHandle>(null);
+  const [captchaReady, setCaptchaReady] = useState(false);
+  useEffect(() => {
+    if (state?.error) captcha.current?.reset();
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-4">
@@ -62,7 +72,18 @@ export function AuthForm({
         </p>
       )}
 
-      <Button type="submit" disabled={pending} className="w-full" size="lg">
+      <Captcha
+        ref={captcha}
+        action={mode}
+        onReadyChange={setCaptchaReady}
+      />
+
+      <Button
+        type="submit"
+        disabled={pending || !captchaReady}
+        className="w-full"
+        size="lg"
+      >
         {pending
           ? "Please wait…"
           : mode === "login"

@@ -18,6 +18,10 @@ export async function signUp(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const role = String(formData.get("role") ?? "brand") as UserRole;
+  // Bot-check token from the Turnstile widget. Supabase verifies it when
+  // CAPTCHA protection is switched on; it's ignored while that's off, so this
+  // is safe whether or not the dashboard toggle is enabled yet.
+  const captchaToken = String(formData.get("captchaToken") ?? "");
 
   if (!email || !password) return { error: "Email and password are required." };
   if (role !== "brand" && role !== "creator") return { error: "Pick a role." };
@@ -59,6 +63,7 @@ export async function signUp(
     email,
     password,
     options: {
+      captchaToken,
       data: { role },
       emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
     },
@@ -82,10 +87,15 @@ export async function signIn(
 ): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const captchaToken = String(formData.get("captchaToken") ?? "");
   if (!email || !password) return { error: "Email and password are required." };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+    options: { captchaToken },
+  });
   if (error) return { error: error.message };
 
   // Send creators to their dashboard, brands to the marketplace.
@@ -113,6 +123,7 @@ export async function requestPasswordReset(
   formData: FormData,
 ): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim();
+  const captchaToken = String(formData.get("captchaToken") ?? "");
   if (!email) return { error: "Enter your email address." };
 
   const h = await headers();
@@ -123,6 +134,7 @@ export async function requestPasswordReset(
   // The link lands on /auth/callback, which exchanges it for a session and
   // forwards to /reset-password where they choose a new password.
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    captchaToken,
     redirectTo: `${origin}/auth/callback?next=/reset-password`,
   });
   // Don't reveal whether an account exists — always show the same confirmation.

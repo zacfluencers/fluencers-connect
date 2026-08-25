@@ -1,16 +1,23 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { requestPasswordReset, type AuthState } from "@/app/actions/auth";
 import { Field, Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Captcha, type CaptchaHandle } from "@/components/ui/Captcha";
 
 export function ForgotPasswordForm() {
   const [state, formAction, pending] = useActionState<AuthState, FormData>(
     requestPasswordReset,
     null,
   );
+
+  const captcha = useRef<CaptchaHandle>(null);
+  const [captchaReady, setCaptchaReady] = useState(false);
+  useEffect(() => {
+    if (state?.error) captcha.current?.reset();
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-4">
@@ -24,7 +31,14 @@ export function ForgotPasswordForm() {
         </p>
       )}
 
-      <Button type="submit" disabled={pending} className="w-full" size="lg">
+      <Captcha ref={captcha} action="reset" onReadyChange={setCaptchaReady} />
+
+      <Button
+        type="submit"
+        disabled={pending || !captchaReady}
+        className="w-full"
+        size="lg"
+      >
         {pending ? "Sending…" : "Send reset link"}
       </Button>
 
