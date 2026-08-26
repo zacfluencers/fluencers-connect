@@ -69,8 +69,12 @@ export async function Nav() {
             ))}
           </div>
         ) : (
+          /* Signed-out: Browse plus the two audience landing pages that funnel
+             the mailing campaigns. Hidden once someone is logged in. */
           <div className="ml-2 hidden items-center gap-1 text-sm sm:flex">
             <NavLink href={links[0].href}>{links[0].label}</NavLink>
+            <NavLink href="/creators">For creators</NavLink>
+            <NavLink href="/for-brands">For brands</NavLink>
           </div>
         )}
 
