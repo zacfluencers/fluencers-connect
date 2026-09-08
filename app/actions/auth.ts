@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { checkEmailShape } from "@/lib/email-validation";
 import { checkEmailDomain } from "@/lib/email-domain";
 import { checkSignupAbuse } from "@/lib/signup-abuse";
+import { friendlyAuthError } from "@/lib/auth-errors";
 import type { UserRole } from "@/lib/types";
 
 export type AuthState = { error: string } | null;
@@ -68,7 +69,7 @@ export async function signUp(
       emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
-  if (error) return { error: error.message };
+  if (error) return { error: friendlyAuthError(error.message) };
 
   // If email confirmation is on, there's no session yet.
   if (!data.session) {
@@ -96,7 +97,7 @@ export async function signIn(
     password,
     options: { captchaToken },
   });
-  if (error) return { error: error.message };
+  if (error) return { error: friendlyAuthError(error.message) };
 
   // Send creators to their dashboard, brands to the marketplace.
   const { data } = await supabase.auth.getUser();
@@ -139,7 +140,7 @@ export async function requestPasswordReset(
   });
   // Don't reveal whether an account exists — always show the same confirmation.
   if (error && !/rate|limit/i.test(error.message)) {
-    return { error: error.message };
+    return { error: friendlyAuthError(error.message) };
   }
 
   redirect("/forgot-password?sent=1");
