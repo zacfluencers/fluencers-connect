@@ -27,11 +27,14 @@ export function SubscribeCallout({
   // flashes in. localStorage can throw (private mode) - treat that as "show".
   const [visible, setVisible] = useState(false);
   useEffect(() => {
+    let dismissed = false;
     try {
-      if (localStorage.getItem(storageKey) !== "1") setVisible(true);
+      dismissed = localStorage.getItem(storageKey) === "1";
     } catch {
-      setVisible(true);
+      dismissed = false; // storage blocked (private mode) - show the banner
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of a client-only dismissal flag on mount
+    if (!dismissed) setVisible(true);
   }, [storageKey]);
 
   function dismiss() {
