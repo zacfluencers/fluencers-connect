@@ -5,6 +5,7 @@ import { brandCanTransact } from "@/lib/subscription";
 import { getMyNotifications, getUnreadNotificationCount } from "@/lib/queries";
 import { signOut } from "@/app/actions/auth";
 import { ButtonLink } from "@/components/ui/Button";
+import { SubscribeButton } from "@/components/subscribe/SubscribeButton";
 import { Logo } from "@/components/Logo";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
@@ -82,9 +83,9 @@ export async function Nav() {
           {me ? (
             <>
               {locked && (
-                <ButtonLink href="/dashboard/brand" size="sm">
+                <SubscribeButton size="sm" reason="Subscribe to book creators, message them and save shortlists.">
                   Subscribe
-                </ButtonLink>
+                </SubscribeButton>
               )}
               <NotificationBell notifications={notifications} unread={unread} />
 

@@ -7,12 +7,34 @@ import { getCurrentUser } from "@/lib/session";
 import { stripe, isStripeConfigured, getBaseUrl } from "@/lib/stripe/server";
 import {
   getBrandPlanPrice,
+  getBrandPlanOptions,
   subscriptionToRow,
   upsertBrandBilling,
 } from "@/lib/stripe/billing";
-import { BRAND_PLANS, type BrandPlanKey } from "@/lib/billing-plans";
+import {
+  BRAND_PLANS,
+  type BrandPlanKey,
+  type BrandPlanDisplay,
+} from "@/lib/billing-plans";
 
 type ActionResult = { error: string } | void;
+
+/**
+ * The plans to show in the subscribe popup, fetched on demand when a brand
+ * actually opens it - so normal browsing never pays for a Stripe price lookup.
+ * Returns [] for non-brands or when billing isn't configured.
+ */
+export async function getBrandPlansForModal(): Promise<BrandPlanDisplay[]> {
+  const me = await getCurrentUser();
+  if (!me || me.role !== "brand") return [];
+  const options = await getBrandPlanOptions();
+  return options.map((o) => ({
+    key: o.key,
+    label: o.label,
+    blurb: o.blurb,
+    priceLabel: o.priceLabel,
+  }));
+}
 
 /**
  * Start a brand subscription via Stripe Checkout in SUBSCRIPTION mode, for the

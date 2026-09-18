@@ -16,6 +16,7 @@ import { BrandCard } from "@/components/BrandCard";
 import { getOfficialBrandIds } from "@/lib/admin";
 import { BrandProfileForm } from "@/components/BrandProfileForm";
 import { BrandSubscription } from "@/components/BrandSubscription";
+import { SubscribeCallout } from "@/components/subscribe/SubscribeCallout";
 import { Panel, Stat } from "@/components/ui/DashboardPanel";
 import { Avatar } from "@/components/Avatar";
 import { ButtonLink } from "@/components/ui/Button";
@@ -79,6 +80,17 @@ export default async function BrandDashboard({
         </div>
         <ButtonLink href="/marketplace">Book a creator</ButtonLink>
       </header>
+
+      {!subscribed && (
+        <div className="mt-8">
+          <SubscribeCallout
+            storageKey="sub-callout-dashboard"
+            heading="You're browsing on a free account"
+            body="Subscribe to book creators, message them and save shortlists. Your plan options are below - or open them here."
+            reason="Subscribe to book creators, message them and save shortlists."
+          />
+        </div>
+      )}
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
         {/* ----------------------------------------------------- Left rail */}

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { CreatorCard } from "@/components/CreatorCard";
 import { MarketplaceFilters } from "@/components/MarketplaceFilters";
+import { SubscribeCallout } from "@/components/subscribe/SubscribeCallout";
 import { Pagination } from "@/components/ui/Pagination";
 import { paginate } from "@/lib/paginate";
 import { Reveal } from "@/components/ui/motion";
@@ -166,6 +167,18 @@ export default async function MarketplacePage({
 
   return (
     <Shell>
+      {locked && (
+        <div className="mb-8">
+          <SubscribeCallout
+            storageKey="sub-callout-marketplace"
+            heading="Browsing as a free account"
+            body="Prices, booking and messaging unlock when you subscribe. Take your time - subscribe when you've found the right creator."
+            reason="Subscribe to see pricing, book creators and message them directly."
+            cta="See plans"
+          />
+        </div>
+      )}
+
       <div className="mb-8">
         <MarketplaceFilters />
       </div>

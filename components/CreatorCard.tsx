@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { AutoBookButton } from "@/components/AutoBookButton";
 import { MessageCreatorButton } from "@/components/MessageCreatorButton";
+import { SubscribeButton } from "@/components/subscribe/SubscribeButton";
 import { InstagramIcon, TikTokIcon } from "@/components/SocialIcons";
 import {
   gbp,
@@ -200,12 +201,13 @@ export function CreatorCard({
             above it, however full the card is. */}
         {viewerRole === "brand" && locked && (
           <div className="mt-auto pt-6">
-            <Link
-              href="/dashboard/brand"
-              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+            <SubscribeButton
+              className="w-full"
+              size="md"
+              reason={`Subscribe to see ${creator.name.split(" ")[0]}'s pricing, book them and send a message.`}
             >
               Subscribe to see more
-            </Link>
+            </SubscribeButton>
           </div>
         )}
 

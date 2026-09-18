@@ -8,6 +8,7 @@ import { InAppBrowserNotice } from "@/components/InAppBrowserNotice";
 import { Nav } from "@/components/Nav";
 import { SentryUser } from "@/components/SentryUser";
 import { SiteChrome } from "@/components/SiteChrome";
+import { SubscribeModalProvider } from "@/components/subscribe/SubscribeModalProvider";
 import { SanityLive } from "@/lib/sanity/live";
 
 const inter = Inter({
@@ -30,9 +31,14 @@ export default async function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen font-[family-name:var(--font-sans)] antialiased">
         <InAppBrowserNotice />
-        <SiteChrome nav={<Nav />} extras={<AgentationProvider />}>
-          {children}
-        </SiteChrome>
+        {/* One shared subscribe popup for the whole app. Any button (nav,
+            creator cards, banners) opens it via useSubscribe(); plans load
+            on first open, so normal page loads cost nothing extra. */}
+        <SubscribeModalProvider>
+          <SiteChrome nav={<Nav />} extras={<AgentationProvider />}>
+            {children}
+          </SiteChrome>
+        </SubscribeModalProvider>
         {/* Attributes errors to an account so Sentry can count affected users. */}
         <SentryUser />
         {/* Live content + click-to-edit overlays (overlays only in preview). */}

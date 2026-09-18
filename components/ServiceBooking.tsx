@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { createBookingCheckout } from "@/app/actions/payments";
+import { SubscribeButton } from "@/components/subscribe/SubscribeButton";
 import { gbp } from "@/lib/format";
 import type { ServiceType } from "@/lib/services";
 
@@ -101,12 +102,13 @@ export function ServiceBooking({
         <p className="mt-4 text-sm text-[var(--muted)]">
           Subscribe to see pricing, book, and message creators.
         </p>
-        <Link
-          href="/dashboard/brand"
-          className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-[var(--accent-2)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#9079f0]"
+        <SubscribeButton
+          className="mt-3 w-full rounded-full"
+          size="md"
+          reason="Subscribe to see pricing, book creators and message them directly."
         >
           Subscribe to see more
-        </Link>
+        </SubscribeButton>
       </div>
     );
   }

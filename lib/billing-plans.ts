@@ -25,6 +25,30 @@ export type BrandPlanKey = keyof typeof BRAND_PLANS;
 
 export const BRAND_PLAN_KEYS = Object.keys(BRAND_PLANS) as BrandPlanKey[];
 
+/**
+ * A plan as shown to the brand (label + resolved price text). Client-safe, so
+ * both the dashboard panel and the subscribe popup can share the shape without
+ * pulling in the Stripe SDK.
+ */
+export interface BrandPlanDisplay {
+  key: BrandPlanKey;
+  label: string;
+  blurb: string;
+  /** Human label like "£19 / week" or "£299 / year". */
+  priceLabel: string;
+}
+
+/**
+ * What a brand unlocks by subscribing - the single source of truth for the
+ * selling points shown in the popup, the welcome page and the nudge banners.
+ */
+export const BRAND_SUBSCRIBER_BENEFITS = [
+  "Book any creator at their listed price",
+  "Message creators directly",
+  "Save creators to shortlists",
+  "List your brand so creators come to you",
+] as const;
+
 /** Subscription statuses that count as "the brand currently has a plan". */
 export const ACTIVE_SUB_STATUSES = ["active", "trialing", "past_due"];
 
